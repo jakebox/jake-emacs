@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: Insert Title and Date
+# key: <t
+# --
+#+TITLE: ${1:title}
+#+AUTHOR: Jake B
+#+DATE: `(let ((x (org-insert-time-stamp nil nil t ))))`
+:PROPERTIES:
+#+OPTIONS:
+:END:
+
+$0

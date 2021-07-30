@@ -1,0 +1,46 @@
+#+startup: beamer
+#+LANGUAGE:  en
+
+Org export options
+#+OPTIONS:   num:t toc:2 ::t |:t ^:{} -:t f:t *:t <:t
+#+OPTIONS:   tex:t d:nil todo:t pri:nil tags:nil
+#+OPTIONS:   timestamp:nil
+#+SELECT_TAGS: export
+#+EXCLUDE_TAGS: noexport
+#+PROPERTY: header-args :eval never-export
+
+Beamer configuration
+#+LaTeX_CLASS: beamer
+#+LaTeX_CLASS_OPTIONS: [c,17pt, bigger, mathserif]
+#+COLUMNS: %20ITEM %13BEAMER_env(Env) %6BEAMER_envargs(Args) %4BEAMER_col(Col) %7BEAMER_extra(Extra)
+#+OPTIONS: H:2
+
+Theme configuration
+#+BEAMER_THEME: Madrid
+#+BEAMER_HEADER: \setbeamertemplate{navigation symbols}{}
+
+Title slides before new sections begin
+#+BEAMER_HEADER: \AtBeginSection[]{
+#+BEAMER_HEADER:   \begin{frame}
+#+BEAMER_HEADER:   \vfill
+#+BEAMER_HEADER:   \centering
+#+BEAMER_HEADER:   \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+#+BEAMER_HEADER:     \usebeamerfont{title}\insertsectionhead\par%
+#+BEAMER_HEADER:   \end{beamercolorbox}
+#+BEAMER_HEADER:   \vfill
+#+BEAMER_HEADER:   \end{frame}
+#+BEAMER_HEADER: }
+
+# #+BEAMER_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
+#+BEAMER: \setbeamercovered{transparent=30}
+#+BEAMER_HEADER: \setbeamertemplate{caption}[numbered] % Numbers figures
+
+#+BEAMER_HEADER: \setbeamertemplate{footline}{
+#+BEAMER_HEADER:     \hbox{%
+#+BEAMER_HEADER:     \begin{beamercolorbox}[wd=\paperwidth,ht=3ex,dp=1.5ex,leftskip=2ex,rightskip=2ex]{page footer}%
+#+BEAMER_HEADER:         \usebeamerfont{title in head/foot}%
+#+BEAMER_HEADER:         \insertshorttitle \hfill
+#+BEAMER_HEADER:             \insertsection \hfill
+#+BEAMER_HEADER:         \insertframenumber{} / \inserttotalframenumber
+#+BEAMER_HEADER:     \end{beamercolorbox}}%
+#+BEAMER_HEADER: }

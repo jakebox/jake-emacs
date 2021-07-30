@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: HTML Setupfile
+# key: <setuphtml
+# --
+#+SETUPFILE: ~/Dropbox/Mackup/emacs-stuff/org/setupfiles_html$0

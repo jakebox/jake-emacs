@@ -1,0 +1,94 @@
+Jake LaTeX Standard Export
+
+#+LaTeX_CLASS: org-plain-latex
+#+LaTeX_CLASS_OPTIONS: [letterpaper, 11pt]
+#+LATEX_HEADER: \usepackage{lmodern} % Ensures we have the right font
+
+#+LATEX_HEADER: \usepackage[T1]{fontenc}
+#+LATEX_HEADER: \usepackage[AUTO]{inputenc}
+#+LATEX_HEADER: \usepackage{graphicx}
+#+LATEX_HEADER: \usepackage{amsmath, amsthm, amssymb}
+#+LATEX_HEADER: \usepackage[table, xcdraw]{xcolor}
+
+% Colorizing links in a nicer way.
+#+LATEX_HEADER: \definecolor{bblue}{HTML}{0645AD}
+#+LATEX_HEADER: \usepackage[colorlinks]{hyperref}
+#+LATEX_HEADER: \hypersetup{colorlinks, linkcolor=blue, urlcolor=bblue}
+
+% Moving up the title.
+#+LATEX_HEADER: \usepackage{titling}
+#+LATEX_HEADER: \setlength{\droptitle}{-6em}
+
+#+LATEX_HEADER: \setlength{\parindent}{2em}
+#+LATEX_HEADER: \setlength{\parskip}{0.3em}
+#+LATEX_HEADER: \usepackage[stretch=10]{microtype}
+#+LATEX_HEADER: \usepackage{hyphenat}
+#+LATEX_HEADER: \usepackage{ragged2e}
+#+LATEX_HEADER: \usepackage{subfig} % Subfigures (not needed in Org I think)
+#+LATEX_HEADER: \usepackage{hyperref} % Links
+#+LATEX_HEADER: \usepackage{listings} % Code highlighting
+% Disables flush alighment on the right side. Personal preference.
+
+% Page geometry
+#+LATEX_HEADER: \usepackage[top=1in, bottom=1.25in, left=1.45in, right=1.55in]{geometry}
+
+% Line spacing
+#+LATEX_HEADER: \renewcommand{\baselinestretch}{1.12}
+
+% Page numbering - this disables it
+# #+LATEX_HEADER: \pagenumbering{gobble}
+
+% Spacing, titling, text setting.
+#+LATEX_HEADER: \usepackage[explicit]{titlesec}
+
+% Title customization
+#+LATEX_HEADER: \pretitle{\begin{center}\fontsize{20pt}{20pt}\selectfont}
+#+LATEX_HEADER: \posttitle{\par\end{center}}
+#+LATEX_HEADER: \preauthor{\begin{center}\vspace{-6bp}\fontsize{14pt}{14pt}\selectfont}
+#+LATEX_HEADER: \postauthor{\par\end{center}\vspace{-25bp}}
+
+#+LATEX_HEADER: \predate{\begin{center}\fontsize{12pt}{12pt}\selectfont}
+#+LATEX_HEADER: \postdate{\par\end{center}\vspace{0em}}
+
+#+LATEX_HEADER: \usepackage{multicol}
+
+% Section/subsection headings:
+
+%Section
+#+LATEX_HEADER: \titlespacing\section{0pt}{5pt}{5pt} % left margin, space before section header, space after section header
+
+%Subsection
+#+LATEX_HEADER: \titlespacing\subsection{0pt}{5pt}{-2pt} % left margin, space before subsection header, space after subsection header
+
+%Subsubsection
+#+LATEX_HEADER: \titlespacing\subsubsection{0pt}{5pt}{-2pt} % left margin, space before subsection header, space after subsection header 
+
+% Lists ----
+
+% List spacing
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist{itemsep=-2pt} % or \setlist{noitemsep} to leave space around whole list
+
+% Ordered list bullets
+#+LATEX_HEADER: \setenumerate[1]{label=\arabic*.}
+#+LATEX_HEADER: \setenumerate[2]{label=\Alpha*.}
+#+LATEX_HEADER: \setenumerate[3]{label=\roman*.}
+#+LATEX_HEADER: \setenumerate[4]{label=\alpha*.}
+
+% Unordered list bullets
+#+LATEX_HEADER: \renewcommand{\labelitemi}{\textbullet}
+#+LATEX_HEADER: \renewcommand{\labelitemii}{\textopenbullet}
+#+LATEX_HEADER: \renewcommand{\labelitemiii}{\textendash}
+
+
+# %Section
+# #+LATEX_HEADER: \titleformat{\section} {\Large}{\thesection}{1em}{\textbf{#1}} % Section header formatting
+# #+LATEX_HEADER: \titlespacing\section{0pt}{5pt}{-5pt} % left margin, space before section header, space after section header
+
+# %Subsection
+# #+LATEX_HEADER: \titleformat{\subsection} {\large}{\thesubsection}{1em}{\textbf{#1}}
+\titlespacing\subsection{0pt}{5pt}{-5pt} % left margin, space before subsection header, space after subsection header
+
+# %Subsubsection
+# #+LATEX_HEADER: \titleformat{\subsubsection} {\large}{\thesubsubsection}{1em}{#1}
+\titlespacing\subsubsection{0pt}{5pt}{-5pt} % left margin, space before subsection header, space after subsection header

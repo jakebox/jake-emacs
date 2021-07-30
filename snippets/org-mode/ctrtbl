@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Center and Configure Org Table
+# key: <ctrtbl
+# --
+#+CAPTION: 
+#+ATTR_HTML: :border 2 :rules all :frame border :align center
+$0

@@ -1,0 +1,41 @@
+LaTeX Speech Configuration
+By Jake B.
+Large margins, large font, good spacing, title page, page numbering.
+
+Disable TOC
+#+OPTIONS: toc:nil
+
+Redefines the title command to be the same, but with a \clearpage after,
+basically so we have a title page.
+Requires enabling (org-export-allow-bind-keywords).
+#+BIND: org-latex-title-command "\\maketitle \\clearpage"
+
+#+LATEX_CLASS: org-plain-latex
+#+LATEX_CLASS_OPTIONS: [letterpaper, 17pt]
+#+LATEX_HEADER: \usepackage{libertinus}
+#+LATEX_HEADER: \usepackage[T1]{fontenc}
+#+LATEX_HEADER: \usepackage{graphicx}
+#+LATEX_HEADER: \usepackage[table, xcdraw]{xcolor}
+#+LATEX_HEADER: \definecolor{bblue}{HTML}{0645AD}
+#+LATEX_HEADER: \usepackage[colorlinks]{hyperref}
+#+LATEX_HEADER: \hypersetup{colorlinks, linkcolor=blue, urlcolor=bblue}
+#+LATEX_HEADER: \usepackage{titling}
+#+LATEX_HEADER: \setlength{\parindent}{2em} % Indentation at beginning of paragraph
+#+LATEX_HEADER: \setlength{\parskip}{1em} % Space between paras
+#+LATEX_HEADER: \usepackage[stretch=10]{microtype} % Better looking type
+#+LATEX_HEADER: \usepackage[none]{hyphenat} % Disable hyphenation
+#+LATEX_HEADER: \usepackage{hyperref} % Links
+#+LATEX_HEADER: \usepackage[top=1.00in, bottom=1.25in, left=1.05in, right=1.25in]{geometry}
+#+LATEX_HEADER: \renewcommand{\baselinestretch}{1.45}
+#+LATEX_HEADER: \usepackage[explicit]{titlesec}
+#+LATEX_HEADER: \titlespacing\section{0pt}{0pt}{-5pt} % left margin, space before section header, space after section header
+#+LATEX_HEADER: \titlespacing\subsection{0pt}{5pt}{-2pt} % left margin, space before subsection header, space after subsection header
+#+LATEX_HEADER: \titlespacing\subsubsection{0pt}{5pt}{-2pt} % left margin, space before subsection header, space after subsection header
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist{itemsep=-2pt} % or \setlist{noitemsep} to leave space around whole list
+
+Stuff to make speech easier
+#+LATEX_HEADER: \usepackage{marginnote} % Margin notes
+#+LATEX_HEADER: \renewcommand*\marginfont{\footnotesize}
+#+LATEX_HEADER: \usepackage{fwlw}
+#+LATEX_HEADER: \pagestyle{NextWordFoot} % Puts first word of next page on bottom of sheet

@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Org Elisp Src Block 
+# key: <esrc
+# --
+#+BEGIN_SRC emacs-lisp :tangle yes
+$0
+#+END_SRC
