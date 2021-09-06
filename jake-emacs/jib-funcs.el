@@ -31,6 +31,10 @@
   (interactive)
   (find-file-existing jib/init.org))
 
+(defun jib/open-buffer-file-mac ()
+  (interactive)
+  (shell-command (concat "open " (buffer-file-name))))
+
 ;; Automatically tangle our Emacs.org config file when we save it
 ;; from emacs-from-scratch
 (defun jib/org-babel-tangle-config ()
@@ -64,7 +68,7 @@
 (defun spacemacs/new-empty-buffer ()
   "Create a new buffer called untitled(<n>)"
   (interactive)
-  (let ((newbuf (generate-new-buffer-name "untitled")))
+  (let ((newbuf (generate-new-buffer-name "*scratch*")))
     (switch-to-buffer newbuf)))
 
 ;; found at http://emacswiki.org/emacs/KillingBuffers
@@ -122,6 +126,7 @@ If the universal prefix argument is used then will the windows too."
 (defun jib/paste-in-minibuffer ()
   (local-set-key (kbd "M-v") 'simpleclip-paste))
 
+
 ;; Uses simpleclip
 (defun jib/copy-whole-buffer-to-clipboard ()
   "Copy entire buffer to clipboard"
@@ -130,35 +135,54 @@ If the universal prefix argument is used then will the windows too."
   (simpleclip-copy (point-min) (point-max))
   (deactivate-mark))
 
+(defun jib/split-and-close-sentence ()
+  "Deletes current word, inserts a period, and capitalizes the next word -
+splits the sentence."
+  (interactive)
+  (kill-word 1)
+  (delete-backward-char 1)
+  (insert ".")
+  (capitalize-word 1))
+
 (defun jib/fzf ()
   "Allows you to select a folder to fzf"
   (interactive)
   (let ((current-prefix-arg '-)) ;; emulate C-u
     (call-interactively 'counsel-fzf)))
 
-;; DOES NOT WORK B/C I ARCHIVE TO MORE THAN JUST MY HOMEWORK-ARCHIVE FOLDER. WILL TRY TO WORK ON
-;; EVENTUALLY.
-
-;; ;; When archiving something to my homework archive, save the archive file and kill the buffer.
-;; ;; I rarely need to leave the buffer open and it just bothers me to have it in the list or to have to
-;; ;; save it manually. Adapted from: https://matthewbilyeu.com/blog/2019-09-28/auto-saving-org-archive-file
-;; (defconst homework-archive-file (concat org-directory "/org-archive/homework-archive.org_archive"))
-;; (defun save-homework-archive-file ()
-;;   (save-some-buffers 'no-confirm (lambda ()
-;;                                    (equal buffer-file-name
-;;                                           (expand-file-name homework-archive-file))))
-;;   (kill-buffer "homework-archive.org_archive"))
-;; (advice-add 'org-archive-subtree-default :after #'save-homework-archive-file)
-
-
 (defun jib/calc-speaking-time ()
   "Calculate how long it would take me to speak aloud the selection."
   (interactive)
-  (if (use-region-p)
-	  (let ((word-count (float (count-words-region (region-beginning) (region-end)))))
-		(let ((raw-time (/ word-count 150)))
-		  (message "%d minutes, %d seconds" (floor raw-time) (round (* 60 (- raw-time (floor raw-time)))))))))
+  (if (use-region-p) (let* ((wpm 150)
+							(word-count (float (count-words-region (region-beginning) (region-end))))
+							(raw-time (* 60 (/ word-count wpm))))
+					   (message "%s minutes, %s seconds to speak at %d wpm"
+								(format-seconds "%m" raw-time)
+								(floor(mod raw-time 60)) wpm))
+	(error "Error: select a region.")))
 
+(defun jib/listify (&optional count)
+  "Turn the region's (or count = n lines) into an orgmode list by appending a +."
+  (interactive "p")
+  (let ((lines (count-lines (region-beginning) (region-end)))) ;; By default grab a region
+	(if (> count 1) (setq lines count)) ;; but if there was an argument, override the # of lines
+	(save-excursion
+	  (if (use-region-p) ;; If there's a region go to the start and deactivate the region
+		  (goto-char (region-beginning)) (deactivate-mark))
+	  (while (> lines 0) ;; Add "+ " at the beginning of each line
+		(beginning-of-line)
+		(insert "+ ")
+		(next-line)
+		(setq lines (1- lines))))))
+
+(defun jib/org-tmp-html-export ()
+  "Export the current org file to a temporary HTML file and open."
+  (interactive)
+  (save-window-excursion
+	(org-html-export-as-html)
+	(write-file (concat (make-temp-file "jibemacsorg") ".html"))
+	(jib/open-buffer-file-mac)
+	(kill-this-buffer)))
 
 ;; https://www.reddit.com/r/emacs/comments/8qm1lb/new_orgcountwords_command/
 (defun ap/org-forward-to-entry-content (&optional unsafe)

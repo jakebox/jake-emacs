@@ -1,3 +1,4 @@
+# -*- mode: org; -*-
 Jake LaTeX Basic Notes Export
 
 #options toc:2 date:nil
@@ -6,9 +7,19 @@ Jake LaTeX Basic Notes Export
 #+LaTeX_CLASS_OPTIONS: [12pt]
 
 #+LATEX_HEADER: \author{} % so we get no error
-#+LATEX_HEADER: \usepackage[letterpaper, top=1in, bottom=1.0in, left=1.3in, right=1.45in, heightrounded, foot=38pt, headsep=0.5in]{geometry}
+
+* Page setup
+#+LATEX_HEADER: \usepackage[letterpaper, top=1in, bottom=1.0in, left=1.2in, right=1.35in, heightrounded, foot=38pt, headsep=0.5in]{geometry}
 #+LATEX_HEADER: \usepackage{fontspec}
 
+* Body config
+#+LATEX_HEADER: \setlength{\parindent}{0pt}
+#+LATEX_HEADER: \setlength{\parskip}{1em}
+#+LATEX_HEADER: \usepackage[stretch=10]{microtype}
+#+LATEX_HEADER: \renewcommand{\baselinestretch}{1.20}
+
+
+* Fonts
 #+LATEX_HEADER: \setromanfont[
 #+LATEX_HEADER: BoldFont=EB Garamond Bold,
 #+LATEX_HEADER: ItalicFont=EB Garamond Italic,
@@ -16,14 +27,15 @@ Jake LaTeX Basic Notes Export
 #+LATEX_HEADER: ]{EB Garamond Regular}
 
 #+LATEX_HEADER: \setsansfont[
-#+LATEX_HEADER: BoldFont=Public Sans Bold,
-#+LATEX_HEADER: ItalicFont=Public Sans Italic,
-#+LATEX_HEADER: BoldItalicFont=Public Sans Bold Italic
-#+LATEX_HEADER: ]{Public Sans Regular}
-#+LATEX_HEADER: \newfontfamily\semibf{Public Sans Medium}
+#+LATEX_HEADER: BoldFont=Fira Sans Medium,
+#+LATEX_HEADER: ItalicFont=Fira Sans Italic,
+#+LATEX_HEADER: BoldItalicFont=Fira Sans Medium Italic
+#+LATEX_HEADER: ]{Fira Sans Regular}
+#+LATEX_HEADER: \newfontfamily\extrabf{Fira Sans SemiBold}
 
 #+LATEX_HEADER: \setmonofont[Color={000000}, Scale=0.8]{Source Code Pro}
 
+* Packages
 #+LATEX_HEADER: \usepackage{graphicx}
 #+LATEX_HEADER: \usepackage{amsmath, amsthm, amssymb}
 #+LATEX_HEADER: \usepackage[table, xcdraw]{xcolor}
@@ -36,11 +48,7 @@ Jake LaTeX Basic Notes Export
 #+LATEX_HEADER: \settimeformat{ampmtime}
 #+LATEX_HEADER: \usepackage{multicol}
 
-#+LATEX_HEADER: \setlength{\parindent}{0pt}
-#+LATEX_HEADER: \setlength{\parskip}{1em}
-#+LATEX_HEADER: \usepackage[stretch=10]{microtype}
-#+LATEX_HEADER: \renewcommand{\baselinestretch}{1.00}
-
+* Title config
 #+LATEX_HEADER: \usepackage{titling}
 #+LATEX_HEADER: \pretitle{\vspace{-4em}\begin{center}\Huge\textbf}
 #+LATEX_HEADER: \posttitle{\par\end{center}}
@@ -49,7 +57,7 @@ Jake LaTeX Basic Notes Export
 #+LATEX_HEADER: \predate{\begin{center}\large}
 #+LATEX_HEADER: \postdate{\par\end{center}}
 
-% List config
+* Lists config
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setenumerate[1]{label=\arabic*.}
 #+LATEX_HEADER: \setenumerate[2]{label=\Alph*.}
@@ -65,27 +73,31 @@ Jake LaTeX Basic Notes Export
 #+LATEX_HEADER: \setlist[itemize]{leftmargin=!, topsep=1pt}
 #+LATEX_HEADER: \setlist[enumerate]{leftmargin=!, topsep=1pt}
 
+* Section heading config 
 #+LATEX_HEADER: \usepackage{titlesec}
 #+LATEX_HEADER: \definecolor{HeadingBlue}{HTML}{000000}
 #+LATEX_HEADER: \definecolor{SubheadingBlue}{HTML}{000000}
 
-#+LATEX_HEADER: \titleformat*{\section}{\large\bfseries\sffamily\color{HeadingBlue}}
-#+LATEX_HEADER: \titleformat*{\subsection}{\fontsize{13}{13}\semibf{\sffamily\color{SubheadingBlue}}}
-#+LATEX_HEADER: \titleformat*{\subsubsection}{\fontsize{12}{12}\semibf{\sffamily\color{SubheadingBlue}}}
-+LATEX_HEADER: \titleformat*{\paragraph}{\fontsize{12}{12}\semibf{\sffamily\color{SubheadingBlue}}}
-#+LATEX_HEADER: \titleformat{\paragraph}{\fontsize{11}{11}\sffamily}{}{0pt}{}
+#+LATEX_HEADER: \setcounter{secnumdepth}{5}
 
-% left margin, space before section header, space after section header
+#+LATEX_HEADER: \titleformat*{\section}{\Large\extrabf{\sffamily\color{HeadingBlue}}}
+#+LATEX_HEADER: \titleformat*{\subsection}{\fontsize{13}{13}\bfseries\sffamily\color{SubheadingBlue}}
+#+LATEX_HEADER: \titleformat*{\subsubsection}{\fontsize{12}{12}\bfseries\sffamily\color{SubheadingBlue}}
+#+LATEX_HEADER: \titleformat{\paragraph}{\fontsize{12}{12}\sffamily}{\theparagraph}{0pt}{}
+
+left margin, space before section header, space after section header
 #+LATEX_HEADER: \titlespacing{\section}{0pt}{15pt plus 4pt minus 2pt}{3pt plus 10pt minus 2pt}
 #+LATEX_HEADER: \titlespacing{\subsection}{0pt}{0pt plus 15pt minus 2pt}{0pt plus 5pt minus 3pt}
 #+LATEX_HEADER: \titlespacing{\subsubsection}{0pt}{0pt plus 10pt minus 3pt}{-3pt plus 7pt minus 3pt}
-#+LATEX_HEADER: \titlespacing{\paragraph}{20pt}{0pt plus 0pt minus 4pt}{-5pt plus 7pt minus 3pt}
+#+LATEX_HEADER: \titlespacing{\paragraph}{5pt}{0pt plus 0pt minus 4pt}{-5pt plus 7pt minus 3pt}
 
+* TOC config
 #+LATEX_HEADER: \renewcommand*\contentsname{Table of Contents}
 #+LATEX_HEADER: \usepackage{tocloft}
 #+LATEX_HEADER: \setlength{\cftbeforesecskip}{6pt}
 #+LATEX_HEADER: \setlength{\cftbeforesubsecskip}{0pt}
 
+* Header config
 #+LATEX_HEADER: \usepackage{fancyhdr}
 #+LATEX_HEADER: \pagestyle{fancy}
 #+LATEX_HEADER: \fancyhf{}

@@ -12,9 +12,10 @@
 ;; ------- The following code was auto-tangled from an Orgmode file. ------- ;;
 
 (require 'package)
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("org"   . "https://orgmode.org/elpa/")
-                         ("gnu"   . "https://elpa.gnu.org/packages/")))
+(setq package-archives '(("melpa"  . "https://melpa.org/packages/")
+                         ("org"    . "https://orgmode.org/elpa/")
+                         ("gnu"    . "https://elpa.gnu.org/packages/")
+                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 
 ;; Package list
 (setq package-list '(
@@ -26,7 +27,7 @@
                      company counsel ivy prescient company-prescient ivy-prescient
 
                      ;; Utilities/Modes
-                     auctex projectile web-mode python-mode pyvenv auto-virtualenv elpy
+                     auctex projectile web-mode python-mode pyvenv auto-virtualenv
 
                      ;; QOL (Quality-of-life) & "Utilities"
                      saveplace super-save simpleclip centered-cursor-mode
@@ -37,15 +38,15 @@
 
                      ;; Keyboard
                      evil which-key general smartparens hydra evil-surround
-                     evil-snipe evil-org
+                     evil-snipe evil-org evil-anzu
 
                      ;; Themes/Visuals
                      spacemacs-theme modus-themes doom-themes kaolin-themes dashboard
-                     solaire-mode centaur-tabs mixed-pitch visual-fill-column
+                     solaire-mode centaur-tabs mixed-pitch visual-fill-column diminish
                      doom-modeline hide-mode-line writeroom-mode all-the-icons all-the-icons-ivy-rich
 
                      ;; Org-related
-                     ox-reveal org-superstar org-super-agenda org-gcal toc-org org-ql
+                     ox-reveal ox-hugo org-superstar org-super-agenda org-gcal toc-org org-ql
                      org-appear org-ql
                      ))
 
@@ -65,6 +66,7 @@
 (setq use-package-verbose nil)
 
 (use-package gcmh
+  :diminish gcmh-mode
   :config
   (setq gcmh-idle-delay 5
         gcmh-high-cons-threshold (* 16 1024 1024))  ; 16mb
@@ -84,6 +86,8 @@
 
 (load (expand-file-name "jib-funcs.el" user-emacs-directory))
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(add-to-list 'load-path (directory-file-name (concat jib/emacs-stuff "/lisp")))
+
 (load custom-file)
 
 (setq bookmark-default-file (concat jib/emacs-stuff "/bookmarks"))
@@ -107,7 +111,7 @@
     (setq jib/computer "laptop")
   (setq jib/computer "desktop"))
 
-(setq jib-text-height 130)
+(defvar jib-text-height 130)
 
 (setq exec-path '("/usr/local/Cellar/pyenv-virtualenv/1.1.5/shims"
                   "/Users/jake/.pyenv/shims" "/usr/local/bin" "/bin"
@@ -148,6 +152,8 @@
 (setq-default truncate-lines t)
 
 (setq-default tab-width 4)
+
+(setq-default fill-column 80)
 
 (use-package paren
   ;; highlight matching delimiters
@@ -241,7 +247,7 @@
 (setq blink-cursor-interval 0.6)
 
 ;; Show current key-sequence in minibuffer ala 'set showcmd' in vim. Any
-(setq echo-keystrokes 0.8)
+;; (setq echo-keystrokes 0.8)
 
 
 ;; MISC OPTIMIZATIONS ----
@@ -274,6 +280,7 @@
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (use-package which-key
+  :diminish which-key-mode
   :init
   (which-key-mode)
   (which-key-setup-minibuffer)
@@ -284,6 +291,7 @@
   :init
   (setq evil-want-keybinding t)
   (setq evil-want-fine-undo t)
+  (setq evil-want-keybinding nil)
   :config
 
   (evil-set-initial-state 'dashboard-mode 'motion)
@@ -306,14 +314,23 @@
 
   (evil-mode 1))
 
+(use-package evil-collection
+  :after evil
+  :ensure t
+  :config
+  (evil-collection-init))
+
 (use-package evil-surround
   :defer 2
   :config
   (global-evil-surround-mode 1))
 
 (use-package evil-snipe
-  :defer t
-  )
+  :diminish evil-snipe-mode
+  :diminish evil-snipe-local-mode
+  :after evil
+  :config
+  (evil-snipe-mode +1))
 
 (use-package general
   :config
@@ -327,12 +344,12 @@
  "/" '(counsel-rg :which-key "ripgrep")
  ";" '(spacemacs/deft :which-key "deft")
  ":" '(projectile-find-file :which-key "p-find file")
- "." '(counsel-find-file :which-key "c-find file")
+ "." '(counsel-find-file :which-key "find file")
  "," '(counsel-recentf :which-key "recent files")
  "TAB" '(switch-to-prev-buffer :which-key "previous buffer")
  "SPC" '(counsel-M-x :which-key "M-x")
  "q" '(save-buffers-kill-terminal :which-key "quit emacs")
- "R" '(jump-to-register :which-key "registers")
+ "r" '(jump-to-register :which-key "registers")
 
 ;; "Applications"
 "a" '(nil :which-key "applications")
@@ -357,7 +374,7 @@
 
 ;; Files
 "f" '(nil :which-key "files")
-"fb" '(counsel-bookmark :which-key "bookmark")
+"fb" '(counsel-bookmark :which-key "bookmarks")
 "ff" '(counsel-find-file :which-key "find file")
 "fn" '(spacemacs/new-empty-buffer :which-key "new file")
 "fr" '(counsel-recentf :which-key "recent files")
@@ -365,18 +382,23 @@
 "fs" '(save-buffer :which-key "save buffer")
 "fS" '(evil-write-all :which-key "save all buffers")
 "fo" '(reveal-in-osx-finder :which-key "reveal in finder")
+"fO" '(jib/open-buffer-file-mac :which-key "open buffer file")
 
 ;; Jake
 "j" '(nil :which-key "jake")
 "jb" '((lambda() (interactive)(find-file (concat jib/dropbox "org/work.org"))) :which-key "work.org")
+"jc" '((lambda() (interactive)(find-file (concat jib/dropbox "org/cpb.org"))) :which-key "cpb.org")
+
 "jr" '(restart-emacs :which-key "restart emacs")
 
 "jh" '(nil :which-key "hydras")
 "jht" '(hydra-centaur-tabs/body :which-key "centaur tabs")
+"jht" '(hydra-theme-switcher/body :which-key "themes")
 
-"jm" '(nil :which-key "macros")
-"jml" '(jib|Listify :which-key "Listify")
+"jm" '(nil :which-key "macros/custom commands")
+"jml" '(jib/listify :which-key "Listify")
 "jmL" '(jib|SubListify :which-key "SubListify")
+"jmo" '(jib/org-tmp-html-export :which-key "org temp export")
 
 "jk" '(nil :which-key "agenda/ql")
 "jkq" '((lambda () (interactive) (org-ql-view "Jake QL Todo")) :which-key "jake ql")
@@ -386,17 +408,17 @@
 
 "hv" '(counsel-describe-variable :which-key "des. variable")
 "hb" '(counsel-descbinds :which-key "des. bindings")
-"hm" '(describe-mode :which-key "des. mode")
-
-"hM" '(nil :which-key "switch mode")
-"hME" '(emacs-lisp-mode :which-key "elisp mode")
-"hMO" '(org-mode :which-key "org mode")
-"hMT" '(text-mode :which-key "text mode")
-
+"hM" '(describe-mode :which-key "des. mode")
 "hf" '(counsel-describe-function :which-key "des. func")
 "hF" '(counsel-describe-face :which-key "des. face")
 "hk" '(describe-key :which-key "des. key")
+
 "hed" '(jib/edit-init :which-key "edit dotfile")
+
+"hm" '(nil :which-key "switch mode")
+"hme" '(emacs-lisp-mode :which-key "elisp mode")
+"hmo" '(org-mode :which-key "org mode")
+"hmt" '(text-mode :which-key "text mode")
 
 ;; Help/emacs
 "x" '(nil :which-key "text")
@@ -406,15 +428,17 @@
 
 ;; Toggles
 "t" '(nil :which-key "toggles")
-"tt" '(toggle-truncate-lines :which-key "truncate lines")
+"tT" '(toggle-truncate-lines :which-key "truncate lines")
 "tv" '(visual-line-mode :which-key "visual line mode")
-"tl" '(display-line-numbers-mode :which-key "display line numbers")
+"tn" '(display-line-numbers-mode :which-key "display line numbers")
 "ta" '(mixed-pitch-mode :which-key "variable pitch mode")
 "tc" '(visual-fill-column-mode :which-key "visual fill column mode")
-"tT" '(counsel-load-theme :which-key "load theme")
+"tt" '(counsel-load-theme :which-key "load theme")
 "tw" '(writeroom-mode :which-key "writeroom-mode")
-"tr" '(read-only-mode :which-key "read only mode")
+"tR" '(read-only-mode :which-key "read only mode")
 "tI" '(toggle-input-method :which-key "toggle input method")
+"tr" '(display-fill-column-indicator-mode :which-key "fill column indicator")
+"tm" '(hide-mode-line-mode :which-key "hide modeline mode")
 
 ;; Windows
 "w" '(nil :which-key "window")
@@ -483,6 +507,7 @@
  "c" '(org-capture :which-key "org-capture")
  "s" '(org-schedule :which-key "schedule")
  "d" '(org-deadline :which-key "deadline")
+ "g" '(counsel-org-goto :which-key "goto heading")
  "t" '(counsel-org-tag :which-key "set tags")
  "p" '(org-set-property :which-key "set property")
  "e" '(org-export-dispatch :which-key "export org")
@@ -521,63 +546,67 @@
  )
 
 ;; All-mode keymaps
-(general-def
-  :states '(normal visual insert motion emacs)
+ (general-def
+:keymaps 'override
 
-  ;; Emacs --------
-  "M-x" 'counsel-M-x
-  "ß" 'evil-window-next ;; option-s
-  "Í" 'other-frame ;; option-shift-s
-  "C-S-B" 'counsel-switch-buffer
+   ;; Emacs --------
+   "M-x" 'counsel-M-x
+   "ß" 'evil-window-next ;; option-s
+   "Í" 'other-frame ;; option-shift-s
+   "C-S-B" 'counsel-switch-buffer
 
-  ;; Remapping normal help features to use Counsel version
-  "C-h v" 'counsel-describe-variable
-  "C-h o" 'counsel-describe-symbol
-  "C-h f" 'counsel-describe-function
-  "C-h F" 'counsel-describe-face
+   ;; Remapping normal help features to use Counsel version
+   "C-h v" 'counsel-describe-variable
+   "C-h o" 'counsel-describe-symbol
+   "C-h f" 'counsel-describe-function
+   "C-h F" 'counsel-describe-face
 
 
-  ;; Editing ------
-  "M-v" 'simpleclip-paste
-  "M-V" 'evil-paste-after ;; shift-paste uses the internal clipboard
-  "M-c" 'simpleclip-copy
-  "M-u" 'capitalize-dwim ;; Default is upcase-dwim, but I rarely need to make a whole word capitalized, more often I just capitalize a word
+   ;; Editing ------
+   "M-v" 'simpleclip-paste
+   "M-V" 'evil-paste-after ;; shift-paste uses the internal clipboard
+   "M-c" 'simpleclip-copy
+   "M-u" 'capitalize-dwim ;; Default is upcase-dwim
+   "M-U" 'upcase-dwim ;; M-S-u (switch upcase and capitalize)
+   "C-c u" 'jib/split-and-close-sentence
 
-  ;; Utility ------
-  "C-c c" 'org-capture
-  "C-c a" 'org-agenda
-  "C-s" 'counsel-grep-or-swiper ;; Large files will use grep (faster)
-  "C-<tab>" 'centaur-tabs-forward-tab
-  "<C-S-tab>" 'centaur-tabs-backward-tab ;; Not sure why it all needs to be in <> but that's the only way this works
-  "s-\"" 'ispell-word ;; that's super-shift-'
+   ;; Utility ------
+   "C-c c" 'org-capture
+   "C-c a" 'org-agenda
+   "C-s" 'counsel-grep-or-swiper ;; Large files will use grep (faster)
+   "C-<tab>" 'centaur-tabs-forward-tab
+   "<C-S-tab>" 'centaur-tabs-backward-tab ;; Not sure why it all needs to be in <> but that's the only way this works
+   "s-\"" 'ispell-word ;; that's super-shift-'
+   "M-+" 'jib/calc-speaking-time
 
-  ;; super-number functions
-  "s-1" 'mw-thesaurus-lookup-dwim
-  "s-2" 'ispell-buffer
-  "s-3" 'revert-buffer
-  )
 
-;; Non-insert mode keymaps
-(general-def
-  :states '(normal visual motion)
-  "gc" 'comment-dwim
-  "j" 'evil-next-visual-line ;; I prefer visual line navigation
-  "k" 'evil-previous-visual-line ;; ""
-  "|" '(lambda () (interactive) (org-agenda nil "n")) ;; Opens my n custom org-super-agenda view
-  "C-|" '(lambda () (interactive) (org-agenda nil "m")) ;; Opens my m custom org-super-agenda view
-  )
+   ;; super-number functions
+   "s-1" 'mw-thesaurus-lookup-dwim
+   "s-2" 'ispell-buffer
+   "s-3" 'revert-buffer
+   )
 
-;; Insert keymaps
-;; Many of these are emulating standard Emacs bindings in Evil insert mode, such as C-a, or C-e.
-(general-def
-  :states '(insert)
-  "C-a" 'evil-beginning-of-visual-line
-  "C-e" 'evil-end-of-visual-line
-  "C-S-a" 'evil-beginning-of-line
-  "C-S-e" 'evil-end-of-line
-  "C-n" 'evil-next-visual-line
-  "C-p" 'evil-previous-visual-line
-  )
+ ;; Non-insert mode keymaps
+ (general-def
+   :states '(normal visual motion)
+   "gc" 'comment-dwim
+   "j" 'evil-next-visual-line ;; I prefer visual line navigation
+   "k" 'evil-previous-visual-line ;; ""
+   "|" '(lambda () (interactive) (org-agenda nil "n")) ;; Opens my n custom org-super-agenda view
+   "C-|" '(lambda () (interactive) (org-agenda nil "m")) ;; Opens my m custom org-super-agenda view
+   )
+
+ ;; Insert keymaps
+ ;; Many of these are emulating standard Emacs bindings in Evil insert mode, such as C-a, or C-e.
+ (general-def
+   :states '(insert)
+   "C-a" 'evil-beginning-of-visual-line
+   "C-e" 'evil-end-of-visual-line
+   "C-S-a" 'evil-beginning-of-line
+   "C-S-e" 'evil-end-of-line
+   "C-n" 'evil-next-visual-line
+   "C-p" 'evil-previous-visual-line
+   )
 
 ;; Xwidget ------
 (general-define-key :states 'normal :keymaps 'xwidget-webkit-mode-map 
@@ -587,19 +616,13 @@
                     "G" 'xwidget-webkit-scroll-bottom)
 
 ;; 'q' kills help buffers rather than just closing the window
-(general-define-key :keymaps 'help-mode-map "q" 'kill-this-buffer) 
+(general-define-key :keymaps '(help-mode-map calendar-mode-map) "q" 'kill-this-buffer)
 
 ) ;; end general.el use-package
 
 (use-package hydra
   :defer t
   :config
-  ;; (defhydra hydra-text-scale (:timeout 4)
-  ;;   "scale text"
-  ;;   ("0" nil "nil")
-  ;;   ("=" text-scale-increase "in")
-  ;;   ("-" text-scale-decrease "out")
-  ;;   ("RET" nil "finished" :exit t))
   )
 
 (defhydra hydra-centaur-tabs (:timeout 4)
@@ -611,15 +634,36 @@
 ;; WIP
 (defhydra hydra-variable-fonts (:pre (mixed-pitch-mode 0)
                                      :post (mixed-pitch-mode 1))
-  ;; :post (progn
-  ;;         (mixed-pitch-mode 0)
-  ;;         (mixed-pitch-mode 1)))
   ("t" (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160) "times new roman")
   ("g" (set-face-attribute 'variable-pitch nil :font "EB Garamond-17") "garamond")
   ("j" (set-face-attribute 'variable-pitch nil :font "Junicode-17") "junicode")
   )
 
+(defun jib/load-theme (theme)
+  "Enhance `load-theme' by first disabling enabled themes."
+  (mapc #'disable-theme custom-enabled-themes)
+  (load-theme theme t))
+
+(defhydra hydra-theme-switcher (:color red)
+  "Switch theme:"
+  ("1" (jib/load-theme 'doom-one) "doom-one")
+  ("2" (jib/load-theme 'doom-one-light) "doom-one-light")
+  ("3" (jib/load-theme 'jake-doom-plain) "jake-doom-plain")
+  ("q" (jib/load-theme 'jake-doom-plain-dark) "jake-doom-plain-dark")
+  ("w" (jib/load-theme 'doom-old-hope) "doom-old-hope")
+  ("e" (jib/load-theme 'doom-molokai) "doom-molokai")
+  ("r" (jib/load-theme 'doom-peacock) "doom-peacock")
+  ("a" (jib/load-theme 'nano) "nano")
+  ("s" (jib/load-theme 'doom-snazzy) "doom-snazzy")
+  ("d" (jib/load-theme 'modus-vivendi) "modus-vivendi")
+  ("f" (jib/load-theme 'modus-operandi) "modus-operandi")
+  ("z" (jib/load-theme 'doom-miramare) "doom-miramare")
+  ("x" (jib/load-theme 'doom-flatwhite) "doom-flatwhite")
+  ("c" (jib/load-theme 'kaolin-galaxy) "kaolin-galaxy")
+  )
+
 (use-package company
+  :diminish company-mode
   :general
   (general-define-key :keymaps 'company-active-map
                       "C-j" 'company-select-next
@@ -664,6 +708,7 @@
 ;;   )
 
 (use-package ivy
+  :diminish ivy-mode
   :config
   (setq ivy-extra-directories nil) ;; Hides . and .. directories
   (setq ivy-initial-inputs-alist nil) ;; Removes the ^ in ivy searches
@@ -709,7 +754,7 @@
                '(counsel-recentf . file-newer-than-file-p))
 
   (add-to-list 'recentf-exclude
-             (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
+               (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
 
   (setq-default counsel--fzf-dir jib/home))
 
@@ -732,6 +777,7 @@
   (company-prescient-mode +1))
 
 (use-package smartparens
+  :diminish smartparens-mode
   :defer 1
   :config
   ;; Load default smartparens rules for various languages
@@ -796,8 +842,8 @@
 (use-package simpleclip
   :config
   (simpleclip-mode 1))
-  ;; Allows pasting in minibuffer with M-v
-  (add-hook 'minibuffer-setup-hook 'jib/paste-in-minibuffer)
+;; Allows pasting in minibuffer with M-v
+(add-hook 'minibuffer-setup-hook 'jib/paste-in-minibuffer)
 
 
 (defun jib/copy-whole-buffer-to-clipboard ()
@@ -813,6 +859,7 @@
   (define-key evil-normal-state-map "U" 'undo-fu-only-redo))
 
 (use-package super-save
+  :diminish super-save-mode
   :defer 2
   :config
   (setq super-save-auto-save-when-idle t)
@@ -833,6 +880,7 @@
   :config (save-place-mode))
 
 (use-package yasnippet
+  :diminish yas-minor-mode
   :defer 5
   :config
   (setq yas-snippet-dirs '("~/Dropbox/Mackup/emacs-stuff/snippets"))
@@ -888,7 +936,21 @@
   (setq doom-modeline-bar-width 3))
 
 ;; Window's initial size and a bit of border
-(setq default-frame-alist '((left . 150) (width . 120) (fullscreen . fullheight) (internal-border-width . 8)))
+
+
+(if (string= jib/computer "laptop")
+    (setq default-frame-alist '((left . 150)
+                                (width . 120)
+                                (fullscreen . fullheight)
+                                (vertical-scroll-bars . nil)
+                                (internal-border-width . 8))))
+
+(if (string= jib/computer "desktop")
+    (setq default-frame-alist '((left . 250)
+                                (width . 150)
+                                (fullscreen . fullheight)
+                                (vertical-scroll-bars . nil)
+                                (internal-border-width . 8))))
 
 (use-package solaire-mode
   :defer t
@@ -923,7 +985,11 @@
   (org-ellipsis ((t (:foreground unspecified :inherit 'shadow)))))
 
 (use-package modus-themes
-  :defer 5
+  :init
+  (setq modus-themes-italic-constructs t
+        modus-themes-bold-constructs nil
+        modus-themes-region '(bg-only no-extend))
+  (modus-themes-load-themes)
   :custom-face
   (mode-line ((t (:height ,jib-doom-modeline-text-height))))
   (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height)))))
@@ -1017,6 +1083,9 @@
   ;; (add-hook 'writeroom-mode-hook (lambda () (setq-local line-spacing 10)))
   )
 
+(use-package centered-cursor-mode
+  :diminish centered-cursor-mode)
+
 ;; WIP STUFF
 
 ;;; Highlight Cursor Line with Pulse
@@ -1069,14 +1138,15 @@
 (setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
 
 (use-package evil-org
+  :diminish evil-org-mode
   :after org
   :config
   (add-hook 'org-mode-hook 'evil-org-mode)
   (add-hook 'evil-org-mode-hook
             (lambda () (evil-org-set-key-theme))))
 
-  (require 'evil-org-agenda)
-  (evil-org-agenda-set-keys)
+(require 'evil-org-agenda)
+(evil-org-agenda-set-keys)
 
 (use-package org-gcal
   :defer t
@@ -1120,12 +1190,12 @@
   (kbd "b") 'org-agenda-earlier)
 
 (defun jib/org-font-setup ()
-    (set-face-attribute 'org-document-title nil :height 1.1) ;; Bigger titles, smaller drawers
-    (set-face-attribute 'org-checkbox-statistics-done nil :inherit 'org-done :foreground "green3") ;; Makes org done checkboxes green
-    ;; (set-face-attribute 'org-drawer nil :inherit 'fixed-pitch :inherit 'shadow :height 0.6 :foreground nil) ;; Makes org-drawer way smaller
-    (set-face-attribute 'org-ellipsis nil :inherit 'shadow :height 0.8) ;; Makes org-ellipsis shadow (blends in better)
-    (set-face-attribute 'org-scheduled-today nil :weight 'normal) ;; Removes bold from org-scheduled-today
-    (set-face-attribute 'org-super-agenda-header nil :inherit 'org-agenda-structure :weight 'bold) ;; Bolds org-super-agenda headers
+  (set-face-attribute 'org-document-title nil :height 1.1) ;; Bigger titles, smaller drawers
+  (set-face-attribute 'org-checkbox-statistics-done nil :inherit 'org-done :foreground "green3") ;; Makes org done checkboxes green
+  ;; (set-face-attribute 'org-drawer nil :inherit 'fixed-pitch :inherit 'shadow :height 0.6 :foreground nil) ;; Makes org-drawer way smaller
+  (set-face-attribute 'org-ellipsis nil :inherit 'shadow :height 0.8) ;; Makes org-ellipsis shadow (blends in better)
+  (set-face-attribute 'org-scheduled-today nil :weight 'normal) ;; Removes bold from org-scheduled-today
+  (set-face-attribute 'org-super-agenda-header nil :inherit 'org-agenda-structure :weight 'bold) ;; Bolds org-super-agenda headers
 
   ;; Here I set things that need it to be fixed-pitch, just in case the font I am using isn't monospace.
   ;; (dolist (face '(org-list-dt org-tag org-todo org-table org-checkbox org-priority org-date org-verbatim org-special-keyword))
@@ -1133,24 +1203,25 @@
 
   (dolist (face '(org-code org-verbatim org-ellipsis org-meta-line))
     (set-face-attribute `,face nil :inherit 'shadow :inherit 'fixed-pitch))
-)
+  )
 
 (defun jib/prettify-symbols-setup ()
-    (push '("[ ]" .  "☐") prettify-symbols-alist)
-    (push '("[X]" . "☑" ) prettify-symbols-alist)
-    (push '("[-]" . "❍" ) prettify-symbols-alist)
-    (push '(":Weekly:" . "" ) prettify-symbols-alist)
-    (push '(":Misc:" . "" ) prettify-symbols-alist)
-    (push '(":Robotics:" . "" ) prettify-symbols-alist)
+  (push '("[ ]" .  "☐") prettify-symbols-alist)
+  ;; (push '("[X]" . "☑" ) prettify-symbols-alist)
+  (push '("[X]" . "☒" ) prettify-symbols-alist)
+  (push '("[-]" . "❍" ) prettify-symbols-alist)
+  (push '(":Weekly:" . "" ) prettify-symbols-alist)
+  (push '(":Misc:" . "" ) prettify-symbols-alist)
+  (push '(":Robotics:" . "" ) prettify-symbols-alist)
+  (push '(":ec:" . "" ) prettify-symbols-alist)
 
-    (push '(":en:" . "" ) prettify-symbols-alist)
-    (push '(":us:" . "") prettify-symbols-alist)
-    (push '(":pc:" . "𝛑" ) prettify-symbols-alist)
-    (push '(":st:" . "" ) prettify-symbols-alist)
-    (push '(":ph:" . "" ) prettify-symbols-alist)
-    (push '(":sp:" . "" ) prettify-symbols-alist)
-    (prettify-symbols-mode)
-)
+  (push '(":bv:" . "" ) prettify-symbols-alist)
+  (push '(":sp:" . "") prettify-symbols-alist)
+  (push '(":cu:" . "𝛑" ) prettify-symbols-alist)
+  (push '(":cm:" . "" ) prettify-symbols-alist)
+  (push '(":es:" . "" ) prettify-symbols-alist)
+  (prettify-symbols-mode)
+  )
 
 (defun jib/org-setup ()
   (org-indent-mode) ;; Keeps org items like text under headings, lists, nicely indented
@@ -1167,6 +1238,8 @@
   :hook (org-mode . jib/org-font-setup)
   :hook (org-mode . jib/prettify-symbols-setup)
   :hook (org-agenda-mode . jib/prettify-symbols-setup)
+  :diminish org-indent-mode
+  :diminish visual-line-mode
   :config
 
 ;; (setq org-ellipsis "⤵")
@@ -1194,21 +1267,21 @@
 (setq org-list-demote-modify-bullet
       '(("+" . "*") ("*" . "-") ("-" . "+")))
 
-(setq counsel-org-tags '("qp" "ec" "ST"))
+(setq counsel-org-tags '("qp" "ec" "st")) ;; Quick-picks, extracurricular, short-term
 
 (setq org-tag-faces '(
-                      ("en" . "dark slate blue")
-                      ("us" . "purple3")
-                      ("pc" . "PaleTurquoise3")
-                      ("st" . "turquoise3")
-                      ("ph" . "chartreuse4")
-                      ("sp" . "brown3")
+                      ("bv" . "dark slate blue")
+                      ("sp" . "purple3")
+                      ("cu" . "PaleTurquoise3")
+                      ;; ("st" . "turquoise3")
+                      ("cm" . "chartreuse4")
+                      ("es" . "brown3")
                       ("Weekly" . "SteelBlue1")
                       ("Robotics" . "IndianRed2")
                       ("Misc" . "tan1")
                       ("qp" . "RosyBrown1") ;; Quick-picks
                       ("ec" . "PaleGreen3") ;; Extracurricular
-                      ("nf" . "DimGrey") ;; Near-future (aka short term) todo
+                      ("st" . "DimGrey") ;; Near-future (aka short term) todo
                       ))
 
 ;; (setq org-tags-column -64)
@@ -1324,7 +1397,7 @@
                                  :todo "CONTACT"
                                  :order 3)
                           (:name "Short-term Todo"
-                                 :tag "nf"
+                                 :tag "st"
                                  :order 4)
                           (:name "Someday"
                                  :todo "SOMEDAY"
@@ -1377,7 +1450,7 @@
                                              :todo "CONTACT"
                                              :order 3)
                                       (:name "Short-term Todo"
-                                             :tag "nf"
+                                             :tag "st"
                                              :order 4)
                                       (:name "Someday"
                                              :todo "SOMEDAY"
@@ -1433,7 +1506,7 @@
                                              :todo "CONTACT"
                                              :order 3)
                                       (:name "Short-term Todo"
-                                             :tag "nf"
+                                             :tag "st"
                                              :order 4)
                                       (:name "Someday"
                                              :todo "SOMEDAY"
@@ -1494,33 +1567,35 @@
 
         ))
 
-;;  (setq org-export-backends '(ascii beamer html latex md odt))
+(setq org-export-backends '(ascii beamer html latex md odt))
 
-  (setq org-export-with-broken-links t)
-  (setq org-export-with-smart-quotes t)
-  (setq org-export-allow-bind-keywords t)
+(setq org-export-with-broken-links t)
+(setq org-export-with-smart-quotes t)
+(setq org-export-allow-bind-keywords t)
 
-  ;; From https://stackoverflow.com/questions/23297422/org-mode-timestamp-format-when-exported
-  (defun org-export-filter-timestamp-remove-brackets (timestamp backend info)
-    "removes relevant brackets from a timestamp"
-    (cond
-     ((org-export-derived-backend-p backend 'latex)
-      (replace-regexp-in-string "[<>]\\|[][]" "" timestamp))
-     ((org-export-derived-backend-p backend 'html)
-      (replace-regexp-in-string "&[lg]t;\\|[][]" "" timestamp))))
+;; From https://stackoverflow.com/questions/23297422/org-mode-timestamp-format-when-exported
+(defun org-export-filter-timestamp-remove-brackets (timestamp backend info)
+  "removes relevant brackets from a timestamp"
+  (cond
+   ((org-export-derived-backend-p backend 'latex)
+    (replace-regexp-in-string "[<>]\\|[][]" "" timestamp))
+   ((org-export-derived-backend-p backend 'html)
+    (replace-regexp-in-string "&[lg]t;\\|[][]" "" timestamp))))
 
 
-  ;; HTML-specific
-  (setq org-html-validation-link nil) ;; No validation button on HTML exports
+;; HTML-specific
+(setq org-html-validation-link nil) ;; No validation button on HTML exports
 
-  ;; LaTeX Specific
-  (eval-after-load 'ox '(add-to-list
-                         'org-export-filter-timestamp-functions
-                         'org-export-filter-timestamp-remove-brackets))
+;; LaTeX Specific
+(eval-after-load 'ox '(add-to-list
+                       'org-export-filter-timestamp-functions
+                       'org-export-filter-timestamp-remove-brackets))
 
-  (use-package ox-hugo
-    :defer 2
-    :after ox)
+(use-package ox-hugo
+  :defer 2
+  :after ox
+  :config
+  (setq org-hugo-base-dir "~/Dropbox/Projects/cpb"))
 
 (setq org-latex-listings t) ;; Uses listings package for code exports
 (setq org-latex-compiler "xelatex") ;; XeLaTex rather than pdflatex
@@ -1596,16 +1671,16 @@
       TeX-source-correlate-start-server t)
 
 ;; autorefresh pdfview when auctex compiles
-(add-hook 'TeX-after-compilation-finished-functions
-          #'TeX-revert-document-buffer)
+;; (add-hook 'TeX-after-compilation-finished-functions
+;;           #'TeX-revert-document-buffer)
 
 ;; ERRORING OUT FOR SOME REASON
-(defun jib-switch-back ()
-  (other-window 1))
+;; (defun jib-switch-back ()
+;;   (other-window 1))
 
 ;; After the file is compiled, the PDF view refreshes and takes focus, which means
 ;; your cursor is now in the PDF window, so this puts it back automatically.
-(add-hook 'TeX-after-compilation-finished-functions 'jib-switch-back)
+;; (add-hook 'TeX-after-compilation-finished-functions 'jib-switch-back)
 
 (use-package mw-thesaurus
   :defer t
@@ -1710,8 +1785,9 @@
 
 (use-package web-mode
   :defer t
+  :init
+  (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode)) ;; Open .html files in web-mode
   :config
-  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode)) ;; Open .html files in web-mode
   (setq web-mode-enable-current-element-highlight t
         web-mode-enable-current-column-highlight t)
 

@@ -4,17 +4,14 @@
 ;; This early-init.el file was auto-tangled from an orgmode file. (C) Jake B        ;;
 ;; -------------------------------------------------------------------------------- ;;
 
-;; setq gc-cons-threshold most-positive-fixnum)
-
 ;; Garbage Collections
 (setq gc-cons-percentage 0.6)
 
-;; Gccemacs
-;;  (setq comp-async-report-warnings-errors nil)
-
 ;; Compile warnings
 ;;  (setq byte-compile-warnings t)
-;;  (setq warning-minimum-level :emergency) ;; temporary
+;;  (setq warning-minimum-level :emergency)
+(setq comp-async-report-warnings-errors nil) ;; native-comp warning
+(setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
 
 ;; Window configuration
 (setq frame-inhibit-implied-resize t) ;; Supposed to hasten startup
