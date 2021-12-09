@@ -38,6 +38,10 @@ determine the exact padding."
    (fg         '("#282a2e" nil nil ))
    (fg-alt     (doom-lighten fg 0.15))
 
+   ;; Jake more custom stuff
+   (popout '("#FFAB91" nil nil )) ;; from nano-theme
+   (salient '("#2740a3" nil nil )) ;; from nano-theme
+
    (grey       fg)
    (red        fg)
    (blue       fg)
@@ -112,6 +116,7 @@ determine the exact padding."
 
    (org-link
     :inherit 'button
+	:foreground salient
     :underline t)
 
    (org-drawer
@@ -139,6 +144,10 @@ determine the exact padding."
    (org-document-title
 	:foreground fg
 	:weight 'bold)
+
+   (org-tag
+	:foreground popout
+	:weight 'regular)
    
    ;; The bullets are just slightly lighter/more subtle than the header text.
    (org-superstar-header-bullet

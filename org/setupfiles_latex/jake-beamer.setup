@@ -10,10 +10,12 @@ Org export options
 #+PROPERTY: header-args :eval never-export
 
 Beamer configuration
-#+LaTeX_CLASS: beamer
-#+LaTeX_CLASS_OPTIONS: [c,17pt, bigger, mathserif]
+#+LATEX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [c,17pt, bigger, mathserif]
 #+COLUMNS: %20ITEM %13BEAMER_env(Env) %6BEAMER_envargs(Args) %4BEAMER_col(Col) %7BEAMER_extra(Extra)
 #+OPTIONS: H:2
+
+End required configurations.
 
 Theme configuration
 #+BEAMER_THEME: Madrid

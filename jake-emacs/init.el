@@ -4,7 +4,7 @@
 ;;;
 
 ;; Copyright (C) Jake B
-;; Author: Jake B <message on GitHub for further contact>
+;; Author: Jake B <jakebox0@protonmail.com>
 ;; URL: https://github.com/jakebox/.emacs
 ;; This file is not part of GNU Emacs.
 ;; This file is free software.
@@ -12,10 +12,10 @@
 ;; ------- The following code was auto-tangled from an Orgmode file. ------- ;;
 
 (require 'package)
-(setq package-archives '(("melpa"  . "https://melpa.org/packages/")
-                         ("org"    . "https://orgmode.org/elpa/")
-                         ("gnu"    . "https://elpa.gnu.org/packages/")
-                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+
+(add-to-list 'package-archives '("melpa"  . "https://melpa.org/packages/")) ;; ELPA and NonGNU ELPA are default in Emacs28
+(setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") ;; Without this on my Mac Emacs freezes when refreshing ELPA
+
 
 ;; Package list
 (setq package-list '(
@@ -42,7 +42,7 @@
 
                      ;; Themes/Visuals
                      spacemacs-theme modus-themes doom-themes kaolin-themes dashboard
-                     solaire-mode centaur-tabs mixed-pitch visual-fill-column diminish
+                     solaire-mode mixed-pitch visual-fill-column diminish
                      doom-modeline hide-mode-line writeroom-mode all-the-icons all-the-icons-ivy-rich
 
                      ;; Org-related
@@ -85,6 +85,7 @@
                      gcs-done)))
 
 (load (expand-file-name "jib-funcs.el" user-emacs-directory))
+(load (expand-file-name "private.el" user-emacs-directory))
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (add-to-list 'load-path (directory-file-name (concat jib/emacs-stuff "/lisp")))
 
@@ -96,9 +97,7 @@
 ;; Registers for easy file access
 (setq register-preview-delay 0.4)
 
-(set-register ?t (cons 'file (concat jib/dropbox "notes/technical/technical_notes.org")))
 (set-register ?T (cons 'file (concat org-directory "/org-archive/todo-archive.org_archive")))
-(set-register ?l (cons 'file (concat jib/dropbox "notes/personal/life.org")))
 (set-register ?i (cons 'file (concat org-directory "/cpb.org")))
 (set-register ?h (cons 'file (concat org-directory "/work.org")))
 (set-register ?C (cons 'file (concat jib/emacs-stuff "/jake-emacs/init.org")))
@@ -106,10 +105,11 @@
 (set-register ?A (cons 'file (concat org-directory "/org-archive/work-archive.org_archive")))
 
 ;; Little bit to help me know which computer we're on.
-(defvar jib/computer)
-(if (string= system-name "mjbs-air.lan")
-    (setq jib/computer "laptop")
-  (setq jib/computer "desktop"))
+(defvar jib/computer "Which computer I am on --- 'desktop or 'laptop.")
+(let ((sys (system-name)))
+(if (or (or (string= sys "MJBs-MacBook-Air.local") (string= sys "MJBs-Air.fwparker.org")) (string= sys "mjbs-air.lan"))
+    (setq jib/computer 'laptop)
+  (setq jib/computer 'desktop)))
 
 (defvar jib-text-height 130)
 
@@ -253,7 +253,7 @@
 ;; MISC OPTIMIZATIONS ----
 ;; Emacs "updates" its ui more often than it needs to, so we slow it down
 ;; slightly from 0.5s:
-           ;;; optimizations (froom Doom's core.el). See that file for descriptions.
+                 ;;; optimizations (froom Doom's core.el). See that file for descriptions.
 (setq idle-update-delay 1.0)
 
 ;; Disabling bidi (bidirectional editing stuff)
@@ -270,6 +270,10 @@
 (setq save-interprogram-paste-before-kill t
       apropos-do-all t
       mouse-yank-at-point t)
+
+;; Weird thing where `list-colors-display` doesn't show all colors.
+;; https://bug-gnu-emacs.gnu.narkive.com/Bo6OdySs/bug-5683-23-1-93-list-colors-display-doesn-t-show-all-colors
+(setq x-colors (ns-list-colors))
 
 (setq mac-command-modifier 'meta
       mac-option-modifier nil
@@ -302,6 +306,7 @@
   (define-key evil-motion-state-map "/" 'swiper)
   (define-key evil-window-map "\C-w" 'evil-delete-buffer) ;; Maps C-w C-w to delete-buffer (The first C-w puts you into evil-window-map)
   (define-key evil-motion-state-map "\C-b" 'evil-scroll-up) ;; Makes C-b how C-u is
+  ;; (define-key evil-motion-state-map "\C-d" '(evil-scroll-down 5)) ;; Makes C-b how C-u is
 
   ;; ----- Setting cursor colors
   (setq evil-emacs-state-cursor    '("#649bce" box))
@@ -314,11 +319,11 @@
 
   (evil-mode 1))
 
-(use-package evil-collection
-  :after evil
-  :ensure t
-  :config
-  (evil-collection-init))
+;; (use-package evil-collection ;; This isn't disabled, rather it never worked
+;;   :after evil
+;;   :ensure t
+;;   :config
+;;   (evil-collection-init))
 
 (use-package evil-surround
   :defer 2
@@ -357,6 +362,8 @@
 "am" '(mu4e :which-key "mu4e")
 "aC" '(calc :which-key "calc")
 "ac" '(org-capture :which-key "org-capture")
+"aqq" '(org-ql-view :which-key "org-ql-view")
+"aqs" '(org-ql-search :which-key "org-ql-search")
 
 "ab" '(nil :which-key "browse url")
 "abf" '(browse-url-firefox :which-key "firefox")
@@ -392,13 +399,14 @@
 "jr" '(restart-emacs :which-key "restart emacs")
 
 "jh" '(nil :which-key "hydras")
-"jht" '(hydra-centaur-tabs/body :which-key "centaur tabs")
 "jht" '(hydra-theme-switcher/body :which-key "themes")
+"jhf" '(hydra-variable-fonts/body :which-key "mixed-pitch face")
 
 "jm" '(nil :which-key "macros/custom commands")
 "jml" '(jib/listify :which-key "Listify")
 "jmL" '(jib|SubListify :which-key "SubListify")
-"jmo" '(jib/org-tmp-html-export :which-key "org temp export")
+"jmo" '(jib/org-tmp-html-export-region :which-key "org temp export region")
+"jmO" '(jib/org-tmp-html-export :which-key "org temp export")
 
 "jk" '(nil :which-key "agenda/ql")
 "jkq" '((lambda () (interactive) (org-ql-view "Jake QL Todo")) :which-key "jake ql")
@@ -453,7 +461,7 @@
 "wj" '(evil-window-down :which-key "evil-window-down")
 "wk" '(evil-window-up :which-key "evil-window-up")
 "wz" '(text-scale-adjust :which-key "text zoom")
-)
+) ;; End SPC prefix general.el block
 
 (general-def
   :prefix ","
@@ -484,6 +492,7 @@
   "C-c h" 'org-html-export-to-html
   "M-[" 'org-metaleft
   "M-]" 'org-metaright
+  "C-M-=" 'ap/org-count-words
   )
 
 ;; Org-src - when editing an org source block
@@ -499,19 +508,21 @@
 (general-define-key
  :prefix ","
  :states 'motion
- :keymaps '(org-mode-map org-agenda-mode-map) ;; Available in org mode, org agenda
+ :keymaps '(org-mode-map) ;; Available in org mode, org agenda
  "" nil
  "A" '(org-archive-subtree-default :which-key "org-archive")
  "a" '(org-agenda :which-key "org agenda")
  "6" '(org-sort :which-key "sort")
  "c" '(org-capture :which-key "org-capture")
  "s" '(org-schedule :which-key "schedule")
+ "S" '(jib/org-schedule-tomorrow :which-key "schedule")
  "d" '(org-deadline :which-key "deadline")
  "g" '(counsel-org-goto :which-key "goto heading")
  "t" '(counsel-org-tag :which-key "set tags")
  "p" '(org-set-property :which-key "set property")
  "e" '(org-export-dispatch :which-key "export org")
  "B" '(org-toggle-narrow-to-subtree :which-key "toggle narrow to subtree")
+ "V" '(jib/org-set-startup-visibility :which-key "startup visibility")
  "H" '(org-html-convert-region-to-html :which-key "convert region to html")
 
  ;; org-babel
@@ -545,6 +556,24 @@
  "cj" '(org-clock-goto :which-key "jump to clock")
  )
 
+
+(general-define-key
+ :prefix ","
+ :states 'motion
+ :keymaps '(org-agenda-mode-map) ;; Available in org mode, org agenda
+ "" nil
+ "a" '(org-agenda :which-key "org agenda")
+ "c" '(org-capture :which-key "org-capture")
+ "s" '(org-agenda-schedule :which-key "schedule")
+ "d" '(org-agenda-deadline :which-key "deadline")
+ "t" '(org-agenda-set-tags :which-key "set tags")
+ ;; clocking
+ "c" '(nil :which-key "clocking")
+ "ci" '(org-agenda-clock-in :which-key "clock in")
+ "co" '(org-agenda-clock-out :which-key "clock out")
+ "cj" '(org-clock-goto :which-key "jump to clock")
+ )
+
 ;; All-mode keymaps
  (general-def
 :keymaps 'override
@@ -574,8 +603,6 @@
    "C-c c" 'org-capture
    "C-c a" 'org-agenda
    "C-s" 'counsel-grep-or-swiper ;; Large files will use grep (faster)
-   "C-<tab>" 'centaur-tabs-forward-tab
-   "<C-S-tab>" 'centaur-tabs-backward-tab ;; Not sure why it all needs to be in <> but that's the only way this works
    "s-\"" 'ispell-word ;; that's super-shift-'
    "M-+" 'jib/calc-speaking-time
 
@@ -625,18 +652,14 @@
   :config
   )
 
-(defhydra hydra-centaur-tabs (:timeout 4)
-  "centaur tabs config"
-  ("p" centaur-tabs-group-by-projectile-project "projectile")
-  ("b" centaur-tabs-group-buffer-groups "buffer"))
-
 ;; This Hydra lets me swich between variable pitch fonts. It turns off mixed-pitch 
 ;; WIP
 (defhydra hydra-variable-fonts (:pre (mixed-pitch-mode 0)
                                      :post (mixed-pitch-mode 1))
-  ("t" (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160) "times new roman")
-  ("g" (set-face-attribute 'variable-pitch nil :font "EB Garamond-17") "garamond")
-  ("j" (set-face-attribute 'variable-pitch nil :font "Junicode-17") "junicode")
+  ("t" (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160) "Times New Roman")
+  ("g" (set-face-attribute 'variable-pitch nil :family "EB Garamond" :height 160 :weight 'normal) "EB Garamond")
+  ;; ("r" (set-face-attribute 'variable-pitch nil :font "Roboto" :weight 'medium :height 160) "Roboto")
+  ("n" (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 160 :width 'normal :foundry "nil" :family "Nunito") "Nunito")
   )
 
 (defun jib/load-theme (theme)
@@ -892,29 +915,30 @@
 (require 'warnings)
 (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
 
+(setq text-scale-mode-step 1.1) ;; How much to adjust text scale by when using `text-scale-mode'
 (setq-default line-spacing 0.00)
 
-(if (string= jib/computer "laptop")
+;; Setting text size based on the computer I am on.
+(if (eq jib/computer 'laptop)
     (setq jib-text-height 140))
-
-(if (string= jib/computer "desktop")
+(if (eq jib/computer 'desktop)
     (setq jib-text-height 150))
 
-(set-face-attribute 'default nil :font "Roboto Mono" :weight 'regular :height jib-text-height)
+(set-face-attribute 'default nil :family "Roboto Mono" :weight 'regular :height jib-text-height)
 
 ;; Float height value (1.0) makes fixed-pitch take height 1.0 * height of default
 ;; This means it will scale along with default when the text is zoomed
 (set-face-attribute 'fixed-pitch nil :font "Roboto Mono" :weight 'regular :height 1.0)
 
-;; Height of 160 matches perfectly with 12-point on Google Docs
+;; Height of 160 seems to match perfectly with 12-point on Google Docs
 (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160)
 
-(setq text-scale-mode-step 1.1)
-
-(use-package mixed-pitch ;; A better version of variable-pitch-mode.
+(use-package mixed-pitch
   :defer t
   :config
-  (setq mixed-pitch-set-height t))
+  (setq mixed-pitch-set-height t)
+  (dolist (face '(org-date org-priority org-tag org-special-keyword)) ;; Some extra faces I like to be fixed-pitch
+    (add-to-list 'mixed-pitch-fixed-pitch-faces face)))
 
 ;; Disables showing system load in modeline, useless anyway
 (setq display-time-default-load-average nil)
@@ -922,11 +946,12 @@
 (line-number-mode)
 (column-number-mode)
 (display-time-mode)
+(size-indication-mode)
 
 (use-package doom-modeline
   :init (doom-modeline-mode)
   :config
-  (setq doom-modeline-buffer-file-name-style 'truncate-nil)
+  (setq doom-modeline-buffer-file-name-style 'file-name)
   (setq doom-modeline-enable-word-count t)
   (setq doom-modeline-buffer-encoding nil)
   (setq doom-modeline-icon nil)
@@ -936,51 +961,47 @@
   (setq doom-modeline-bar-width 3))
 
 ;; Window's initial size and a bit of border
+(if (eq jib/computer 'laptop)
+	(setq default-frame-alist '((left . 150)
+								(width . 120)
+								(fullscreen . fullheight)
+								(vertical-scroll-bars . nil)
+								(internal-border-width . 8))))
 
-
-(if (string= jib/computer "laptop")
-    (setq default-frame-alist '((left . 150)
-                                (width . 120)
-                                (fullscreen . fullheight)
-                                (vertical-scroll-bars . nil)
-                                (internal-border-width . 8))))
-
-(if (string= jib/computer "desktop")
-    (setq default-frame-alist '((left . 250)
-                                (width . 150)
-                                (fullscreen . fullheight)
-                                (vertical-scroll-bars . nil)
-                                (internal-border-width . 8))))
-
-(use-package solaire-mode
-  :defer t
-  ;; :hook (after-init . solaire-global-mode)
-  :config
-  (setq solaire-mode-auto-swap-bg nil))
+(if (eq jib/computer 'desktop)
+	(setq default-frame-alist '((left . 250)
+								(width . 150)
+								(fullscreen . fullheight)
+								(vertical-scroll-bars . nil)
+								(internal-border-width . 8))))
 
 (use-package all-the-icons) 
 
-
-;; MODELINE FONT/THEME BUSINESS
-(if (string= jib/computer "laptop")
+;; Configure modeline text height based on the computer I'm on.
+(if (eq jib/computer 'laptop)
     (setq jib-doom-modeline-text-height 135) ;; (message "Laptop") ;; If laptop
   (setq jib-doom-modeline-text-height 140)) ;; (message "Desktop") ;; If desktop
 
 (use-package doom-themes
+  :after mixed-pitch
   :config
   (doom-themes-visual-bell-config)
   (doom-themes-org-config)
   :custom-face
+  ;; Keep the modeline proper every time I use these themes.
   (mode-line ((t (:height ,jib-doom-modeline-text-height))))
-  (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
-  (org-drawer ((t (:height 0.6 :inherit shadow)))))
+  (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height)))))
 
 (use-package kaolin-themes
   :custom-face
+
+  ;; Keep the modeline proper every time I use these themes.
   (mode-line ((t (:height ,jib-doom-modeline-text-height))))
   (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
+
   ;; Disable underline for org deadline warnings. I don't like the way it looks.
   (org-warning ((t (:underline nil))))
+
   ;; Darkens the org-ellipsis (first unset the color, then give it shadow)
   (org-ellipsis ((t (:foreground unspecified :inherit 'shadow)))))
 
@@ -991,14 +1012,16 @@
         modus-themes-region '(bg-only no-extend))
   (modus-themes-load-themes)
   :custom-face
+  ;; Keep the modeline proper every time I use these themes.
   (mode-line ((t (:height ,jib-doom-modeline-text-height))))
   (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height)))))
 
 
+;; Loading theme based on the time.
 (let ((hour (string-to-number (substring (current-time-string) 11 13))))
-  (if (or (> hour 19) (< hour 7))
+  (if (or (> hour 18) (< hour 7))
       (load-theme 'doom-one t) ;; Night
-    (load-theme 'doom-one-light t)))     ;; Day
+    (load-theme 'doom-one-light t))) ;; Day
 
 (setq-default fringes-outside-margins nil)
 (setq-default indicate-buffer-boundaries nil) ;; Otherwise shows a corner icon on the edge
@@ -1048,8 +1071,6 @@
                                                      :face 'font-lock-keyword-face))
   (setq dashboard-startup-banner 'logo)
   ;; (setq dashboard-startup-banner '"~/Dropbox/Mackup/emacs-stuff/banner.txt")
-
-
   ;; General config
   (setq dashboard-center-content t
         dashboard-set-heading-icons nil
@@ -1063,8 +1084,7 @@
   (dashboard-setup-startup-hook)
   :general
   (general-define-key :keymaps 'dashboard-mode-map
-                      "e" nil)
-  )
+                      "e" nil))
 
 (use-package visual-fill-column
   :defer t
@@ -1085,6 +1105,13 @@
 
 (use-package centered-cursor-mode
   :diminish centered-cursor-mode)
+
+(defun jib/pulse-area (&rest _)
+  "Pulse +-5 chars of point."
+  (pulse-momentary-highlight-region (- (point) 5) (+ 5 (point))))
+
+(dolist (command '(org-forward-sentence org-backward-sentence))
+  (advice-add command :after #'pulse-area))
 
 ;; WIP STUFF
 
@@ -1178,11 +1205,19 @@
   '(org-load-modules-maybe t))
 
 (use-package org-ql
-  :defer 2
   :general
   (general-define-key :keymaps 'org-ql-view-map
                       "q" 'kill-buffer-and-window)
   )
+
+;; (use-package org-pretty-tags
+;;   :config
+;;   (setq org-pretty-tags-surrogate-strings
+;;         (quote
+;;          (("bv" . "")
+;;           ("sp" . "")
+;;           ("security" . "🔥"))))
+;;   (org-pretty-tags-global-mode))
 
 ;; Org-agenda specific bindings
 (evil-define-key 'motion org-agenda-mode-map
@@ -1210,17 +1245,29 @@
   ;; (push '("[X]" . "☑" ) prettify-symbols-alist)
   (push '("[X]" . "☒" ) prettify-symbols-alist)
   (push '("[-]" . "❍" ) prettify-symbols-alist)
-  (push '(":Weekly:" . "" ) prettify-symbols-alist)
-  (push '(":Misc:" . "" ) prettify-symbols-alist)
-  (push '(":Robotics:" . "" ) prettify-symbols-alist)
-  (push '(":ec:" . "" ) prettify-symbols-alist)
 
-  (push '(":bv:" . "" ) prettify-symbols-alist)
-  (push '(":sp:" . "") prettify-symbols-alist)
-  (push '(":cu:" . "𝛑" ) prettify-symbols-alist)
-  (push '(":cm:" . "" ) prettify-symbols-alist)
+  (push '(":Misc:" . "" ) prettify-symbols-alist)
+  (push '(":ec:" . "" ) prettify-symbols-alist)
+  (push '(":Weekly:ec:" . "" ) prettify-symbols-alist)
+  (push '(":Robo:ec:" . "" ) prettify-symbols-alist)
+
+  (push '(":bv:" . "" ) prettify-symbols-alist)
+  (push '(":sp:" . "") prettify-symbols-alist)
+  (push '(":cl:" . "𝛑" ) prettify-symbols-alist)
+  (push '(":ch:" . "" ) prettify-symbols-alist)
   (push '(":es:" . "" ) prettify-symbols-alist)
   (prettify-symbols-mode)
+
+  ;; (defvar svg-font-lock-keyword  
+  ;;   `(("TODO"
+  ;;      (0 (list
+  ;;          'face nil
+  ;;          'display (svg-lib-tag "TODO" nil :stroke 2 :font-family "Roboto Mono" :font-weight 500 :padding 1 :foreground "plum3" :radius 5))))))
+
+  ;; ;; activate
+  ;; (push 'display font-lock-extra-managed-props)
+  ;; (font-lock-add-keywords nil svg-font-lock-keyword)
+  ;; (font-lock-flush (point-min) (point-max))
   )
 
 (defun jib/org-setup ()
@@ -1230,10 +1277,11 @@
   (centered-cursor-mode)
 
   ;; (setq header-line-format "") ;; Empty header line, basically adds a blank line on top
-  (setq-local line-spacing 2) ;; Doesn't seem like this does anything
+  (setq-local line-spacing 1)
   )
 
 (use-package org
+  :pin gnu
   :hook (org-mode . jib/org-setup)
   :hook (org-mode . jib/org-font-setup)
   :hook (org-mode . jib/prettify-symbols-setup)
@@ -1267,17 +1315,23 @@
 (setq org-list-demote-modify-bullet
       '(("+" . "*") ("*" . "-") ("-" . "+")))
 
+;; Automatically save and close the org files I most frequently archive to.
+;; I see no need to keep them open and crowding my buffer list.
+;; Uses my own function jib/save-and-close-this-buffer.
+(dolist (file '("work-archive.org_archive" "todo-archive.org_archive"))
+  (advice-add 'org-archive-subtree-default :after 
+              (lambda () (jib/save-and-close-this-buffer file))))
+
 (setq counsel-org-tags '("qp" "ec" "st")) ;; Quick-picks, extracurricular, short-term
 
 (setq org-tag-faces '(
                       ("bv" . "dark slate blue")
                       ("sp" . "purple3")
-                      ("cu" . "PaleTurquoise3")
-                      ;; ("st" . "turquoise3")
-                      ("cm" . "chartreuse4")
+                      ("ch" . "PaleTurquoise3")
+                      ("cl" . "chartreuse4")
                       ("es" . "brown3")
                       ("Weekly" . "SteelBlue1")
-                      ("Robotics" . "IndianRed2")
+                      ("Robo" . "IndianRed2")
                       ("Misc" . "tan1")
                       ("qp" . "RosyBrown1") ;; Quick-picks
                       ("ec" . "PaleGreen3") ;; Extracurricular
@@ -1288,29 +1342,34 @@
 (setq org-tags-column 1)
 
 (setq org-todo-keywords '((type
-                           "TODO(t)" "HW(h)" "STUDY" "SOMEDAY"
+                           "TODO(t)" "INPROG-TODO(i)" "HW(h)" "STUDY" "SOMEDAY"
                            "READ(r)" "PROJ(p)" "CONTACT(c)"
                            "|"
-                           "DONE(d)")))
+                           "DONE(d)" "CANCELLED(C)")))
 
-(setq org-todo-keyword-faces '(("TODO" nil :foreground "DarkOrange2" :inherit fixed-pitch :weight bold)
-                               ("HW" nil :foreground "coral1" :inherit fixed-pitch :weight bold)
-                               ("STUDY" nil :foreground "plum3" :inherit fixed-pitch :weight bold)
+(setq org-todo-keyword-faces '(("TODO" nil :foreground "orange1" :inherit fixed-pitch :weight medium)
+                               ("HW" nil :foreground "coral1" :inherit fixed-pitch :weight medium)
+                               ("STUDY" nil :foreground "plum3" :inherit fixed-pitch :weight medium)
                                ("SOMEDAY" nil :foreground "steel blue" :inherit fixed-pitch)
-                               ("CONTACT" nil :foreground "LightSalmon2" :inherit fixed-pitch :weight bold)
-                               ("READ" nil :foreground "medium orchid" :inherit fixed-pitch :weight bold)
-                               ("PROJ" nil :foreground "aquamarine3" :inherit fixed-pitch :weight bold)
-                               ("DONE" nil :foreground "LawnGreen" :inherit fixed-pitch :weight bold)))
+                               ("CONTACT" nil :foreground "LightSalmon2" :inherit fixed-pitch :weight medium)
+                               ("READ" nil :foreground "MediumPurple3" :inherit fixed-pitch :weight medium)
+                               ("PROJ" nil :foreground "aquamarine3" :inherit fixed-pitch :weight medium)
 
-(setq org-lowest-priority ?E)  ;; Gives us priorities A through E
-(setq org-default-priority ?D) ;; If an item has no priority, it is considered [#D]. This means no priority is above the lowest priority.
+                               ("INPROG-TODO" nil :foreground "orange1" :inherit fixed-pitch :weight medium)
+
+                               ("DONE" nil :foreground "LawnGreen" :inherit fixed-pitch :weight medium)
+                               ("CANCELLED" nil :foreground "dark red" :inherit fixed-pitch :weight medium)))
+
+(setq org-lowest-priority ?F)  ;; Gives us priorities A through F
+(setq org-default-priority ?E) ;; If an item has no priority, it is considered [#D].
 
 (setq org-priority-faces
-'((65 nil :foreground "red1" :weight bold)
-  (66 . "Gold2")
+'((65 nil :inherit fixed-pitch :foreground "red2" :weight medium)
+  (66 . "Gold1")
   (67 . "Goldenrod2")
   (68 . "PaleTurquoise3")
-  (69 . "DarkSlateGray4")))
+  (69 . "DarkSlateGray4")
+  (70 . "PaleTurquoise4")))
 
 ;; Org-Babel
 (org-babel-do-load-languages
@@ -1349,9 +1408,14 @@
 
 
 (setq org-agenda-timegrid-use-ampm 1)
-(setq org-agenda-time-grid '((daily today require-timed)
-                             (800 900 1000 1100 1200 1300 1400 1500 1600 1700)
-                             "    " "----------------"))
+
+;; (setq org-agenda-time-grid '((daily today require-timed)
+;;                              (800 900 1000 1100 1200 1300 1400 1500 1600 1700)
+;;                              "        "
+;; 							 "----------------"))
+
+(setq org-agenda-time-grid nil) ;; I've decided to disable the time grid. 2021-09-22.
+
 (setq org-agenda-block-separator 8213) ;; Unicode: ―
 (setq org-agenda-current-time-string "<----------------- Now")
 (setq org-agenda-scheduled-leaders '("" ""))
@@ -1429,7 +1493,7 @@
                                  :order 27)
                           (:name "Todo"
                                  :discard (:category "personal")
-                                 :todo "TODO"
+                                 :todo ("TODO" "INPROGRESS-TODO")
                                  :order 20)
                           ))))))
         ("m" "Agendaless Super zaen view"
@@ -1483,7 +1547,7 @@
                                       (:name "Todo"
                                              :discard (:tag "habit")
                                              :discard (:category "personal")
-                                             :todo "TODO"
+                                             :todo ("TODO" "INPROGRESS-TODO")
                                              :order 13)
                                       ))))))
 
@@ -1539,7 +1603,7 @@
                                       (:name "Todo"
                                              :discard (:tag "habit")
                                              :discard (:category "personal")
-                                             :todo "TODO"
+                                             :todo ("TODO" "INPROGRESS-TODO")
                                              :order 13)
                                       ))))))
 
@@ -1551,20 +1615,28 @@
 ;; disables that and keeps my bookmark list how I want it.
 (setq org-bookmark-names-plist nil)
 
-(setq org-refile-targets '((nil :maxlevel . 3)))
+(setq org-refile-targets (quote (("~/Dropbox/org/work.org" :maxlevel . 2))))
+(setq org-outline-path-complete-in-steps nil) ; Refile in a single go
+(setq org-refile-use-outline-path t)          ; Show full paths for refilin0
+
 
 (setq org-capture-templates
       '(
-
-        ("n" "Note" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
+        ("n" "CPB Note" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
          "** Note: %? @ %U" :empty-lines 1)
 
-        ("h" "Homework" entry (file "~/Dropbox/org/work.org")
-         "** HW %^{Homework Item} \n %?" :prepend t :empty-lines-before 0)
+        ("w" "Work Todo Entries")
+            ("we" "No Time" entry (file "~/Dropbox/org/work.org")
+             "** %^{Type|TODO|HW|READ|PROJ} %^{Todo title} %?" :prepend t :empty-lines-before 0)
 
-        ("t" "Todo" entry (file "~/Dropbox/org/work.org")
-         "** TODO %^{Todo Item} \n %?" :prepend t :empty-lines-before 0)
+            ("ws" "Scheduled" entry (file "~/Dropbox/org/work.org")
+             "** %^{Type|TODO|HW|READ|PROJ} %^{Todo title}\nSCHEDULED: %^t%?" :prepend t :empty-lines-before 0)
 
+            ("wd" "Deadline" entry (file "~/Dropbox/org/work.org")
+             "** %^{Type|TODO|HW|READ|PROJ} %^{Todo title}\nDEADLINE: %^t%?" :prepend t :empty-lines-before 0)
+
+            ("ww" "Scheduled & deadline" entry (file "~/Dropbox/org/work.org")
+             "** %^{Type|TODO|HW|READ|PROJ} %^{Todo title}\nSCHEDULED: %^t DEADLINE: %^t %?" :prepend t :empty-lines-before 0)
         ))
 
 (setq org-export-backends '(ascii beamer html latex md odt))
@@ -1655,32 +1727,28 @@
 (setq erc-nick "Jake0"
       erc-password "X9mm5bKpvy$@")
 
-(use-package auctex
+(use-package latex ;; This is a weird one. Package is auctex but needs to be managed like this.
+  :ensure nil
   :defer t
   :init
-  ;; (setq TeX-auto-save t) I think this isn't what I think it is
-  (setq TeX-engine 'xetex) ;; I like xetex rather than tex
-  (setq latex-run-command "xetex")
-  (setq TeX-save-query nil) ;; Automatically save whem compiling
-  (setq compilation-ask-about-save nil) ;; Same as above it seems
+  (setq TeX-engine 'xetex
+        latex-run-command "xetex")
+  (setq TeX-save-query nil ;; Don't prompt for saving the .tex file
+        TeX-auto-save t
+        TeX-show-compilation nil)
+  ;; To use pdfview with auctex:
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+        TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
+        TeX-source-correlate-start-server t)
   )
 
-;; to use pdfview with auctex
-(setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-      TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
-      TeX-source-correlate-start-server t)
+(add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer) ;; Standard way
 
-;; autorefresh pdfview when auctex compiles
-;; (add-hook 'TeX-after-compilation-finished-functions
-;;           #'TeX-revert-document-buffer)
-
-;; ERRORING OUT FOR SOME REASON
-;; (defun jib-switch-back ()
-;;   (other-window 1))
-
-;; After the file is compiled, the PDF view refreshes and takes focus, which means
-;; your cursor is now in the PDF window, so this puts it back automatically.
-;; (add-hook 'TeX-after-compilation-finished-functions 'jib-switch-back)
+(use-package company-auctex
+  :after auctex
+  :init
+  (add-to-list 'company-backends 'company-auctex)
+  (company-auctex-init))
 
 (use-package mw-thesaurus
   :defer t

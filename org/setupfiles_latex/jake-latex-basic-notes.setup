@@ -50,7 +50,7 @@ Jake LaTeX Basic Notes Export
 
 * Title config
 #+LATEX_HEADER: \usepackage{titling}
-#+LATEX_HEADER: \pretitle{\vspace{-4em}\begin{center}\Huge\textbf}
+#+LATEX_HEADER: \pretitle{\vspace{-4em}\begin{center}\Large\textbf}
 #+LATEX_HEADER: \posttitle{\par\end{center}}
 #+LATEX_HEADER: \preauthor{\begin{center}\Large}
 #+LATEX_HEADER: \postauthor{\par\end{center}}

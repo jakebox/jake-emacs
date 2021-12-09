@@ -184,6 +184,17 @@ splits the sentence."
 	(jib/open-buffer-file-mac)
 	(kill-this-buffer)))
 
+(defun jib/org-tmp-html-export-region ()
+  "Temp HTML of current org region in browser."
+  (interactive)
+  (let ((old-buffer (current-buffer)) (beg (region-beginning)) (end (region-end)))
+	(with-temp-buffer
+	  (insert "#+OPTIONS: toc:nil date:nil author:nil num:nil title:nil tags:nil \
+	  todo:nil html-link-use-abs-url:nil html-postamble:nil html-preamble:nil \
+	  html-scripts:nil html-style:nil html5-fancy:nil tex:nil")
+      (insert-buffer-substring old-buffer (- beg 1) end)
+	  (jib/org-tmp-html-export))))
+
 ;; https://www.reddit.com/r/emacs/comments/8qm1lb/new_orgcountwords_command/
 (defun ap/org-forward-to-entry-content (&optional unsafe)
     "Skip headline, planning line, and all drawers in current entry.
@@ -220,7 +231,44 @@ If UNSAFE is non-nil, assume point is on headline."
                                     (org-get-heading t t) total-lines total-words total-characters)))))
 
 
-;; ------ MACROS ------ ;;
+(defun jib/save-and-close-this-buffer (buffer)
+  "Saves and closes given buffer."
+  (if (get-buffer buffer)
+	  (let ((b (get-buffer buffer)))
+		(save-buffer b)
+		(kill-buffer b))))
+
+(defun jib/org-schedule-tomorrow ()
+  "Org Schedule for tomorrow (+1d)."
+  (interactive)
+  (org-schedule t "+1d"))
+
+(defun jib/org-set-startup-visibility ()
+  (interactive)
+  (org-set-startup-visibility))
+
+;; Modified from https://stackoverflow.com/questions/25930097/emacs-org-mode-quickly-mark-todo-as-done?rq=1
+(defun jib/org-done-keep-todo ()
+  "Mark an org todo item as done while keeping its former keyword intact, and archive.
+
+For example, * TODO This item    becomes    * DONE TODO This item. This way I can see what
+the todo type was if I look back through my archive files."
+  (interactive)
+  (let ((state (org-get-todo-state)) (todo (org-entry-get (point) "TODO"))
+        post-command-hook)
+    (if (not (eq state nil))
+        (progn (org-todo "DONE")
+			   (beginning-of-line)
+			   (forward-word)
+			   (insert (concat " " todo))
+			   (org-archive-subtree-default))
+	  (user-error "Not a TODO."))
+    (run-hooks 'post-command-hook)))
+
+(general-define-key :keymaps 'org-mode-map "C-c t" 'jib/org-done-keep-todo)
+
+
+;; ------ MACROS ------ ;
 
 
 ;; Converts org mode from current line to bottom to HTML and copies it to the system clipboard

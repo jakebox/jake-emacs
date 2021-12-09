@@ -21,19 +21,23 @@ determine the exact padding."
   "Theme inspired by gko's plain dark."
 
   ;; name        default   256       16
-  ((bg         '("#222222" nil       nil ))
+  ((bg         '("#0a0a0a" nil       nil ))
    (bg-alt     (doom-lighten bg 0.15))
    (base0      '("#838083" nil nil ))
    (base1      '("#0e0c0a" nil nil ))
-   (base2      '("#d9d9d9" nil nil ))
+   (base2      '("#fafafa" nil nil ))
    (base3      '("#444444" nil nil ))
    (base4      '("#202020" nil nil ))
    (base5      '("#545053" nil nil ))
    (base6      '("#050505" nil nil ))
    (base7      '("#ffdddd" nil nil ))
    (base8      '("#050505" nil nil ))
-   (fg         '("#e8e6e1" nil nil ))
+   (fg         '("#fafafa" nil nil ))
    (fg-alt     '("#e7e5e3" nil nil ))
+
+   ;; Jake more custom stuff
+   (popout '("#FFAB91" nil nil )) ;; from nano-theme
+   (salient '("#2740a3" nil nil )) ;; from nano-theme
 
    (grey       fg)
    (red        fg)
@@ -116,12 +120,23 @@ determine the exact padding."
     :background base3)
 
    (org-block
-    :background "#f7f7f7"
+    :background "#303030"
     :extend t)
 
+   (org-special-keyword
+	:foreground base5
+	:inherit 'fixed-pitch
+	)
+
+   (org-date
+	:foreground)
    (org-document-title
 	:foreground fg
 	:weight 'bold)
+
+   (org-tag
+	:foreground popout
+	:weight 'regular)
 
    ;; The bullets are just slightly lighter/more subtle than the header text.
    (org-superstar-header-bullet
@@ -133,13 +148,18 @@ determine the exact padding."
     :background nil
     :weight 'bold)
 
+   (link
+	:foreground base2
+	:underline t
+	:weight 'regular)
+
    (org-drawer
 	:height 0.6
 	:inherit 'shadow)
    
    (org-level-1
     :slant 'normal
-    :foreground fg-alt
+    :foreground fg
     :weight 'bold
     :height 1.1
     :background nil)
@@ -148,11 +168,6 @@ determine the exact padding."
     :slant 'normal
     :foreground base2
     :weight 'bold
-    :background nil)
-
-   (org-level-3
-    :slant 'normal
-    :foreground base2
     :background nil)
 
    (org-level-3
