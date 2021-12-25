@@ -10,7 +10,6 @@
 
 * Things to do
 + Improve LaTeX editing/compiling/viewing
-+ Classy org WIP
   
 * Meta
 This file contains my Emacs configuration. I have roughly ordered the org headings in order of importance/reliability. For example, misc packages is loaded last as I try new stuff there. Keyboard section is also important as if there's error I feel comfortable enough to go fix it.
@@ -49,7 +48,7 @@ The following is exported to the top of the tangled init.el file as a note.
 Starting in Emacs 27 the early-init.el file is run before the GUI is created, so we take care of a few misc. GUI features. Keeps ugliness down and should help startup time, too.
 #+BEGIN_SRC emacs-lisp :tangle ./early-init.el
   ;; -*- lexical-binding: t; -*-
-
+  
   ;; -------------------------------------------------------------------------------- ;;
   ;; This early-init.el file was auto-tangled from an orgmode file. (C) Jake B        ;;
   ;; -------------------------------------------------------------------------------- ;;
@@ -68,8 +67,10 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
 #+BEGIN_SRC emacs-lisp :tangle yes
   (require 'package)
 
-  (add-to-list 'package-archives '("melpa"  . "https://melpa.org/packages/")) ;; ELPA and NonGNU ELPA are default in Emacs28
-  (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") ;; Without this on my Mac Emacs freezes when refreshing ELPA
+  ;; ELPA and NonGNU ELPA are default in Emacs28
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/")) 
+  ;; Without this on my Mac Emacs freezes when refreshing ELPA
+  (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") 
 
 
   ;; Package list
@@ -79,30 +80,34 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
                        use-package gcmh
 
                        ;; Completion/Utilities
-                       company counsel ivy prescient company-prescient ivy-prescient
+                       company counsel ivy prescient company-prescient
+                       ivy-prescient
 
                        ;; Utilities/Modes
-                       auctex projectile web-mode python-mode pyvenv auto-virtualenv
+                       auctex projectile web-mode python-mode pyvenv
+                       auto-virtualenv
 
                        ;; QOL (Quality-of-life) & "Utilities"
                        saveplace super-save simpleclip centered-cursor-mode
-                       undo-fu yasnippet super-save windresize unfill rainbow-mode popper
+                       undo-fu yasnippet super-save ace-window windresize unfill
+                       rainbow-mode popper
 
-                       deft define-word mw-thesaurus mu4e-views restart-emacs unfill
-                       mu4e-views reveal-in-osx-finder pdf-tools
+                       deft define-word mw-thesaurus mu4e-views restart-emacs
+                       unfill mu4e-views reveal-in-osx-finder pdf-tools
 
                        ;; Keyboard
                        evil which-key general smartparens hydra evil-surround
                        evil-snipe evil-org evil-anzu
 
                        ;; Themes/Visuals
-                       spacemacs-theme modus-themes doom-themes kaolin-themes dashboard
+                       modus-themes doom-themes kaolin-themes dashboard
                        solaire-mode mixed-pitch visual-fill-column diminish
-                       doom-modeline hide-mode-line writeroom-mode all-the-icons all-the-icons-ivy-rich
+                       doom-modeline hide-mode-line writeroom-mode all-the-icons
+                       all-the-icons-ivy-rich presentation
 
                        ;; Org-related
-                       ox-reveal ox-hugo org-superstar org-super-agenda org-gcal toc-org org-ql
-                       org-appear org-ql
+                       ox-reveal ox-hugo org-superstar org-super-agenda org-gcal
+                       toc-org org-ql org-appear org-ql
                        ))
 
 
@@ -113,8 +118,8 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
   (unless package-archive-contents
     (package-refresh-contents))
   (dolist (package package-list)
-    (unless (package-installed-p package)
-      (package-install package)))
+    (unless
+        (package-installed-p package) (package-install package)))
 
   (require 'use-package)
   (setq use-package-always-ensure t)
@@ -142,7 +147,7 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
                                 (time-subtract after-init-time before-init-time)))
                        gcs-done)))
           #+END_SRC
-
+          
 * Files, variables, etc
 ** Loading custom lisp files
 Note - jib-funcs holds a few variables - home, dropbox, org-directory, init, and some more. That's why I load it first (so variables can be used asap).
@@ -376,43 +381,50 @@ Use ~command~ as ~meta~ in macOS. Disable option (aka alt). Keep control ctrl. R
 ** Evil
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package evil
-    :init
-    (setq evil-want-keybinding t)
-    (setq evil-want-fine-undo t)
-    (setq evil-want-keybinding nil)
-    :config
+	:init
+	(setq evil-want-keybinding t)
+	(setq evil-want-fine-undo t)
+	(setq evil-want-keybinding nil)
+	:config
 
-    (evil-set-initial-state 'dashboard-mode 'motion)
-    (evil-set-initial-state 'debugger-mode 'motion)
-    (evil-set-initial-state 'pdf-view-mode 'motion)
+	(evil-set-initial-state 'dashboard-mode 'motion)
+	(evil-set-initial-state 'debugger-mode 'motion)
+	(evil-set-initial-state 'pdf-view-mode 'motion)
 
-    ;; ----- Keybindings
-    (define-key evil-motion-state-map "/" 'swiper)
-    (define-key evil-window-map "\C-w" 'evil-delete-buffer) ;; Maps C-w C-w to delete-buffer (The first C-w puts you into evil-window-map)
-    (define-key evil-motion-state-map "\C-b" 'evil-scroll-up) ;; Makes C-b how C-u is
-    ;; (define-key evil-motion-state-map "\C-d" '(evil-scroll-down 5)) ;; Makes C-b how C-u is
+	;; ----- Keybindings
+	(define-key evil-motion-state-map "/" 'swiper)
+	(define-key evil-window-map "\C-w" 'evil-delete-buffer) ;; Maps C-w C-w to delete-buffer (The first C-w puts you into evil-window-map)
+	(define-key evil-motion-state-map "\C-b" 'evil-scroll-up) ;; Makes C-b how C-u is
+	;; (define-key evil-motion-state-map "\C-d" '(evil-scroll-down 5)) ;; Makes C-b how C-u is
 
-    ;; ----- Setting cursor colors
-    (setq evil-emacs-state-cursor    '("#649bce" box))
-    (setq evil-normal-state-cursor   '("#ebcb8b" box))
-    (setq evil-operator-state-cursor '("#ebcb8b" hollow))
-    (setq evil-visual-state-cursor   '("#677691" box))
-    (setq evil-insert-state-cursor   '("#eb998b" (bar . 2)))
-    (setq evil-replace-state-cursor  '("#eb998b" hbar))
-    (setq evil-motion-state-cursor   '("#ad8beb" box))
+	;; ----- Setting cursor colors
+	(setq evil-emacs-state-cursor    '("#649bce" box))
+	(setq evil-normal-state-cursor   '("#ebcb8b" box))
+	(setq evil-operator-state-cursor '("#ebcb8b" hollow))
+	(setq evil-visual-state-cursor   '("#677691" box))
+	(setq evil-insert-state-cursor   '("#eb998b" (bar . 2)))
+	(setq evil-replace-state-cursor  '("#eb998b" hbar))
+	(setq evil-motion-state-cursor   '("#ad8beb" box))
 
-    (evil-mode 1))
 
-  ;; (use-package evil-collection ;; This isn't disabled, rather it never worked
-  ;;   :after evil
-  ;;   :ensure t
-  ;;   :config
-  ;;   (evil-collection-init))
+	;; Evil-like keybinds for custom-mode-map
+	(evil-define-key nil 'custom-mode-map
+	  ;; motion
+	  (kbd "C-j") 'widget-forward
+	  (kbd "C-k") 'widget-backward
+	  "q" 'Custom-buffer-done)
+
+	;; Kill buffer instead of hide buffer in some of those (imo) pesky modes.
+	(dolist (mode '(help-mode-map
+					calendar-mode-map
+					(evil-define-key 'motion mode "q" 'kill-this-buffer))))
+
+	(evil-mode 1))
 
   (use-package evil-surround
-    :defer 2
-    :config
-    (global-evil-surround-mode 1))
+	:defer 2
+	:config
+	(global-evil-surround-mode 1))
 #+END_SRC
 
 *** evil-snipe
@@ -424,7 +436,6 @@ Use ~command~ as ~meta~ in macOS. Disable option (aka alt). Keep control ctrl. R
     :config
     (evil-snipe-mode +1))
   #+END_SRC
-
 ** General.el (main keybindings set here)
 [[https://github.com/noctuid/general.el][General.el]]
 
@@ -572,7 +583,7 @@ it along with :keymaps 'override when you need to override other stuff
   "wd" '(evil-window-delete :which-key "delete window")
   "w-" '(jib/split-window-vertically-and-switch :which-key "split below")
   "w/" '(jib/split-window-horizontally-and-switch :which-key "split right")
-  "wr" '(windresize :which-key "resize window")
+  "wr" '(jib/hydra-window/body :which-key "hydra window")
   "wl" '(evil-window-right :which-key "evil-window-right")
   "wh" '(evil-window-left :which-key "evil-window-left")
   "wj" '(evil-window-down :which-key "evil-window-down")
@@ -580,8 +591,7 @@ it along with :keymaps 'override when you need to override other stuff
   "wz" '(text-scale-adjust :which-key "text zoom")
   ) ;; End SPC prefix general.el block
 #+END_SRC
-*** Mode-specific bindings (comma leader bindings)
-**** Emacs-Lisp Mode ~,~ Bindings
+*** Emacs-Lisp Mode ~,~ Bindings
 Sets up my comma leader key for elisp mode. Has functions like
 evaluating areas and checking parenthesis.
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -599,7 +609,7 @@ evaluating areas and checking parenthesis.
     "I" '(indent-region :which-key "indent-region")
     )
 #+END_SRC
-**** Org Mode Bindings
+*** Org Mode Bindings
 Functions that can be run in normal mode in Org Mode.
 #+BEGIN_SRC emacs-lisp :tangle yes
   (general-def
@@ -630,7 +640,7 @@ Functions that can be run in normal mode in Org Mode.
     "bb" 'org-edit-src-exit
     )
 #+END_SRC
-***** Org Mode ~,~ Bindings
+**** Org Mode ~,~ Bindings
 Org mode comma leader key setup. My most-used functions live here with
 just a single keypress (after the ~,~).
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -703,73 +713,78 @@ just a single keypress (after the ~,~).
    "cj" '(org-clock-goto :which-key "jump to clock")
    )
 #+END_SRC
-*** Other Keybindings
+*** All-mode keybindings
 Below are general keybindings for the various Evil modes.
 #+BEGIN_SRC emacs-lisp :tangle yes
-   ;; All-mode keymaps
-   (general-def
-  :keymaps 'override
+  ;; All-mode keymaps
+  (general-def
+    :keymaps 'override
 
-     ;; Emacs --------
-     "M-x" 'counsel-M-x
-     "ß" 'evil-window-next ;; option-s
-     "Í" 'other-frame ;; option-shift-s
-     "C-S-B" 'counsel-switch-buffer
+    ;; Emacs --------
+    "M-x" 'counsel-M-x
+    "ß" 'evil-window-next ;; option-s
+    "Í" 'other-frame ;; option-shift-s
+    "C-S-B" 'counsel-switch-buffer
+    "∫" 'counsel-switch-buffer ;; option-b
 
-     ;; Remapping normal help features to use Counsel version
-     "C-h v" 'counsel-describe-variable
-     "C-h o" 'counsel-describe-symbol
-     "C-h f" 'counsel-describe-function
-     "C-h F" 'counsel-describe-face
-
-
-     ;; Editing ------
-     "M-v" 'simpleclip-paste
-     "M-V" 'evil-paste-after ;; shift-paste uses the internal clipboard
-     "M-c" 'simpleclip-copy
-     "M-u" 'capitalize-dwim ;; Default is upcase-dwim
-     "M-U" 'upcase-dwim ;; M-S-u (switch upcase and capitalize)
-     "C-c u" 'jib/split-and-close-sentence
-
-     ;; Utility ------
-     "C-c c" 'org-capture
-     "C-c a" 'org-agenda
-     "C-s" 'counsel-grep-or-swiper ;; Large files will use grep (faster)
-     "s-\"" 'ispell-word ;; that's super-shift-'
-     "M-+" 'jib/calc-speaking-time
+    ;; Remapping normal help features to use Counsel version
+    "C-h v" 'counsel-describe-variable
+    "C-h o" 'counsel-describe-symbol
+    "C-h f" 'counsel-describe-function
+    "C-h F" 'counsel-describe-face
 
 
-     ;; super-number functions
-     "s-1" 'mw-thesaurus-lookup-dwim
-     "s-2" 'ispell-buffer
-     "s-3" 'revert-buffer
-     )
+    ;; Editing ------
+    "M-v" 'simpleclip-paste
+    "M-V" 'evil-paste-after ;; shift-paste uses the internal clipboard
+    "M-c" 'simpleclip-copy
+    "M-u" 'capitalize-dwim ;; Default is upcase-dwim
+    "M-U" 'upcase-dwim ;; M-S-u (switch upcase and capitalize)
+    "C-c u" 'jib/split-and-close-sentence
 
-   ;; Non-insert mode keymaps
-   (general-def
-     :states '(normal visual motion)
-     "gc" 'comment-dwim
-     "j" 'evil-next-visual-line ;; I prefer visual line navigation
-     "k" 'evil-previous-visual-line ;; ""
-     "|" '(lambda () (interactive) (org-agenda nil "n")) ;; Opens my n custom org-super-agenda view
-     "C-|" '(lambda () (interactive) (org-agenda nil "m")) ;; Opens my m custom org-super-agenda view
-     )
+    ;; Utility ------
+    "C-c c" 'org-capture
+    "C-c a" 'org-agenda
+    "C-s" 'counsel-grep-or-swiper ;; Large files will use grep (faster)
+    "s-\"" 'ispell-word ;; that's super-shift-'
+    "M-+" 'jib/calc-speaking-time
 
-   ;; Insert keymaps
-   ;; Many of these are emulating standard Emacs bindings in Evil insert mode, such as C-a, or C-e.
-   (general-def
-     :states '(insert)
-     "C-a" 'evil-beginning-of-visual-line
-     "C-e" 'evil-end-of-visual-line
-     "C-S-a" 'evil-beginning-of-line
-     "C-S-e" 'evil-end-of-line
-     "C-n" 'evil-next-visual-line
-     "C-p" 'evil-previous-visual-line
-     )
+
+    ;; super-number functions
+    "s-1" 'mw-thesaurus-lookup-dwim
+    "s-2" 'ispell-buffer
+    "s-3" 'revert-buffer
+    )
+    #+END_SRC
+*** Non-insert mode keymaps
+#+BEGIN_SRC emacs-lisp :tangle yes
+  ;; Non-insert mode keymaps
+  (general-def
+    :states '(normal visual motion)
+    "gc" 'comment-dwim
+    "j" 'evil-next-visual-line ;; I prefer visual line navigation
+    "k" 'evil-previous-visual-line ;; ""
+    "|" '(lambda () (interactive) (org-agenda nil "n")) ;; Opens my n custom org-super-agenda view
+    "C-|" '(lambda () (interactive) (org-agenda nil "m")) ;; Opens my m custom org-super-agenda view
+    )
+#+END_SRC
+*** Insert mode keymaps (bringing Emacs binds to Evil)
+#+BEGIN_SRC emacs-lisp :tangle yes
+  ;; Insert keymaps
+  ;; Many of these are emulating standard Emacs bindings in Evil insert mode, such as C-a, or C-e.
+  (general-def
+    :states '(insert)
+    "C-a" 'evil-beginning-of-visual-line
+    "C-e" 'evil-end-of-visual-line
+    "C-S-a" 'evil-beginning-of-line
+    "C-S-e" 'evil-end-of-line
+    "C-n" 'evil-next-visual-line
+    "C-p" 'evil-previous-visual-line
+    )
 #+END_SRC
 
 **** Bindings for Applications/Utilities
-And here are more application/more specific keybindings, like stuff only in Ivy buffers, or only in Deft, etce
+And here are more application/more specific keybindings.
 #+BEGIN_SRC emacs-lisp :tangle yes
   ;; Xwidget ------
   (general-define-key :states 'normal :keymaps 'xwidget-webkit-mode-map 
@@ -779,19 +794,16 @@ And here are more application/more specific keybindings, like stuff only in Ivy 
                       "G" 'xwidget-webkit-scroll-bottom)
 
   ;; 'q' kills help buffers rather than just closing the window
-  (general-define-key :keymaps '(help-mode-map calendar-mode-map) "q" 'kill-this-buffer)
+  ;; (general-define-key :keymaps '(help-mode-map calendar-mode-map) "q" 'kill-this-buffer)
 
   ) ;; end general.el use-package
 #+END_SRC
-
 ** Hydra
 Allows those cool 'transient' states -- press a key as many times as
 you want to run a function without doing anything else.
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package hydra
-    :defer t
-    :config
-    )
+    :defer t)
 
   ;; This Hydra lets me swich between variable pitch fonts. It turns off mixed-pitch 
   ;; WIP
@@ -825,6 +837,60 @@ you want to run a function without doing anything else.
     ("x" (jib/load-theme 'doom-flatwhite) "doom-flatwhite")
     ("c" (jib/load-theme 'kaolin-galaxy) "kaolin-galaxy")
     )
+
+  ;; I think I need to initialize windresize to use its commands
+  (windresize)
+  (windresize-exit)
+
+  ;; All-in-one window managment. Makes use of some custom functions,
+  ;; `ace-window' (for swapping), `windmove' (could probably be replaced
+  ;; by evil?) and `windresize'.
+  ;; inspired by https://github.com/jmercouris/configuration/blob/master/.emacs.d/hydra.el#L86
+  (defhydra jib/hydra-window (:hint nil)
+     "
+  Movement      ^Split^            ^Switch^        ^Resize^
+  ----------------------------------------------------------------
+  _M-<left>_  <   _/_ vertical      _b_uffer        _<left>_  <
+  _M-<right>_ >   _-_ horizontal    _f_ind file     _<down>_  ↓
+  _M-<up>_    ↑   _m_aximize        _s_wap          _<up>_    ↑
+  _M-<down>_  ↓   _c_lose           _[_backward     _<right>_ >
+  _q_uit          _e_qualize        _]_forward     ^
+  ^               ^               _K_ill         ^
+  ^               ^                  ^             ^
+  "
+     ;; Movement
+     ("M-<left>" windmove-left)
+     ("M-<down>" windmove-down)
+     ("M-<up>" windmove-up)
+     ("M-<right>" windmove-right)
+
+     ;; Split/manage
+     ("-" jib/split-window-vertically-and-switch)
+     ("/" jib/split-window-horizontally-and-switch)
+     ("c" evil-window-delete)
+     ("d" evil-window-delete)
+     ("m" delete-other-windows)
+     ("e" balance-windows)
+
+     ;; Switch
+     ("b" counsel-switch-buffer)
+     ("f" counsel-find-file)
+     ("P" projectile-find-file)
+     ("s" ace-swap-window)
+     ("[" previous-buffer)
+     ("]" next-buffer)
+     ("K" kill-this-buffer)
+
+     ;; Resize
+     ("<left>" windresize-left)
+     ("<right>" windresize-right)
+     ("<down>" windresize-down)
+     ("<up>" windresize-up)
+
+
+     ("q" nil))
+
+  (general-define-key "s-o" 'jib/hydra-window/body)
 #+END_SRC
 
 * Interaction, Editing, Files
@@ -884,7 +950,9 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
     :config
     (setq ivy-extra-directories nil) ;; Hides . and .. directories
     (setq ivy-initial-inputs-alist nil) ;; Removes the ^ in ivy searches
-    (setq ivy-height 13)
+    (if (eq jib/computer 'laptop)
+        (setq-default ivy-height 10)
+      (setq-default ivy-height 15))
     (setq ivy-fixed-height-minibuffer t)
     (ivy-mode 1)
 
@@ -901,16 +969,18 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
 
   ;; Nice icons in Ivy. Replaces all-the-icons-ivy.
   (use-package all-the-icons-ivy-rich
-    :after ivy-rich
     :init (all-the-icons-ivy-rich-mode 1)
     :config
     (setq all-the-icons-ivy-rich-icon-size 1.0))
 
   (use-package ivy-rich
-    :after ivy
-    :config
+    :after (ivy)
+    :init
     (setq ivy-rich-path-style 'abbrev)
+    (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
+    :config
     (ivy-rich-mode 1))
+
 #+END_SRC
 *** Counsel
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -1095,7 +1165,9 @@ More obvious/easy to use undo and redo.
 *** Font configuration
 #+BEGIN_SRC emacs-lisp :tangle yes
   (setq text-scale-mode-step 1.1) ;; How much to adjust text scale by when using `text-scale-mode'
-  (setq-default line-spacing 0.00)
+  (setq jib/default-line-spacing 0.00)
+
+  (setq-default line-spacing jib/default-line-spacing)
 
   ;; Setting text size based on the computer I am on.
   (if (eq jib/computer 'laptop)
@@ -1122,6 +1194,29 @@ A better version of variable-pitch mode. This keeps certain faces (defined in ~m
     (dolist (face '(org-date org-priority org-tag org-special-keyword)) ;; Some extra faces I like to be fixed-pitch
       (add-to-list 'mixed-pitch-fixed-pitch-faces face)))
 #+END_SRC
+** Presentation Mode
+Mode for giving presentations, filming videos, etc. Bigger font, larger spacing, smaller Ivy.
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (defun my-presentation-on ()
+    (setq-default line-spacing 2)
+    (setq ivy-height 5)
+    )
+
+  (defun my-presentation-off ()
+    (setq-default line-spacing jib/default-line-spacing)
+    (jib/reset-var 'ivy-height)
+    )
+
+  (add-hook 'presentation-on-hook #'my-presentation-on)
+  (add-hook 'presentation-off-hook #'my-presentation-off)
+
+  (if (eq jib/computer 'laptop)
+      (setq presentation-default-text-scale 4)
+    (setq presentation-default-text-scale 5))
+
+  (use-package presentation
+    :defer t)
+#+END_SRC
 ** Modeline
 #+BEGIN_SRC emacs-lisp :tangle yes
   ;; Disables showing system load in modeline, useless anyway
@@ -1129,22 +1224,32 @@ A better version of variable-pitch mode. This keeps certain faces (defined in ~m
 
   (line-number-mode)
   (column-number-mode)
-  (display-time-mode)
-  (size-indication-mode)
+  (display-time-mode -1)
+  (size-indication-mode -1)
 
   (use-package doom-modeline
     :init (doom-modeline-mode)
     :config
-    (setq doom-modeline-buffer-file-name-style 'file-name)
-    (setq doom-modeline-enable-word-count t)
-    (setq doom-modeline-buffer-encoding nil)
-    (setq doom-modeline-icon nil)
-    (setq doom-modeline-major-mode-color-icon nil)
-    (setq doom-modeline-major-mode-icon t)
-    (setq doom-modeline-icon nil)
-    (setq doom-modeline-bar-width 3))
+    (setq doom-modeline-buffer-file-name-style 'file-name ;; Just show file name (no path)
+          doom-modeline-enable-word-count t
+          doom-modeline-buffer-encoding nil
+          doom-modeline-icon t ;; Enable/disable all icons
+          doom-modeline-modal-icon nil ;; Icon for Evil mode
+          doom-modeline-major-mode-icon t
+          doom-modeline-major-mode-color-icon t
+          doom-modeline-bar-width 3))
+
+  ;; Configure modeline text height based on the computer I'm on.
+  ;; These variables are used in the Themes section to ensure the modeline
+  ;; stays the right size no matter what theme I use.
+  (if (eq jib/computer 'laptop)
+      (setq jib-doom-modeline-text-height 135) ;; If laptop
+    (setq jib-doom-modeline-text-height 140))  ;; If desktop
+
+  (if (eq jib/computer 'laptop)
+      (setq doom-modeline-height 25) ;; If laptop
+    (setq doom-modeline-height 30))  ;; If desktop
 #+END_SRC
-Modeline font stuff moved to theme configuration section. I have the problem solved - laptop gets smaller modeline and desktop has bigger font. Works nicely.
 ** Window features
 *** Default Emacs features
 Hides scroll, toolbar. Goes to the early-init.el.
@@ -1152,20 +1257,12 @@ Hides scroll, toolbar. Goes to the early-init.el.
   ;; Window configuration
   (setq frame-inhibit-implied-resize t) ;; Supposed to hasten startup
 
-  ;; Hides toolbar, scroll bars
-  ;; (unless (eq window-system 'ns)
-  ;;   (tool-bar-mode -1))
-  ;; (when (fboundp 'scroll-bar-mode)
-  ;;   (scroll-bar-mode -1))
-  ;; (when (fboundp 'horizontal-scroll-bar-mode)
-  ;;   (horizontal-scroll-bar-mode -1))
-
   ;; Less clutter (this is what dfrosted12 uses so I trust that)
   (add-to-list 'default-frame-alist '(tool-bar-lines . 0))
   (add-to-list 'default-frame-alist '(menu-bar-lines . 0))
   (add-to-list 'default-frame-alist '(vertical-scroll-bars))
 
-  ;; This makes the Aqua titlebar color the same as Emacs. I don't really like it, for some reason, though I feel like I should.
+  ;; This makes the Aqua titlebar color the same as Emacs.
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 #+END_SRC
 *** Window
@@ -1189,11 +1286,6 @@ Hides scroll, toolbar. Goes to the early-init.el.
    #+BEGIN_SRC emacs-lisp :tangle yes
      (use-package all-the-icons) 
 
-     ;; Configure modeline text height based on the computer I'm on.
-     (if (eq jib/computer 'laptop)
-         (setq jib-doom-modeline-text-height 135) ;; (message "Laptop") ;; If laptop
-       (setq jib-doom-modeline-text-height 140)) ;; (message "Desktop") ;; If desktop
-
      (use-package doom-themes
        :after mixed-pitch
        :config
@@ -1205,8 +1297,9 @@ Hides scroll, toolbar. Goes to the early-init.el.
        (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height)))))
 
      (use-package kaolin-themes
+       :config
+       (setq kaolin-themes-modeline-border nil)
        :custom-face
-
        ;; Keep the modeline proper every time I use these themes.
        (mode-line ((t (:height ,jib-doom-modeline-text-height))))
        (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
@@ -1221,7 +1314,12 @@ Hides scroll, toolbar. Goes to the early-init.el.
        :init
        (setq modus-themes-italic-constructs t
              modus-themes-bold-constructs nil
-             modus-themes-region '(bg-only no-extend))
+             modus-themes-region '(bg-only no-extend)
+             modus-themes-hl-line '(accented) 
+             modus-themes-syntax '(yellow-comments)
+             modus-themes-mode-line '(accented borderless)) ;; Color modeline in active window, remove border
+       (setq modus-themes-headings ;; Makes org headings more colorful
+             '((t . (rainbow))))
        (modus-themes-load-themes)
        :custom-face
        ;; Keep the modeline proper every time I use these themes.
@@ -1670,6 +1768,9 @@ The following is org-mode configuration.
   (setq python-shell-completion-native-enable nil)
 
   (setq org-ditaa-jar-path "~/Desktop/ditaa0_9.jar")
+
+  ;; How to open buffer when calling `org-edit-special'.
+  (setq org-src-window-setup 'current-window)
 #+END_SRC
 *** Org-Habits
 #+BEGIN_SRC emacs-lisp :tangle yes

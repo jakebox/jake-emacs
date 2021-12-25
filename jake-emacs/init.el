@@ -13,8 +13,10 @@
 
 (require 'package)
 
-(add-to-list 'package-archives '("melpa"  . "https://melpa.org/packages/")) ;; ELPA and NonGNU ELPA are default in Emacs28
-(setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") ;; Without this on my Mac Emacs freezes when refreshing ELPA
+;; ELPA and NonGNU ELPA are default in Emacs28
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/")) 
+;; Without this on my Mac Emacs freezes when refreshing ELPA
+(setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") 
 
 
 ;; Package list
@@ -24,30 +26,34 @@
                      use-package gcmh
 
                      ;; Completion/Utilities
-                     company counsel ivy prescient company-prescient ivy-prescient
+                     company counsel ivy prescient company-prescient
+                     ivy-prescient
 
                      ;; Utilities/Modes
-                     auctex projectile web-mode python-mode pyvenv auto-virtualenv
+                     auctex projectile web-mode python-mode pyvenv
+                     auto-virtualenv
 
                      ;; QOL (Quality-of-life) & "Utilities"
                      saveplace super-save simpleclip centered-cursor-mode
-                     undo-fu yasnippet super-save windresize unfill rainbow-mode popper
+                     undo-fu yasnippet super-save ace-window windresize unfill
+                     rainbow-mode popper
 
-                     deft define-word mw-thesaurus mu4e-views restart-emacs unfill
-                     mu4e-views reveal-in-osx-finder pdf-tools
+                     deft define-word mw-thesaurus mu4e-views restart-emacs
+                     unfill mu4e-views reveal-in-osx-finder pdf-tools
 
                      ;; Keyboard
                      evil which-key general smartparens hydra evil-surround
                      evil-snipe evil-org evil-anzu
 
                      ;; Themes/Visuals
-                     spacemacs-theme modus-themes doom-themes kaolin-themes dashboard
+                     modus-themes doom-themes kaolin-themes dashboard
                      solaire-mode mixed-pitch visual-fill-column diminish
-                     doom-modeline hide-mode-line writeroom-mode all-the-icons all-the-icons-ivy-rich
+                     doom-modeline hide-mode-line writeroom-mode all-the-icons
+                     all-the-icons-ivy-rich presentation
 
                      ;; Org-related
-                     ox-reveal ox-hugo org-superstar org-super-agenda org-gcal toc-org org-ql
-                     org-appear org-ql
+                     ox-reveal ox-hugo org-superstar org-super-agenda org-gcal
+                     toc-org org-ql org-appear org-ql
                      ))
 
 
@@ -58,8 +64,8 @@
 (unless package-archive-contents
   (package-refresh-contents))
 (dolist (package package-list)
-  (unless (package-installed-p package)
-    (package-install package)))
+  (unless
+      (package-installed-p package) (package-install package)))
 
 (require 'use-package)
 (setq use-package-always-ensure t)
@@ -317,13 +323,20 @@
   (setq evil-replace-state-cursor  '("#eb998b" hbar))
   (setq evil-motion-state-cursor   '("#ad8beb" box))
 
-  (evil-mode 1))
 
-;; (use-package evil-collection ;; This isn't disabled, rather it never worked
-;;   :after evil
-;;   :ensure t
-;;   :config
-;;   (evil-collection-init))
+  ;; Evil-like keybinds for custom-mode-map
+  (evil-define-key nil 'custom-mode-map
+	;; motion
+	(kbd "C-j") 'widget-forward
+	(kbd "C-k") 'widget-backward
+	"q" 'Custom-buffer-done)
+
+  ;; Kill buffer instead of hide buffer in some of those (imo) pesky modes.
+  (dolist (mode '(help-mode-map
+				  calendar-mode-map
+				  (evil-define-key 'motion mode "q" 'kill-this-buffer))))
+
+  (evil-mode 1))
 
 (use-package evil-surround
   :defer 2
@@ -455,7 +468,7 @@
 "wd" '(evil-window-delete :which-key "delete window")
 "w-" '(jib/split-window-vertically-and-switch :which-key "split below")
 "w/" '(jib/split-window-horizontally-and-switch :which-key "split right")
-"wr" '(windresize :which-key "resize window")
+"wr" '(jib/hydra-window/body :which-key "hydra window")
 "wl" '(evil-window-right :which-key "evil-window-right")
 "wh" '(evil-window-left :which-key "evil-window-left")
 "wj" '(evil-window-down :which-key "evil-window-down")
@@ -575,65 +588,66 @@
  )
 
 ;; All-mode keymaps
- (general-def
-:keymaps 'override
+(general-def
+  :keymaps 'override
 
-   ;; Emacs --------
-   "M-x" 'counsel-M-x
-   "ß" 'evil-window-next ;; option-s
-   "Í" 'other-frame ;; option-shift-s
-   "C-S-B" 'counsel-switch-buffer
+  ;; Emacs --------
+  "M-x" 'counsel-M-x
+  "ß" 'evil-window-next ;; option-s
+  "Í" 'other-frame ;; option-shift-s
+  "C-S-B" 'counsel-switch-buffer
+  "∫" 'counsel-switch-buffer ;; option-b
 
-   ;; Remapping normal help features to use Counsel version
-   "C-h v" 'counsel-describe-variable
-   "C-h o" 'counsel-describe-symbol
-   "C-h f" 'counsel-describe-function
-   "C-h F" 'counsel-describe-face
-
-
-   ;; Editing ------
-   "M-v" 'simpleclip-paste
-   "M-V" 'evil-paste-after ;; shift-paste uses the internal clipboard
-   "M-c" 'simpleclip-copy
-   "M-u" 'capitalize-dwim ;; Default is upcase-dwim
-   "M-U" 'upcase-dwim ;; M-S-u (switch upcase and capitalize)
-   "C-c u" 'jib/split-and-close-sentence
-
-   ;; Utility ------
-   "C-c c" 'org-capture
-   "C-c a" 'org-agenda
-   "C-s" 'counsel-grep-or-swiper ;; Large files will use grep (faster)
-   "s-\"" 'ispell-word ;; that's super-shift-'
-   "M-+" 'jib/calc-speaking-time
+  ;; Remapping normal help features to use Counsel version
+  "C-h v" 'counsel-describe-variable
+  "C-h o" 'counsel-describe-symbol
+  "C-h f" 'counsel-describe-function
+  "C-h F" 'counsel-describe-face
 
 
-   ;; super-number functions
-   "s-1" 'mw-thesaurus-lookup-dwim
-   "s-2" 'ispell-buffer
-   "s-3" 'revert-buffer
-   )
+  ;; Editing ------
+  "M-v" 'simpleclip-paste
+  "M-V" 'evil-paste-after ;; shift-paste uses the internal clipboard
+  "M-c" 'simpleclip-copy
+  "M-u" 'capitalize-dwim ;; Default is upcase-dwim
+  "M-U" 'upcase-dwim ;; M-S-u (switch upcase and capitalize)
+  "C-c u" 'jib/split-and-close-sentence
 
- ;; Non-insert mode keymaps
- (general-def
-   :states '(normal visual motion)
-   "gc" 'comment-dwim
-   "j" 'evil-next-visual-line ;; I prefer visual line navigation
-   "k" 'evil-previous-visual-line ;; ""
-   "|" '(lambda () (interactive) (org-agenda nil "n")) ;; Opens my n custom org-super-agenda view
-   "C-|" '(lambda () (interactive) (org-agenda nil "m")) ;; Opens my m custom org-super-agenda view
-   )
+  ;; Utility ------
+  "C-c c" 'org-capture
+  "C-c a" 'org-agenda
+  "C-s" 'counsel-grep-or-swiper ;; Large files will use grep (faster)
+  "s-\"" 'ispell-word ;; that's super-shift-'
+  "M-+" 'jib/calc-speaking-time
 
- ;; Insert keymaps
- ;; Many of these are emulating standard Emacs bindings in Evil insert mode, such as C-a, or C-e.
- (general-def
-   :states '(insert)
-   "C-a" 'evil-beginning-of-visual-line
-   "C-e" 'evil-end-of-visual-line
-   "C-S-a" 'evil-beginning-of-line
-   "C-S-e" 'evil-end-of-line
-   "C-n" 'evil-next-visual-line
-   "C-p" 'evil-previous-visual-line
-   )
+
+  ;; super-number functions
+  "s-1" 'mw-thesaurus-lookup-dwim
+  "s-2" 'ispell-buffer
+  "s-3" 'revert-buffer
+  )
+
+;; Non-insert mode keymaps
+(general-def
+  :states '(normal visual motion)
+  "gc" 'comment-dwim
+  "j" 'evil-next-visual-line ;; I prefer visual line navigation
+  "k" 'evil-previous-visual-line ;; ""
+  "|" '(lambda () (interactive) (org-agenda nil "n")) ;; Opens my n custom org-super-agenda view
+  "C-|" '(lambda () (interactive) (org-agenda nil "m")) ;; Opens my m custom org-super-agenda view
+  )
+
+;; Insert keymaps
+;; Many of these are emulating standard Emacs bindings in Evil insert mode, such as C-a, or C-e.
+(general-def
+  :states '(insert)
+  "C-a" 'evil-beginning-of-visual-line
+  "C-e" 'evil-end-of-visual-line
+  "C-S-a" 'evil-beginning-of-line
+  "C-S-e" 'evil-end-of-line
+  "C-n" 'evil-next-visual-line
+  "C-p" 'evil-previous-visual-line
+  )
 
 ;; Xwidget ------
 (general-define-key :states 'normal :keymaps 'xwidget-webkit-mode-map 
@@ -643,14 +657,12 @@
                     "G" 'xwidget-webkit-scroll-bottom)
 
 ;; 'q' kills help buffers rather than just closing the window
-(general-define-key :keymaps '(help-mode-map calendar-mode-map) "q" 'kill-this-buffer)
+;; (general-define-key :keymaps '(help-mode-map calendar-mode-map) "q" 'kill-this-buffer)
 
 ) ;; end general.el use-package
 
 (use-package hydra
-  :defer t
-  :config
-  )
+  :defer t)
 
 ;; This Hydra lets me swich between variable pitch fonts. It turns off mixed-pitch 
 ;; WIP
@@ -684,6 +696,60 @@
   ("x" (jib/load-theme 'doom-flatwhite) "doom-flatwhite")
   ("c" (jib/load-theme 'kaolin-galaxy) "kaolin-galaxy")
   )
+
+;; I think I need to initialize windresize to use its commands
+(windresize)
+(windresize-exit)
+
+;; All-in-one window managment. Makes use of some custom functions,
+;; `ace-window' (for swapping), `windmove' (could probably be replaced
+;; by evil?) and `windresize'.
+;; inspired by https://github.com/jmercouris/configuration/blob/master/.emacs.d/hydra.el#L86
+(defhydra jib/hydra-window (:hint nil)
+   "
+Movement      ^Split^            ^Switch^        ^Resize^
+----------------------------------------------------------------
+_M-<left>_  <   _/_ vertical      _b_uffer        _<left>_  <
+_M-<right>_ >   _-_ horizontal    _f_ind file     _<down>_  ↓
+_M-<up>_    ↑   _m_aximize        _s_wap          _<up>_    ↑
+_M-<down>_  ↓   _c_lose           _[_backward     _<right>_ >
+_q_uit          _e_qualize        _]_forward     ^
+^               ^               _K_ill         ^
+^               ^                  ^             ^
+"
+   ;; Movement
+   ("M-<left>" windmove-left)
+   ("M-<down>" windmove-down)
+   ("M-<up>" windmove-up)
+   ("M-<right>" windmove-right)
+
+   ;; Split/manage
+   ("-" jib/split-window-vertically-and-switch)
+   ("/" jib/split-window-horizontally-and-switch)
+   ("c" evil-window-delete)
+   ("d" evil-window-delete)
+   ("m" delete-other-windows)
+   ("e" balance-windows)
+
+   ;; Switch
+   ("b" counsel-switch-buffer)
+   ("f" counsel-find-file)
+   ("P" projectile-find-file)
+   ("s" ace-swap-window)
+   ("[" previous-buffer)
+   ("]" next-buffer)
+   ("K" kill-this-buffer)
+
+   ;; Resize
+   ("<left>" windresize-left)
+   ("<right>" windresize-right)
+   ("<down>" windresize-down)
+   ("<up>" windresize-up)
+
+
+   ("q" nil))
+
+(general-define-key "s-o" 'jib/hydra-window/body)
 
 (use-package company
   :diminish company-mode
@@ -735,7 +801,9 @@
   :config
   (setq ivy-extra-directories nil) ;; Hides . and .. directories
   (setq ivy-initial-inputs-alist nil) ;; Removes the ^ in ivy searches
-  (setq ivy-height 13)
+  (if (eq jib/computer 'laptop)
+      (setq-default ivy-height 10)
+    (setq-default ivy-height 15))
   (setq ivy-fixed-height-minibuffer t)
   (ivy-mode 1)
 
@@ -752,15 +820,16 @@
 
 ;; Nice icons in Ivy. Replaces all-the-icons-ivy.
 (use-package all-the-icons-ivy-rich
-  :after ivy-rich
   :init (all-the-icons-ivy-rich-mode 1)
   :config
   (setq all-the-icons-ivy-rich-icon-size 1.0))
 
 (use-package ivy-rich
-  :after ivy
-  :config
+  :after (ivy)
+  :init
   (setq ivy-rich-path-style 'abbrev)
+  (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
+  :config
   (ivy-rich-mode 1))
 
 (use-package counsel
@@ -916,7 +985,9 @@
 (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
 
 (setq text-scale-mode-step 1.1) ;; How much to adjust text scale by when using `text-scale-mode'
-(setq-default line-spacing 0.00)
+(setq jib/default-line-spacing 0.00)
+
+(setq-default line-spacing jib/default-line-spacing)
 
 ;; Setting text size based on the computer I am on.
 (if (eq jib/computer 'laptop)
@@ -940,25 +1011,56 @@
   (dolist (face '(org-date org-priority org-tag org-special-keyword)) ;; Some extra faces I like to be fixed-pitch
     (add-to-list 'mixed-pitch-fixed-pitch-faces face)))
 
+(defun my-presentation-on ()
+  (setq-default line-spacing 2)
+  (setq ivy-height 5)
+  )
+
+(defun my-presentation-off ()
+  (setq-default line-spacing jib/default-line-spacing)
+  (jib/reset-var 'ivy-height)
+  )
+
+(add-hook 'presentation-on-hook #'my-presentation-on)
+(add-hook 'presentation-off-hook #'my-presentation-off)
+
+(if (eq jib/computer 'laptop)
+    (setq presentation-default-text-scale 4)
+  (setq presentation-default-text-scale 5))
+
+(use-package presentation
+  :defer t)
+
 ;; Disables showing system load in modeline, useless anyway
 (setq display-time-default-load-average nil)
 
 (line-number-mode)
 (column-number-mode)
-(display-time-mode)
-(size-indication-mode)
+(display-time-mode -1)
+(size-indication-mode -1)
 
 (use-package doom-modeline
   :init (doom-modeline-mode)
   :config
-  (setq doom-modeline-buffer-file-name-style 'file-name)
-  (setq doom-modeline-enable-word-count t)
-  (setq doom-modeline-buffer-encoding nil)
-  (setq doom-modeline-icon nil)
-  (setq doom-modeline-major-mode-color-icon nil)
-  (setq doom-modeline-major-mode-icon t)
-  (setq doom-modeline-icon nil)
-  (setq doom-modeline-bar-width 3))
+  (setq doom-modeline-buffer-file-name-style 'file-name ;; Just show file name (no path)
+        doom-modeline-enable-word-count t
+        doom-modeline-buffer-encoding nil
+        doom-modeline-icon t ;; Enable/disable all icons
+        doom-modeline-modal-icon nil ;; Icon for Evil mode
+        doom-modeline-major-mode-icon t
+        doom-modeline-major-mode-color-icon t
+        doom-modeline-bar-width 3))
+
+;; Configure modeline text height based on the computer I'm on.
+;; These variables are used in the Themes section to ensure the modeline
+;; stays the right size no matter what theme I use.
+(if (eq jib/computer 'laptop)
+    (setq jib-doom-modeline-text-height 135) ;; If laptop
+  (setq jib-doom-modeline-text-height 140))  ;; If desktop
+
+(if (eq jib/computer 'laptop)
+    (setq doom-modeline-height 25) ;; If laptop
+  (setq doom-modeline-height 30))  ;; If desktop
 
 ;; Window's initial size and a bit of border
 (if (eq jib/computer 'laptop)
@@ -977,11 +1079,6 @@
 
 (use-package all-the-icons) 
 
-;; Configure modeline text height based on the computer I'm on.
-(if (eq jib/computer 'laptop)
-    (setq jib-doom-modeline-text-height 135) ;; (message "Laptop") ;; If laptop
-  (setq jib-doom-modeline-text-height 140)) ;; (message "Desktop") ;; If desktop
-
 (use-package doom-themes
   :after mixed-pitch
   :config
@@ -993,8 +1090,9 @@
   (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height)))))
 
 (use-package kaolin-themes
+  :config
+  (setq kaolin-themes-modeline-border nil)
   :custom-face
-
   ;; Keep the modeline proper every time I use these themes.
   (mode-line ((t (:height ,jib-doom-modeline-text-height))))
   (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
@@ -1009,7 +1107,12 @@
   :init
   (setq modus-themes-italic-constructs t
         modus-themes-bold-constructs nil
-        modus-themes-region '(bg-only no-extend))
+        modus-themes-region '(bg-only no-extend)
+        modus-themes-hl-line '(accented) 
+        modus-themes-syntax '(yellow-comments)
+        modus-themes-mode-line '(accented borderless)) ;; Color modeline in active window, remove border
+  (setq modus-themes-headings ;; Makes org headings more colorful
+        '((t . (rainbow))))
   (modus-themes-load-themes)
   :custom-face
   ;; Keep the modeline proper every time I use these themes.
@@ -1152,6 +1255,7 @@
   (setq org-superstar-leading-bullet " ")
   (setq org-superstar-special-todo-items t) ;; Makes TODO header bullets into boxes
   (setq org-superstar-todo-bullet-alist '(("TODO" . 9744)
+                                          ("INPROG-TODO" . 9744)
                                           ("HW" . 9744)
                                           ("STUDY" . 9744)
                                           ("SOMEDAY" . 9744)
@@ -1384,6 +1488,9 @@
 (setq python-shell-completion-native-enable nil)
 
 (setq org-ditaa-jar-path "~/Desktop/ditaa0_9.jar")
+
+;; How to open buffer when calling `org-edit-special'.
+(setq org-src-window-setup 'current-window)
 
 (setq org-habit-preceding-days 3)
 (setq org-habit-following-days 3)
