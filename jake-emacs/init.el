@@ -324,17 +324,18 @@
   (setq evil-motion-state-cursor   '("#ad8beb" box))
 
 
+
   ;; Evil-like keybinds for custom-mode-map
   (evil-define-key nil 'custom-mode-map
-	;; motion
-	(kbd "C-j") 'widget-forward
-	(kbd "C-k") 'widget-backward
-	"q" 'Custom-buffer-done)
+    ;; motion
+    (kbd "C-j") 'widget-forward
+    (kbd "C-k") 'widget-backward
+    "q" 'Custom-buffer-done)
 
   ;; Kill buffer instead of hide buffer in some of those (imo) pesky modes.
   (dolist (mode '(help-mode-map
-				  calendar-mode-map
-				  (evil-define-key 'motion mode "q" 'kill-this-buffer))))
+                  calendar-mode-map
+                  (evil-define-key 'motion mode "q" 'kill-this-buffer))))
 
   (evil-mode 1))
 
@@ -936,6 +937,7 @@ _q_uit          _e_qualize        _]_forward     ^
   (simpleclip-mode 1))
 ;; Allows pasting in minibuffer with M-v
 (add-hook 'minibuffer-setup-hook 'jib/paste-in-minibuffer)
+
 
 
 (defun jib/copy-whole-buffer-to-clipboard ()
@@ -1831,9 +1833,6 @@ _q_uit          _e_qualize        _]_forward     ^
                       "C-k" 'previous-line)
   )
 
-(setq erc-nick "Jake0"
-      erc-password "X9mm5bKpvy$@")
-
 (use-package latex ;; This is a weird one. Package is auctex but needs to be managed like this.
   :ensure nil
   :defer t
@@ -1923,6 +1922,7 @@ _q_uit          _e_qualize        _]_forward     ^
 
 (use-package rainbow-mode
   :defer t)
+
 
 (use-package hl-todo
   :defer t

@@ -381,50 +381,51 @@ Use ~command~ as ~meta~ in macOS. Disable option (aka alt). Keep control ctrl. R
 ** Evil
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package evil
-	:init
-	(setq evil-want-keybinding t)
-	(setq evil-want-fine-undo t)
-	(setq evil-want-keybinding nil)
-	:config
+    :init
+    (setq evil-want-keybinding t)
+    (setq evil-want-fine-undo t)
+    (setq evil-want-keybinding nil)
+    :config
 
-	(evil-set-initial-state 'dashboard-mode 'motion)
-	(evil-set-initial-state 'debugger-mode 'motion)
-	(evil-set-initial-state 'pdf-view-mode 'motion)
+    (evil-set-initial-state 'dashboard-mode 'motion)
+    (evil-set-initial-state 'debugger-mode 'motion)
+    (evil-set-initial-state 'pdf-view-mode 'motion)
 
-	;; ----- Keybindings
-	(define-key evil-motion-state-map "/" 'swiper)
-	(define-key evil-window-map "\C-w" 'evil-delete-buffer) ;; Maps C-w C-w to delete-buffer (The first C-w puts you into evil-window-map)
-	(define-key evil-motion-state-map "\C-b" 'evil-scroll-up) ;; Makes C-b how C-u is
-	;; (define-key evil-motion-state-map "\C-d" '(evil-scroll-down 5)) ;; Makes C-b how C-u is
+    ;; ----- Keybindings
+    (define-key evil-motion-state-map "/" 'swiper)
+    (define-key evil-window-map "\C-w" 'evil-delete-buffer) ;; Maps C-w C-w to delete-buffer (The first C-w puts you into evil-window-map)
+    (define-key evil-motion-state-map "\C-b" 'evil-scroll-up) ;; Makes C-b how C-u is
+    ;; (define-key evil-motion-state-map "\C-d" '(evil-scroll-down 5)) ;; Makes C-b how C-u is
 
-	;; ----- Setting cursor colors
-	(setq evil-emacs-state-cursor    '("#649bce" box))
-	(setq evil-normal-state-cursor   '("#ebcb8b" box))
-	(setq evil-operator-state-cursor '("#ebcb8b" hollow))
-	(setq evil-visual-state-cursor   '("#677691" box))
-	(setq evil-insert-state-cursor   '("#eb998b" (bar . 2)))
-	(setq evil-replace-state-cursor  '("#eb998b" hbar))
-	(setq evil-motion-state-cursor   '("#ad8beb" box))
+    ;; ----- Setting cursor colors
+    (setq evil-emacs-state-cursor    '("#649bce" box))
+    (setq evil-normal-state-cursor   '("#ebcb8b" box))
+    (setq evil-operator-state-cursor '("#ebcb8b" hollow))
+    (setq evil-visual-state-cursor   '("#677691" box))
+    (setq evil-insert-state-cursor   '("#eb998b" (bar . 2)))
+    (setq evil-replace-state-cursor  '("#eb998b" hbar))
+    (setq evil-motion-state-cursor   '("#ad8beb" box))
+  
 
 
-	;; Evil-like keybinds for custom-mode-map
-	(evil-define-key nil 'custom-mode-map
-	  ;; motion
-	  (kbd "C-j") 'widget-forward
-	  (kbd "C-k") 'widget-backward
-	  "q" 'Custom-buffer-done)
+    ;; Evil-like keybinds for custom-mode-map
+    (evil-define-key nil 'custom-mode-map
+      ;; motion
+      (kbd "C-j") 'widget-forward
+      (kbd "C-k") 'widget-backward
+      "q" 'Custom-buffer-done)
 
-	;; Kill buffer instead of hide buffer in some of those (imo) pesky modes.
-	(dolist (mode '(help-mode-map
-					calendar-mode-map
-					(evil-define-key 'motion mode "q" 'kill-this-buffer))))
+    ;; Kill buffer instead of hide buffer in some of those (imo) pesky modes.
+    (dolist (mode '(help-mode-map
+                    calendar-mode-map
+                    (evil-define-key 'motion mode "q" 'kill-this-buffer))))
 
-	(evil-mode 1))
+    (evil-mode 1))
 
   (use-package evil-surround
-	:defer 2
-	:config
-	(global-evil-surround-mode 1))
+    :defer 2
+    :config
+    (global-evil-surround-mode 1))
 #+END_SRC
 
 *** evil-snipe
@@ -1102,6 +1103,7 @@ Enable Flyspell (spellchecking) in these modes. Requires ~aspell~ to be installe
     (simpleclip-mode 1))
   ;; Allows pasting in minibuffer with M-v
   (add-hook 'minibuffer-setup-hook 'jib/paste-in-minibuffer)
+  
 
 
   (defun jib/copy-whole-buffer-to-clipboard ()
@@ -2160,11 +2162,6 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
                         "C-k" 'previous-line)
     )
 #+END_SRC
-** IRC
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (setq erc-nick "Jake0"
-        erc-password "X9mm5bKpvy$@")
-#+END_SRC
 ** LaTeX-related
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package latex ;; This is a weird one. Package is auctex but needs to be managed like this.
@@ -2314,6 +2311,7 @@ Mu4e configuration is in ~private.el~.
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package rainbow-mode
     :defer t)
+  
 
   (use-package hl-todo
     :defer t
