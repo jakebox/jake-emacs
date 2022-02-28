@@ -9,21 +9,7 @@
 ;; This file is not part of GNU Emacs.
 ;; This file is free software.
 
-;; JIB Functions & Variables
-
-;;;;;;;;;;;;;;;;;;;;;;
-;; Custom Variables ;;
-;;;;;;;;;;;;;;;;;;;;;;
-
-(setq jib/home (concat (getenv "HOME") "/"))
-
-;; Referring to external (Dropbox) locations/files
-(setq jib/dropbox (concat jib/home "Dropbox/"))
-(setq org-directory (concat jib/dropbox "org"))
-(setq jib/emacs-stuff (concat jib/dropbox "Mackup/emacs-stuff"))
-
-;; At this point things can be local now
-(setq jib/init.org (expand-file-name "init.org" user-emacs-directory))
+;; JIB Functions
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Helper Functions ;;
@@ -150,10 +136,10 @@ splits the sentence."
 (defun spacemacs/insert-line-below-no-indent (count)
   "Insert a new line below with no indentation."
   (interactive "p") (save-excursion
-    (evil-move-end-of-line)
-    (while (> count 0)
-      (insert "\n")
-      (setq count (1- count)))))
+					  (evil-move-end-of-line)
+					  (while (> count 0)
+						(insert "\n")
+						(setq count (1- count)))))
 
 (defun jib/listify (&optional count)
   "Turn the region's (or count = n lines) into an orgmode list by appending a +."
@@ -266,43 +252,53 @@ the todo type was if I look back through my archive files."
     (run-hooks 'post-command-hook)))
 (general-define-key :keymaps 'org-mode-map "C-c t" 'jib/org-done-keep-todo)
 
+(defun jib/org-archive-ql-search ()
+  "Input a tag to search in my archive files."
+  (interactive)
+  (let* ((choices '("bv" "sp" "ch" "cl" "es" "Robotics ec" "Weekly ec"))
+		 (tag (completing-read "Tag: " choices)))
+	(org-ql-search '("~/Dropbox/org/org-archive/homework-archive.org_archive"
+					 "~/Dropbox/org/org-archive/todo-archive.org_archive")
+	  `(or (property "ARCHIVE_ITAGS" ,tag) (tags ,tag))
+	  :title "Class")))
+
 (defmacro spacemacs|org-emphasize (fname char)
   "Make function for setting the emphasis in org mode"
   `(defun ,fname () (interactive)
           (org-emphasize ,char)))
 
 (defun ap/org-forward-to-entry-content (&optional unsafe)
-    "Skip headline, planning line, and all drawers in current entry.
+  "Skip headline, planning line, and all drawers in current entry.
 If UNSAFE is non-nil, assume point is on headline."
-    (unless unsafe
-      ;; To improve performance in loops (e.g. with `org-map-entries')
-      (org-back-to-heading))
-    (cl-loop for element = (org-element-at-point)
-             for pos = (pcase element
-                         (`(headline . ,_) (org-element-property :contents-begin element))
-                         (`(,(or 'planning 'property-drawer 'drawer) . ,_) (org-element-property :end element)))
-             while pos
-             do (goto-char pos)))
+  (unless unsafe
+    ;; To improve performance in loops (e.g. with `org-map-entries')
+    (org-back-to-heading))
+  (cl-loop for element = (org-element-at-point)
+           for pos = (pcase element
+                       (`(headline . ,_) (org-element-property :contents-begin element))
+                       (`(,(or 'planning 'property-drawer 'drawer) . ,_) (org-element-property :end element)))
+           while pos
+           do (goto-char pos)))
 (defun ap/org-count-words ()
-    "If region is active, count words in it; otherwise count words in current subtree."
-    (interactive)
-    (if (use-region-p)
-        (funcall-interactively #'count-words-region (region-beginning) (region-end))
-      (org-with-wide-buffer
-       (cl-loop for (lines words characters)
-                in (org-map-entries
-                    (lambda ()
-                      (ap/org-forward-to-entry-content 'unsafe)
-                      (let ((end (org-entry-end-position)))
-                        (list (count-lines (point) end)
-                              (count-words (point) end)
-                              (- end (point)))))
-                    nil 'tree)
-                sum lines into total-lines
-                sum words into total-words
-                sum characters into total-characters
-                finally do (message "Subtree \"%s\" has %s lines, %s words, and %s characters."
-                                    (org-get-heading t t) total-lines total-words total-characters)))))
+  "If region is active, count words in it; otherwise count words in current subtree."
+  (interactive)
+  (if (use-region-p)
+      (funcall-interactively #'count-words-region (region-beginning) (region-end))
+    (org-with-wide-buffer
+     (cl-loop for (lines words characters)
+              in (org-map-entries
+                  (lambda ()
+                    (ap/org-forward-to-entry-content 'unsafe)
+                    (let ((end (org-entry-end-position)))
+                      (list (count-lines (point) end)
+                            (count-words (point) end)
+                            (- end (point)))))
+                  nil 'tree)
+              sum lines into total-lines
+              sum words into total-words
+              sum characters into total-characters
+              finally do (message "Subtree \"%s\" has %s lines, %s words, and %s characters."
+                                  (org-get-heading t t) total-lines total-words total-characters)))))
 
 ;;;;;;;;;;;;
 ;; Macros ;;
@@ -311,29 +307,15 @@ If UNSAFE is non-nil, assume point is on headline."
 ;; Converts org mode from current line to bottom to HTML and copies it to the system clipboard
 ;; uses org-html-convert-region-to-html
 (fset 'jib|Brinkley-HTML
-   (kmacro-lambda-form [?V ?G ?y ?  ?f ?n ?  ?h ?M ?O ?p ?V ?G ?, ?H ?  ?x ?C ?  ?b ?d] 0 "%d"))
+	  (kmacro-lambda-form [?V ?G ?y ?  ?f ?n ?  ?h ?M ?O ?p ?V ?G ?, ?H ?  ?x ?C ?  ?b ?d] 0 "%d"))
 
 ;; Takes an org mode list and adds bullets one indent in under each item
 (fset 'jib|Listify
-   (kmacro-lambda-form [?0 ?i ?+ ?\S-  escape ?j] 0 "%d"))
+	  (kmacro-lambda-form [?0 ?i ?+ ?\S-  escape ?j] 0 "%d"))
 
 ;; Takes a single-leveled org mode list and adds a sub item under each item
 (fset 'jib|SubListify
       (kmacro-lambda-form [?A M-return tab S-right escape ?j ?0] 0 "%d"))
-;; WIP
-(defun jib/classy-org-setup ()
-  (interactive)
-  (org-num-mode)
-  (org-superstar-mode 0)
-  (custom-theme-set-faces
-   'user
-   `(org-level-8 ((t (,@headline ,@variable-tuple))))
-   `(org-level-7 ((t (,@headline ,@variable-tuple))))
-   `(org-level-6 ((t (,@headline ,@variable-tuple))))
-   `(org-level-5 ((t (,@headline ,@variable-tuple))))
-   `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
-   `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.25))))
-   `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.5))))
-   `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.75))))
-   `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil)))))
-  )
+
+(provide 'jib-funcs)
+;;; jib-funcs.el ends here

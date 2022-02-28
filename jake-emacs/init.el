@@ -13,11 +13,12 @@
 
 (require 'package)
 
+(setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
+
 ;; ELPA and NonGNU ELPA are default in Emacs28
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/")) 
 ;; Without this on my Mac Emacs freezes when refreshing ELPA
 (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") 
-
 
 ;; Package list
 (setq package-list '(
@@ -36,14 +37,14 @@
                      ;; QOL (Quality-of-life) & "Utilities"
                      saveplace super-save simpleclip centered-cursor-mode
                      undo-fu yasnippet super-save ace-window windresize unfill
-                     rainbow-mode popper
+                     rainbow-mode popper burly
 
                      deft define-word mw-thesaurus mu4e-views restart-emacs
                      unfill mu4e-views reveal-in-osx-finder pdf-tools
 
                      ;; Keyboard
                      evil which-key general smartparens hydra evil-surround
-                     evil-snipe evil-org evil-anzu
+                     evil-snipe evil-org evil-anzu evil-collection
 
                      ;; Themes/Visuals
                      modus-themes doom-themes kaolin-themes dashboard
@@ -54,6 +55,8 @@
                      ;; Org-related
                      ox-reveal ox-hugo org-superstar org-super-agenda org-gcal
                      toc-org org-ql org-appear org-ql
+
+                     htmlize
                      ))
 
 
@@ -100,7 +103,7 @@
 ;; Referring to external (Dropbox) locations/files
 (defvar jib/dropbox (concat jib/home "Dropbox/") "The parent Dropbox folder.")
 (defvar org-directory (concat jib/dropbox "org") "Directory with org files.")
-(defvar jib/emacs-stuff (concat jib/dropbox "Mackup/emacs-stuff") "Dropbox directory where all Emacs files are kept")
+(defvar jib/emacs-stuff (concat jib/dropbox "Files/systems/emacs-stuff") "Dropbox directory where all Emacs files are kept")
 
 ;; At this point things can be local now
 (setq jib/init.org (expand-file-name "init.org" user-emacs-directory))
@@ -122,8 +125,12 @@
 (load (expand-file-name "private.el" user-emacs-directory))
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
-(add-to-list 'load-path (directory-file-name (concat jib/emacs-stuff "/lisp"))) ;; Where I keep misc lisp
 (load custom-file)
+
+;; I put mostly stuff I find online in this "lisp" folder in my emacs-stuff.
+;; Add every directory in that folder to the load-path.
+(let ((default-directory (directory-file-name (concat jib/emacs-stuff "/lisp"))))
+  (normal-top-level-add-subdirs-to-load-path))
 
 (setq register-preview-delay 0) ;; Show registers ASAP
 
@@ -274,22 +281,6 @@
 ;; (setq echo-keystrokes 0.8)
 
 
-;; MISC OPTIMIZATIONS ----
-;; Emacs "updates" its ui more often than it needs to, so we slow it down
-;; slightly from 0.5s:
-                 ;;; optimizations (froom Doom's core.el). See that file for descriptions.
-(setq idle-update-delay 1.0)
-
-;; Disabling bidi (bidirectional editing stuff)
-;; Disables bi-directional editing (like if I wrote in both Hebrew and English)
-(setq-default bidi-display-reordering 'left-to-right 
-              bidi-paragraph-direction 'left-to-right)
-(setq bidi-inhibit-bpa t)  ; emacs 27 only - disables bidirectional parenthesis
-
-(setq-default cursor-in-non-selected-windows nil)
-(setq highlight-nonselected-windows nil)
-(setq fast-but-imprecise-scrolling t)
-(setq inhibit-compacting-font-caches t)
 
 (setq save-interprogram-paste-before-kill t
       apropos-do-all t
@@ -298,6 +289,9 @@
 ;; Weird thing where `list-colors-display` doesn't show all colors.
 ;; https://bug-gnu-emacs.gnu.narkive.com/Bo6OdySs/bug-5683-23-1-93-list-colors-display-doesn-t-show-all-colors
 (setq x-colors (ns-list-colors))
+
+;; How thin the window should be to stop splitting vertically (I think)
+(setq split-width-threshold 80)
 
 (setq mac-command-modifier 'meta
       mac-option-modifier nil
@@ -313,13 +307,18 @@
   (which-key-mode)
   (which-key-setup-minibuffer)
   :config
-  (setq which-key-idle-delay 0.3))
+  (setq which-key-idle-delay 0.3)
+  (setq which-key-prefix-prefix "◉ ")
+  (setq which-key-sort-order 'which-key-key-order-alpha
+        which-key-min-display-lines 2
+        which-key-max-display-columns 4))
 
 (use-package evil
   :init
-  (setq evil-want-keybinding t)
+  ;; (setq evil-want-keybinding t)
   (setq evil-want-fine-undo t)
   (setq evil-want-keybinding nil)
+  (setq evil-want-Y-yank-to-eol t)
   :config
 
   (evil-set-initial-state 'dashboard-mode 'motion)
@@ -327,11 +326,11 @@
   (evil-set-initial-state 'pdf-view-mode 'motion)
 
   ;; ----- Keybindings
-  (define-key evil-motion-state-map "/" 'swiper)
+  ;; I tried using evil-define-key for these. Didn't work.
+  ;; (define-key evil-motion-state-map "/" 'swiper)
   (define-key evil-window-map "\C-q" 'evil-delete-buffer) ;; Maps C-w C-q to evil-delete-buffer (The first C-w puts you into evil-window-map)
   (define-key evil-window-map "\C-w" 'kill-this-buffer)
   (define-key evil-motion-state-map "\C-b" 'evil-scroll-up) ;; Makes C-b how C-u is
-  ;; (define-key evil-motion-state-map "\C-d" '(evil-scroll-down 5)) ;; Makes C-b how C-u is
 
   ;; ----- Setting cursor colors
   (setq evil-emacs-state-cursor    '("#649bce" box))
@@ -342,22 +341,12 @@
   (setq evil-replace-state-cursor  '("#eb998b" hbar))
   (setq evil-motion-state-cursor   '("#ad8beb" box))
 
-
-
-  ;; Evil-like keybinds for custom-mode-map
-  (evil-define-key nil 'custom-mode-map
-    ;; motion
-    (kbd "C-j") 'widget-forward
-    (kbd "C-k") 'widget-backward
-    "q" 'Custom-buffer-done)
-
-  ;; Kill buffer instead of hide buffer in some of those (imo) pesky modes.
-  ;; (dolist (mode '(help-mode-map
-  ;;                 calendar-mode-map))
-  ;;   (evil-define-key 'motion mode "q" 'kill-this-buffer))
-
-    (evil-define-key 'motion help-mode-map "q" 'kill-this-buffer)
-    (evil-define-key 'motion calendar-mode-map "q" 'kill-this-buffer)
+  ;; ;; Evil-like keybinds for custom-mode-map
+  ;; (evil-define-key nil 'custom-mode-map
+  ;;   ;; motion
+  ;;   (kbd "C-j") 'widget-forward
+  ;;   (kbd "C-k") 'widget-backward
+  ;;   "q" 'Custom-buffer-done)
 
   (evil-mode 1))
 
@@ -365,6 +354,20 @@
   :defer 2
   :config
   (global-evil-surround-mode 1))
+
+
+(use-package evil-collection
+  :after evil
+  :config
+  (setq evil-collection-mode-list '(dired (custom cus-edit) (package-menu package) calc diff-mode))
+  (evil-collection-init)
+  ;; A few of my own overrides/customizations
+  (evil-collection-define-key 'normal 'dired-mode-map
+    (kbd "RET") 'dired-find-alternate-file)
+
+  (evil-define-key 'motion 'dired-mode-map "Q" 'kill-this-buffer)
+  (evil-define-key 'motion help-mode-map "q" 'kill-this-buffer)
+  (evil-define-key 'motion calendar-mode-map "q" 'kill-this-buffer))
 
 (use-package evil-snipe
   :diminish evil-snipe-mode
@@ -405,6 +408,8 @@
 "abf" '(browse-url-firefox :which-key "firefox")
 "abc" '(browse-url-chrome :which-key "chrome")
 "abx" '(xwidget-webkit-browse-url :which-key "xwidget")
+
+"ad" '(dired :which-key "dired")
 
 ;; Buffers
 "b" '(nil :which-key "buffer")
@@ -491,7 +496,7 @@
 "wd" '(evil-window-delete :which-key "delete window")
 "w-" '(jib/split-window-vertically-and-switch :which-key "split below")
 "w/" '(jib/split-window-horizontally-and-switch :which-key "split right")
-"wr" '(jib/hydra-window/body :which-key "hydra window")
+"wr" '(jib-hydra-window/body :which-key "hydra window")
 "wl" '(evil-window-right :which-key "evil-window-right")
 "wh" '(evil-window-left :which-key "evil-window-left")
 "wj" '(evil-window-down :which-key "evil-window-down")
@@ -709,10 +714,10 @@
      Dark                ^Light^
 ----------------------------------------------
 _1_ one              _z_ one-light 
-_2_ modus-vivendi     _x_ modus-operandi
+_2_ vivendi          _x_ operandi
 _3_ molokai          _c_ jake-plain
 _4_ snazzy           _v_ flatwhite
-_5_ old-hope             ^
+_5_ old-hope         _b_ opera-light 
 _6_ henna                ^
 _7_ kaolin-galaxy        ^
 _8_ peacock              ^
@@ -737,6 +742,7 @@ _q_ quit                 ^
   ("x" (jib/load-theme 'modus-operandi) "modus-operandi")
   ("c" (jib/load-theme 'jake-doom-plain) "jake-plain")
   ("v" (jib/load-theme 'doom-flatwhite) "flatwhite")
+  ("b" (jib/load-theme 'doom-opera-light) "opera-light")
   ("q" nil))
 
 ;; I think I need to initialize windresize to use its commands
@@ -856,7 +862,8 @@ _q_uit          _e_qualize        _]_forward     ^
    :keymaps '(ivy-minibuffer-map ivy-switch-buffer-map)
    ;; C-j and C-k to move up/down in Ivy
    "C-k" 'ivy-previous-line
-   "C-j" 'ivy-next-line))
+   "C-j" 'ivy-next-line)
+  )
 
 ;; Nice icons in Ivy. Replaces all-the-icons-ivy.
 (use-package all-the-icons-ivy-rich
@@ -1027,7 +1034,7 @@ _q_uit          _e_qualize        _]_forward     ^
   :diminish yas-minor-mode
   :defer 5
   :config
-  (setq yas-snippet-dirs '("~/Dropbox/Mackup/emacs-stuff/snippets"))
+  (setq yas-snippet-dirs (list (expand-file-name "snippets" jib/emacs-stuff)))
   (yas-global-mode 1)) ;; or M-x yas-reload-all if you've started YASnippet already.
 
 
@@ -1120,18 +1127,21 @@ _q_uit          _e_qualize        _]_forward     ^
 
 ;; Window's initial size and a bit of border
 (if (eq jib/computer 'laptop)
-	(setq default-frame-alist '((left . 150)
-								(width . 120)
-								(fullscreen . fullheight)
-								(vertical-scroll-bars . nil)
-								(internal-border-width . 8))))
+    (setq default-frame-alist '((left . 150)
+                                (width . 120)
+                                (fullscreen . fullheight)
+                                ;; (vertical-scroll-bars . nil) ;; Think this isn't needed
+                                (internal-border-width . 8))))
 
 (if (eq jib/computer 'desktop)
-	(setq default-frame-alist '((left . 250)
-								(width . 150)
-								(fullscreen . fullheight)
-								(vertical-scroll-bars . nil)
-								(internal-border-width . 8))))
+    (setq default-frame-alist '((left . 170)
+                                (width . 173)
+                                (top . 64)
+                                (height . 53)
+                                (fullscreen . fullheight)
+                                (internal-border-width . 8))))
+
+;; (frame-parameter nil 'left)
 
 (use-package all-the-icons) 
 
@@ -1143,7 +1153,8 @@ _q_uit          _e_qualize        _]_forward     ^
   :custom-face
   ;; Keep the modeline proper every time I use these themes.
   (mode-line ((t (:height ,jib-doom-modeline-text-height))))
-  (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height)))))
+  (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
+  (org-scheduled-previously ((t (:background "red")))))
 
 (use-package kaolin-themes
   :config
@@ -1178,9 +1189,9 @@ _q_uit          _e_qualize        _]_forward     ^
 
 ;; Loading theme based on the time.
 (let ((hour (string-to-number (substring (current-time-string) 11 13))))
-  (if (or (> hour 18) (< hour 7))
+  (if (or (> hour 16) (< hour 7))
       (load-theme 'doom-one t) ;; Night
-    (load-theme 'doom-one-light t))) ;; Day
+    (load-theme 'doom-opera-light t))) ;; Day
 
 (setq-default fringes-outside-margins nil)
 (setq-default indicate-buffer-boundaries nil) ;; Otherwise shows a corner icon on the edge
@@ -1203,6 +1214,7 @@ _q_uit          _e_qualize        _]_forward     ^
                 deft-mode-hook
                 pdf-view-mode-hook
                 help-mode-hook
+                image-mode-hook
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
@@ -1249,7 +1261,7 @@ _q_uit          _e_qualize        _]_forward     ^
 (use-package visual-fill-column
   :defer t
   :config
-  (setq visual-fill-column-width 50
+  (setq visual-fill-column-width 100
         visual-fill-column-center-text t))
 
 (use-package writeroom-mode
@@ -1392,6 +1404,7 @@ _q_uit          _e_qualize        _]_forward     ^
   (set-face-attribute 'org-ellipsis nil :inherit 'shadow :height 0.8) ;; Makes org-ellipsis shadow (blends in better)
   (set-face-attribute 'org-scheduled-today nil :weight 'normal) ;; Removes bold from org-scheduled-today
   (set-face-attribute 'org-super-agenda-header nil :inherit 'org-agenda-structure :weight 'bold) ;; Bolds org-super-agenda headers
+  (set-face-attribute 'org-scheduled-previously nil :background "red") ;; Bolds org-super-agenda headers
 
   ;; Here I set things that need it to be fixed-pitch, just in case the font I am using isn't monospace.
   ;; (dolist (face '(org-list-dt org-tag org-todo org-table org-checkbox org-priority org-date org-verbatim org-special-keyword))
@@ -1859,6 +1872,8 @@ _q_uit          _e_qualize        _]_forward     ^
   )
 
 (setq org-clock-mode-line-total 'current) ;; Show only timer from current clock session in modeline
+
+(setq org-attach-id-dir ".org-attach/")
 
 
 ) ;; This parenthesis ends the org use-package.

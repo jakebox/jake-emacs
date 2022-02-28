@@ -9,7 +9,7 @@
 
 
 * Things to do
-+ Improve LaTeX editing/compiling/viewing
++ Paredit? Smartparens?
   
 * Meta
 This file contains my Emacs configuration. I have roughly ordered the org headings in order of importance/reliability. For example, misc packages is loaded last as I try new stuff there. Keyboard section is also important as if there's error I feel comfortable enough to go fix it.
@@ -48,7 +48,7 @@ The following is exported to the top of the tangled init.el file as a note.
 Starting in Emacs 27 the early-init.el file is run before the GUI is created, so we take care of a few misc. GUI features. Keeps ugliness down and should help startup time, too.
 #+BEGIN_SRC emacs-lisp :tangle ./early-init.el
   ;; -*- lexical-binding: t; -*-
-  
+
   ;; -------------------------------------------------------------------------------- ;;
   ;; This early-init.el file was auto-tangled from an orgmode file. (C) Jake B        ;;
   ;; -------------------------------------------------------------------------------- ;;
@@ -62,16 +62,34 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
   (setq comp-async-report-warnings-errors nil) ;; native-comp warning
   (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
 
+
+  ;; MISC OPTIMIZATIONS ----
+  ;; Emacs "updates" its ui more often than it needs to, so we slow it down
+  ;; slightly from 0.5s:
+                     ;;; optimizations (froom Doom's core.el). See that file for descriptions.
+  (setq idle-update-delay 1.0)
+
+  ;; Disabling bidi (bidirectional editing stuff)
+  ;; Disables bi-directional editing (like if I wrote in both Hebrew and English)
+  (setq-default bidi-display-reordering 'left-to-right 
+                bidi-paragraph-direction 'left-to-right)
+  (setq bidi-inhibit-bpa t)  ; emacs 27 only - disables bidirectional parenthesis
+
+  (setq-default cursor-in-non-selected-windows nil)
+  (setq highlight-nonselected-windows nil)
+  (setq fast-but-imprecise-scrolling t)
+  (setq inhibit-compacting-font-caches t)
 #+END_SRC
 ** Packages
 #+BEGIN_SRC emacs-lisp :tangle yes
   (require 'package)
 
+  (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
+
   ;; ELPA and NonGNU ELPA are default in Emacs28
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/")) 
   ;; Without this on my Mac Emacs freezes when refreshing ELPA
   (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") 
-
 
   ;; Package list
   (setq package-list '(
@@ -90,14 +108,14 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
                        ;; QOL (Quality-of-life) & "Utilities"
                        saveplace super-save simpleclip centered-cursor-mode
                        undo-fu yasnippet super-save ace-window windresize unfill
-                       rainbow-mode popper
+                       rainbow-mode popper burly
 
                        deft define-word mw-thesaurus mu4e-views restart-emacs
                        unfill mu4e-views reveal-in-osx-finder pdf-tools
 
                        ;; Keyboard
                        evil which-key general smartparens hydra evil-surround
-                       evil-snipe evil-org evil-anzu
+                       evil-snipe evil-org evil-anzu evil-collection
 
                        ;; Themes/Visuals
                        modus-themes doom-themes kaolin-themes dashboard
@@ -108,6 +126,8 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
                        ;; Org-related
                        ox-reveal ox-hugo org-superstar org-super-agenda org-gcal
                        toc-org org-ql org-appear org-ql
+
+                       htmlize
                        ))
 
 
@@ -149,40 +169,61 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
           #+END_SRC
           
 * Files, variables, etc
+** Setting custom variables
+I keep all of my Emacs configuration files and org files in Dropbox. To keep stuff clean and to make it easier to move stuff around in the future I set a bunch of variables up here that can be used later.
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+  (defvar jib/home (concat (getenv "HOME") "/") "My home directory.")
+  (defvar jib/computer 'laptop "Which computer I am on -- 'desktop or 'laptop.")
+  (defvar jib-text-height nil "My preferred default text height.")
+  (defvar jib-doom-modeline-text-height nil "My preferred modeline text height.")
+  (defvar jib-default-line-spacing 0 "Baseline line spacing.")
+  (setq-default jib-default-line-spacing 0)
+
+  ;; Referring to external (Dropbox) locations/files
+  (defvar jib/dropbox (concat jib/home "Dropbox/") "The parent Dropbox folder.")
+  (defvar org-directory (concat jib/dropbox "org") "Directory with org files.")
+  (defvar jib/emacs-stuff (concat jib/dropbox "Files/systems/emacs-stuff") "Dropbox directory where all Emacs files are kept")
+
+  ;; At this point things can be local now
+  (setq jib/init.org (expand-file-name "init.org" user-emacs-directory))
+  (setq bookmark-default-file (concat jib/emacs-stuff "/bookmarks"))
+  (setq custom-theme-directory (expand-file-name "themes" jib/emacs-stuff))
+
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; Calculated variables ;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  ;; Set `jib/computer' to 'laptop or 'desktop.
+  (let ((sys (system-name)))
+    (if (or (or (string= sys "MJBs-MacBook-Air.local") (string= sys "MJBs-Air.fwparker.org")) (string= sys "mjbs-air.lan"))
+        (setq jib/computer 'laptop)
+      (setq jib/computer 'desktop)))
+#+END_SRC
 ** Loading custom lisp files
-Note - jib-funcs holds a few variables - home, dropbox, org-directory, init, and some more. That's why I load it first (so variables can be used asap).
 #+BEGIN_SRC emacs-lisp :tangle yes
   (load (expand-file-name "jib-funcs.el" user-emacs-directory))
   (load (expand-file-name "private.el" user-emacs-directory))
   (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-  (add-to-list 'load-path (directory-file-name (concat jib/emacs-stuff "/lisp")))
 
   (load custom-file)
+
+  ;; I put mostly stuff I find online in this "lisp" folder in my emacs-stuff.
+  ;; Add every directory in that folder to the load-path.
+  (let ((default-directory (directory-file-name (concat jib/emacs-stuff "/lisp"))))
+    (normal-top-level-add-subdirs-to-load-path))
 #+END_SRC
-** Custom variables, registers
+** Registers
 Variables, registers, more.
 #+BEGIN_SRC emacs-lisp :tangle yes
-  (setq bookmark-default-file (concat jib/emacs-stuff "/bookmarks"))
-  (setq custom-theme-directory (expand-file-name "themes" jib/emacs-stuff))
+  (setq register-preview-delay 0) ;; Show registers ASAP
 
-  ;; Registers for easy file access
-  (setq register-preview-delay 0.4)
-
-  (set-register ?T (cons 'file (concat org-directory "/org-archive/todo-archive.org_archive")))
   (set-register ?i (cons 'file (concat org-directory "/cpb.org")))
   (set-register ?h (cons 'file (concat org-directory "/work.org")))
   (set-register ?C (cons 'file (concat jib/emacs-stuff "/jake-emacs/init.org")))
-  (set-register ?c (cons 'file (concat jib/dropbox "notes/personal/college/college.org")))
-  (set-register ?A (cons 'file (concat org-directory "/org-archive/work-archive.org_archive")))
-
-  ;; Little bit to help me know which computer we're on.
-  (defvar jib/computer "Which computer I am on --- 'desktop or 'laptop.")
-  (let ((sys (system-name)))
-  (if (or (or (string= sys "MJBs-MacBook-Air.local") (string= sys "MJBs-Air.fwparker.org")) (string= sys "mjbs-air.lan"))
-      (setq jib/computer 'laptop)
-    (setq jib/computer 'desktop)))
-
-  (defvar jib-text-height 130)
+  (set-register ?A (cons 'file (concat org-directory "/org-archive/homework-archive.org_archive")))
+  (set-register ?T (cons 'file (concat org-directory "/org-archive/todo-archive.org_archive")))
 #+END_SRC
 ** Path
 Pretty sure this isn't the proper way to do it and that I should be using ~exec-path-from-shell~, but it works and I don't see this changing. So it's fine.
@@ -246,6 +287,8 @@ General configurations and optimizations/better defaults. Much of this is from D
 
   (setq sentence-end-double-space nil) ;; Sentences end with one space
 
+  (setq bookmark-fontify nil)
+
   ;; SCROLLING ---------
   ;; (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control) . nil)))
   (setq scroll-conservatively 101)
@@ -266,7 +309,8 @@ General configurations and optimizations/better defaults. Much of this is from D
   (setq mac-redisplay-dont-reset-vscroll t
         mac-mouse-wheel-smooth-scroll nil)
 
-  (setq visible-bell t)
+  (setq visible-bell nil) ;; Make it ring (so no visible bell) (default)
+  (setq ring-bell-function 'ignore) ;; BUT ignore it, so we see and hear nothing
 
   (setq line-move-visual t) ;; C-p, C-n, etc uses visual lines
 
@@ -304,9 +348,10 @@ General configurations and optimizations/better defaults. Much of this is from D
   (use-package recentf
     :ensure nil
     :config
-    (setq   recentf-auto-cleanup 'never
-            recentf-max-menu-items 0
-            recentf-max-saved-items 200))
+    (setq ;;recentf-auto-cleanup 'never
+            ;; recentf-max-menu-items 0
+            recentf-max-saved-items 200)
+    (recentf-mode))
 
   (require 'uniquify)
   (setq uniquify-buffer-name-style 'forward)
@@ -328,22 +373,6 @@ General configurations and optimizations/better defaults. Much of this is from D
   ;; (setq echo-keystrokes 0.8)
 
 
-  ;; MISC OPTIMIZATIONS ----
-  ;; Emacs "updates" its ui more often than it needs to, so we slow it down
-  ;; slightly from 0.5s:
-                   ;;; optimizations (froom Doom's core.el). See that file for descriptions.
-  (setq idle-update-delay 1.0)
-
-  ;; Disabling bidi (bidirectional editing stuff)
-  ;; Disables bi-directional editing (like if I wrote in both Hebrew and English)
-  (setq-default bidi-display-reordering 'left-to-right 
-                bidi-paragraph-direction 'left-to-right)
-  (setq bidi-inhibit-bpa t)  ; emacs 27 only - disables bidirectional parenthesis
-
-  (setq-default cursor-in-non-selected-windows nil)
-  (setq highlight-nonselected-windows nil)
-  (setq fast-but-imprecise-scrolling t)
-  (setq inhibit-compacting-font-caches t)
 
   (setq save-interprogram-paste-before-kill t
         apropos-do-all t
@@ -352,6 +381,9 @@ General configurations and optimizations/better defaults. Much of this is from D
   ;; Weird thing where `list-colors-display` doesn't show all colors.
   ;; https://bug-gnu-emacs.gnu.narkive.com/Bo6OdySs/bug-5683-23-1-93-list-colors-display-doesn-t-show-all-colors
   (setq x-colors (ns-list-colors))
+
+  ;; How thin the window should be to stop splitting vertically (I think)
+  (setq split-width-threshold 80)
 #+END_SRC
 
 * Keyboard
@@ -375,16 +407,21 @@ Use ~command~ as ~meta~ in macOS. Disable option (aka alt). Keep control ctrl. R
     (which-key-mode)
     (which-key-setup-minibuffer)
     :config
-    (setq which-key-idle-delay 0.3))
+    (setq which-key-idle-delay 0.3)
+    (setq which-key-prefix-prefix "◉ ")
+    (setq which-key-sort-order 'which-key-key-order-alpha
+          which-key-min-display-lines 2
+          which-key-max-display-columns 4))
   #+END_SRC
   
 ** Evil
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package evil
     :init
-    (setq evil-want-keybinding t)
+    ;; (setq evil-want-keybinding t)
     (setq evil-want-fine-undo t)
     (setq evil-want-keybinding nil)
+    (setq evil-want-Y-yank-to-eol t)
     :config
 
     (evil-set-initial-state 'dashboard-mode 'motion)
@@ -392,10 +429,11 @@ Use ~command~ as ~meta~ in macOS. Disable option (aka alt). Keep control ctrl. R
     (evil-set-initial-state 'pdf-view-mode 'motion)
 
     ;; ----- Keybindings
-    (define-key evil-motion-state-map "/" 'swiper)
-    (define-key evil-window-map "\C-w" 'evil-delete-buffer) ;; Maps C-w C-w to delete-buffer (The first C-w puts you into evil-window-map)
+    ;; I tried using evil-define-key for these. Didn't work.
+    ;; (define-key evil-motion-state-map "/" 'swiper)
+    (define-key evil-window-map "\C-q" 'evil-delete-buffer) ;; Maps C-w C-q to evil-delete-buffer (The first C-w puts you into evil-window-map)
+    (define-key evil-window-map "\C-w" 'kill-this-buffer)
     (define-key evil-motion-state-map "\C-b" 'evil-scroll-up) ;; Makes C-b how C-u is
-    ;; (define-key evil-motion-state-map "\C-d" '(evil-scroll-down 5)) ;; Makes C-b how C-u is
 
     ;; ----- Setting cursor colors
     (setq evil-emacs-state-cursor    '("#649bce" box))
@@ -405,20 +443,13 @@ Use ~command~ as ~meta~ in macOS. Disable option (aka alt). Keep control ctrl. R
     (setq evil-insert-state-cursor   '("#eb998b" (bar . 2)))
     (setq evil-replace-state-cursor  '("#eb998b" hbar))
     (setq evil-motion-state-cursor   '("#ad8beb" box))
-  
 
-
-    ;; Evil-like keybinds for custom-mode-map
-    (evil-define-key nil 'custom-mode-map
-      ;; motion
-      (kbd "C-j") 'widget-forward
-      (kbd "C-k") 'widget-backward
-      "q" 'Custom-buffer-done)
-
-    ;; Kill buffer instead of hide buffer in some of those (imo) pesky modes.
-    (dolist (mode '(help-mode-map
-                    calendar-mode-map
-                    (evil-define-key 'motion mode "q" 'kill-this-buffer))))
+    ;; ;; Evil-like keybinds for custom-mode-map
+    ;; (evil-define-key nil 'custom-mode-map
+    ;;   ;; motion
+    ;;   (kbd "C-j") 'widget-forward
+    ;;   (kbd "C-k") 'widget-backward
+    ;;   "q" 'Custom-buffer-done)
 
     (evil-mode 1))
 
@@ -426,6 +457,20 @@ Use ~command~ as ~meta~ in macOS. Disable option (aka alt). Keep control ctrl. R
     :defer 2
     :config
     (global-evil-surround-mode 1))
+
+
+  (use-package evil-collection
+    :after evil
+    :config
+    (setq evil-collection-mode-list '(dired (custom cus-edit) (package-menu package) calc diff-mode))
+    (evil-collection-init)
+    ;; A few of my own overrides/customizations
+    (evil-collection-define-key 'normal 'dired-mode-map
+      (kbd "RET") 'dired-find-alternate-file)
+
+    (evil-define-key 'motion 'dired-mode-map "Q" 'kill-this-buffer)
+    (evil-define-key 'motion help-mode-map "q" 'kill-this-buffer)
+    (evil-define-key 'motion calendar-mode-map "q" 'kill-this-buffer))
 #+END_SRC
 
 *** evil-snipe
@@ -483,6 +528,8 @@ it along with :keymaps 'override when you need to override other stuff
   "abf" '(browse-url-firefox :which-key "firefox")
   "abc" '(browse-url-chrome :which-key "chrome")
   "abx" '(xwidget-webkit-browse-url :which-key "xwidget")
+
+  "ad" '(dired :which-key "dired")
 #+END_SRC
 **** Buffers
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -520,17 +567,17 @@ it along with :keymaps 'override when you need to override other stuff
   "jr" '(restart-emacs :which-key "restart emacs")
 
   "jh" '(nil :which-key "hydras")
-  "jht" '(hydra-theme-switcher/body :which-key "themes")
-  "jhf" '(hydra-variable-fonts/body :which-key "mixed-pitch face")
+  "jht" '(jib-hydra-theme-switcher/body :which-key "themes")
+  "jhf" '(jib-hydra-variable-fonts/body :which-key "mixed-pitch face")
+  "jhw" '(jib-hydra-window/body :which-key "window control")
 
   "jm" '(nil :which-key "macros/custom commands")
   "jml" '(jib/listify :which-key "Listify")
   "jmL" '(jib|SubListify :which-key "SubListify")
-  "jmo" '(jib/org-tmp-html-export-region :which-key "org temp export region")
-  "jmO" '(jib/org-tmp-html-export :which-key "org temp export")
+  "jmo" '(jib/org-temp-export-html :which-key "org temp export region")
 
   "jk" '(nil :which-key "agenda/ql")
-  "jkq" '((lambda () (interactive) (org-ql-view "Jake QL Todo")) :which-key "jake ql")
+  "jkq" '((lambda () (interactive) (org-ql-view "Jake Work Full View")) :which-key "jake ql")
 #+END_SRC
 **** Help/Emacs
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -584,7 +631,7 @@ it along with :keymaps 'override when you need to override other stuff
   "wd" '(evil-window-delete :which-key "delete window")
   "w-" '(jib/split-window-vertically-and-switch :which-key "split below")
   "w/" '(jib/split-window-horizontally-and-switch :which-key "split right")
-  "wr" '(jib/hydra-window/body :which-key "hydra window")
+  "wr" '(jib-hydra-window/body :which-key "hydra window")
   "wl" '(evil-window-right :which-key "evil-window-right")
   "wh" '(evil-window-left :which-key "evil-window-left")
   "wj" '(evil-window-down :which-key "evil-window-down")
@@ -606,6 +653,8 @@ evaluating areas and checking parenthesis.
     "er" '(eval-region :which-key "eval-region")
     "eb" '(eval-buffer :which-key "eval-buffer")
 
+
+    "g" '(counsel-imenu :which-key "imenu")
     "c" '(check-parens :which-key "check parens")
     "I" '(indent-region :which-key "indent-region")
     )
@@ -727,13 +776,13 @@ Below are general keybindings for the various Evil modes.
     "Í" 'other-frame ;; option-shift-s
     "C-S-B" 'counsel-switch-buffer
     "∫" 'counsel-switch-buffer ;; option-b
+    "s-o" 'jib-hydra-window/body
 
     ;; Remapping normal help features to use Counsel version
     "C-h v" 'counsel-describe-variable
     "C-h o" 'counsel-describe-symbol
     "C-h f" 'counsel-describe-function
     "C-h F" 'counsel-describe-face
-
 
     ;; Editing ------
     "M-v" 'simpleclip-paste
@@ -750,11 +799,11 @@ Below are general keybindings for the various Evil modes.
     "s-\"" 'ispell-word ;; that's super-shift-'
     "M-+" 'jib/calc-speaking-time
 
-
     ;; super-number functions
     "s-1" 'mw-thesaurus-lookup-dwim
     "s-2" 'ispell-buffer
     "s-3" 'revert-buffer
+    "s-4" '(lambda () (interactive) (counsel-file-jump nil jib/dropbox))
     )
     #+END_SRC
 *** Non-insert mode keymaps
@@ -808,7 +857,7 @@ you want to run a function without doing anything else.
 
   ;; This Hydra lets me swich between variable pitch fonts. It turns off mixed-pitch 
   ;; WIP
-  (defhydra hydra-variable-fonts (:pre (mixed-pitch-mode 0)
+  (defhydra jib-hydra-variable-fonts (:pre (mixed-pitch-mode 0)
                                        :post (mixed-pitch-mode 1))
     ("t" (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160) "Times New Roman")
     ("g" (set-face-attribute 'variable-pitch nil :family "EB Garamond" :height 160 :weight 'normal) "EB Garamond")
@@ -821,23 +870,41 @@ you want to run a function without doing anything else.
     (mapc #'disable-theme custom-enabled-themes)
     (load-theme theme t))
 
-  (defhydra hydra-theme-switcher (:color red)
-    "Switch theme:"
-    ("1" (jib/load-theme 'doom-one) "doom-one")
-    ("2" (jib/load-theme 'doom-one-light) "doom-one-light")
-    ("3" (jib/load-theme 'jake-doom-plain) "jake-doom-plain")
-    ("q" (jib/load-theme 'jake-doom-plain-dark) "jake-doom-plain-dark")
-    ("w" (jib/load-theme 'doom-old-hope) "doom-old-hope")
-    ("e" (jib/load-theme 'doom-molokai) "doom-molokai")
-    ("r" (jib/load-theme 'doom-peacock) "doom-peacock")
-    ("a" (jib/load-theme 'nano) "nano")
-    ("s" (jib/load-theme 'doom-snazzy) "doom-snazzy")
-    ("d" (jib/load-theme 'modus-vivendi) "modus-vivendi")
-    ("f" (jib/load-theme 'modus-operandi) "modus-operandi")
-    ("z" (jib/load-theme 'doom-miramare) "doom-miramare")
-    ("x" (jib/load-theme 'doom-flatwhite) "doom-flatwhite")
-    ("c" (jib/load-theme 'kaolin-galaxy) "kaolin-galaxy")
-    )
+  (defhydra jib-hydra-theme-switcher (:hint nil)
+    "
+       Dark                ^Light^
+  ----------------------------------------------
+  _1_ one              _z_ one-light 
+  _2_ vivendi          _x_ operandi
+  _3_ molokai          _c_ jake-plain
+  _4_ snazzy           _v_ flatwhite
+  _5_ old-hope         _b_ opera-light 
+  _6_ henna                ^
+  _7_ kaolin-galaxy        ^
+  _8_ peacock              ^
+  _9_ jake-plain-dark      ^
+  _q_ quit                 ^
+  ^                        ^
+  "
+
+    ;; Dark
+    ("1" (jib/load-theme 'doom-one) "one")
+    ("2" (jib/load-theme 'modus-vivendi) "modus-vivendi")
+    ("3" (jib/load-theme 'doom-molokai) "molokai")
+    ("4" (jib/load-theme 'doom-snazzy) "snazzy")
+    ("5" (jib/load-theme 'doom-old-hope) "old-hope")
+    ("6" (jib/load-theme 'doom-henna) "henna")
+    ("7" (jib/load-theme 'kaolin-galaxy) "kaolin-galaxy")
+    ("8" (jib/load-theme 'doom-peacock) "peacock")
+    ("9" (jib/load-theme 'jake-doom-plain-dark) "jake-plain-dark")
+
+    ;; Light
+    ("z" (jib/load-theme 'doom-one-light) "one-light")
+    ("x" (jib/load-theme 'modus-operandi) "modus-operandi")
+    ("c" (jib/load-theme 'jake-doom-plain) "jake-plain")
+    ("v" (jib/load-theme 'doom-flatwhite) "flatwhite")
+    ("b" (jib/load-theme 'doom-opera-light) "opera-light")
+    ("q" nil))
 
   ;; I think I need to initialize windresize to use its commands
   (windresize)
@@ -847,7 +914,7 @@ you want to run a function without doing anything else.
   ;; `ace-window' (for swapping), `windmove' (could probably be replaced
   ;; by evil?) and `windresize'.
   ;; inspired by https://github.com/jmercouris/configuration/blob/master/.emacs.d/hydra.el#L86
-  (defhydra jib/hydra-window (:hint nil)
+  (defhydra jib-hydra-window (:hint nil)
      "
   Movement      ^Split^            ^Switch^        ^Resize^
   ----------------------------------------------------------------
@@ -890,8 +957,6 @@ you want to run a function without doing anything else.
 
 
      ("q" nil))
-
-  (general-define-key "s-o" 'jib/hydra-window/body)
 #+END_SRC
 
 * Interaction, Editing, Files
@@ -966,7 +1031,8 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
      :keymaps '(ivy-minibuffer-map ivy-switch-buffer-map)
      ;; C-j and C-k to move up/down in Ivy
      "C-k" 'ivy-previous-line
-     "C-j" 'ivy-next-line))
+     "C-j" 'ivy-next-line)
+    )
 
   ;; Nice icons in Ivy. Replaces all-the-icons-ivy.
   (use-package all-the-icons-ivy-rich
@@ -991,8 +1057,12 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
     (setq counsel-switch-buffer-preview-virtual-buffers nil) ;; Removes recentfiles/bookmarks from counsel-switch-buffer
     (setq counsel-find-file-ignore-regexp
           (concat
-           ;; Hides file names beginning with .
-           "\\(?:\\`[#.]\\)"))
+           ;; That weird Icon? file in Dropbox.
+           "\\(Icon\\\)"
+           ;; Hides file names beginning with # or .
+           "\\|\\(?:\\`[#.]\\)"))
+
+    ;; emacs regexp notes: had to put \\| before the second regexp to make this work
 
     ;; Sorts counsel-recentf in order of time last accessed
     (add-to-list 'ivy-sort-functions-alist
@@ -1001,7 +1071,11 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
     (add-to-list 'recentf-exclude
                  (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
 
-    (setq-default counsel--fzf-dir jib/home))
+    (setq-default counsel--fzf-dir jib/home)
+    :general
+    (general-define-key :keymaps 'counsel-find-file-map
+                        "C-c f" 'counsel-file-jump-from-find) ;; when in counsel-find-file, run this to search the whole directory recursively
+    )
 #+END_SRC
 *** Prescient
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -1011,10 +1085,13 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
     (setq-default prescient-history-length 1000) ;; More prescient history
     (prescient-persist-mode +1))
 
+  ;; Use `prescient' for Ivy menus.
   (use-package ivy-prescient
     :after ivy
     :config
-    ;; Use `prescient' for Ivy menus.
+    ;; don't prescient sort these commands
+    (dolist (command '(org-ql-view counsel-find-file))
+      (setq ivy-prescient-sort-commands (append ivy-prescient-sort-commands (list command))))
     (ivy-prescient-mode +1))
 
   (use-package company-prescient
@@ -1152,7 +1229,7 @@ More obvious/easy to use undo and redo.
     :diminish yas-minor-mode
     :defer 5
     :config
-    (setq yas-snippet-dirs '("~/Dropbox/Mackup/emacs-stuff/snippets"))
+    (setq yas-snippet-dirs (list (expand-file-name "snippets" jib/emacs-stuff)))
     (yas-global-mode 1)) ;; or M-x yas-reload-all if you've started YASnippet already.
 
 
@@ -1167,9 +1244,9 @@ More obvious/easy to use undo and redo.
 *** Font configuration
 #+BEGIN_SRC emacs-lisp :tangle yes
   (setq text-scale-mode-step 1.1) ;; How much to adjust text scale by when using `text-scale-mode'
-  (setq jib/default-line-spacing 0.00)
+  (setq jib-default-line-spacing 0) ;; This happens in the variables but I guess I have it here too.
 
-  (setq-default line-spacing jib/default-line-spacing)
+  (setq-default line-spacing jib-default-line-spacing)
 
   ;; Setting text size based on the computer I am on.
   (if (eq jib/computer 'laptop)
@@ -1200,14 +1277,18 @@ A better version of variable-pitch mode. This keeps certain faces (defined in ~m
 Mode for giving presentations, filming videos, etc. Bigger font, larger spacing, smaller Ivy.
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defun my-presentation-on ()
-    (setq-default line-spacing 2)
-    (setq ivy-height 5)
-    )
+    (setq jib-default-line-spacing 3)
+
+    (setq-default line-spacing jib-default-line-spacing)
+    (setq-local line-spacing jib-default-line-spacing)
+
+    (setq ivy-height 5))
 
   (defun my-presentation-off ()
-    (setq-default line-spacing jib/default-line-spacing)
-    (jib/reset-var 'ivy-height)
-    )
+    (jib/reset-var 'jib-default-line-spacing)
+    (setq-default line-spacing jib-default-line-spacing)
+    (setq-local line-spacing jib-default-line-spacing)
+    (jib/reset-var 'ivy-height))
 
   (add-hook 'presentation-on-hook #'my-presentation-on)
   (add-hook 'presentation-off-hook #'my-presentation-off)
@@ -1249,10 +1330,30 @@ Mode for giving presentations, filming videos, etc. Bigger font, larger spacing,
     (setq jib-doom-modeline-text-height 140))  ;; If desktop
 
   (if (eq jib/computer 'laptop)
-      (setq doom-modeline-height 25) ;; If laptop
-    (setq doom-modeline-height 30))  ;; If desktop
+      (setq doom-modeline-height 1) ;; If laptop
+    (setq doom-modeline-height 1))  ;; If desktop
 #+END_SRC
 ** Window features
+*** Window
+#+BEGIN_SRC emacs-lisp :tangle yes
+  ;; Window's initial size and a bit of border
+  (if (eq jib/computer 'laptop)
+      (setq default-frame-alist '((left . 150)
+                                  (width . 120)
+                                  (fullscreen . fullheight)
+                                  ;; (vertical-scroll-bars . nil) ;; Think this isn't needed
+                                  (internal-border-width . 8))))
+
+  (if (eq jib/computer 'desktop)
+      (setq default-frame-alist '((left . 170)
+                                  (width . 173)
+                                  (top . 64)
+                                  (height . 53)
+                                  (fullscreen . fullheight)
+                                  (internal-border-width . 8))))
+
+  ;; (frame-parameter nil 'left)
+#+END_SRC
 *** Default Emacs features
 Hides scroll, toolbar. Goes to the early-init.el.
 #+BEGIN_SRC emacs-lisp :tangle ./early-init.el
@@ -1267,23 +1368,6 @@ Hides scroll, toolbar. Goes to the early-init.el.
   ;; This makes the Aqua titlebar color the same as Emacs.
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 #+END_SRC
-*** Window
-#+BEGIN_SRC emacs-lisp :tangle yes
-  ;; Window's initial size and a bit of border
-  (if (eq jib/computer 'laptop)
-	  (setq default-frame-alist '((left . 150)
-								  (width . 120)
-								  (fullscreen . fullheight)
-								  (vertical-scroll-bars . nil)
-								  (internal-border-width . 8))))
-
-  (if (eq jib/computer 'desktop)
-	  (setq default-frame-alist '((left . 250)
-								  (width . 150)
-								  (fullscreen . fullheight)
-								  (vertical-scroll-bars . nil)
-								  (internal-border-width . 8))))
-								  #+END_SRC
 ** Theme & Icons
    #+BEGIN_SRC emacs-lisp :tangle yes
      (use-package all-the-icons) 
@@ -1296,7 +1380,8 @@ Hides scroll, toolbar. Goes to the early-init.el.
        :custom-face
        ;; Keep the modeline proper every time I use these themes.
        (mode-line ((t (:height ,jib-doom-modeline-text-height))))
-       (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height)))))
+       (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
+       (org-scheduled-previously ((t (:background "red")))))
 
      (use-package kaolin-themes
        :config
@@ -1331,9 +1416,9 @@ Hides scroll, toolbar. Goes to the early-init.el.
 
      ;; Loading theme based on the time.
      (let ((hour (string-to-number (substring (current-time-string) 11 13))))
-       (if (or (> hour 18) (< hour 7))
+       (if (or (> hour 16) (< hour 7))
            (load-theme 'doom-one t) ;; Night
-         (load-theme 'doom-one-light t))) ;; Day
+         (load-theme 'doom-opera-light t))) ;; Day
 #+END_SRC
 ** Line numbers, fringe, hl-line
 The way I've configured line numbers is they are on by default, and then in specific modes they are turned off. Seems to work. As for fringes, they're fairly wide. I think those three setq-default lines are from Prot.
@@ -1358,6 +1443,8 @@ The way I've configured line numbers is they are on by default, and then in spec
                   mu4e-headers-mode-hook
                   deft-mode-hook
                   pdf-view-mode-hook
+                  help-mode-hook
+                  image-mode-hook
                   eshell-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
@@ -1410,7 +1497,7 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
   (use-package visual-fill-column
     :defer t
     :config
-    (setq visual-fill-column-width 50
+    (setq visual-fill-column-width 100
           visual-fill-column-center-text t))
 
   (use-package writeroom-mode
@@ -1547,6 +1634,7 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
     '(org-load-modules-maybe t))
 #+END_SRC
 *** org-ql
+Note in case I forget: I set org-ql-view to /not/ be sorted by ~prescient.el~. See [[Prescient]].
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package org-ql
     :general
@@ -1592,6 +1680,7 @@ Titles get bigger, drawers are smaller, done checkboxes turn green. Also setting
     (set-face-attribute 'org-ellipsis nil :inherit 'shadow :height 0.8) ;; Makes org-ellipsis shadow (blends in better)
     (set-face-attribute 'org-scheduled-today nil :weight 'normal) ;; Removes bold from org-scheduled-today
     (set-face-attribute 'org-super-agenda-header nil :inherit 'org-agenda-structure :weight 'bold) ;; Bolds org-super-agenda headers
+    (set-face-attribute 'org-scheduled-previously nil :background "red") ;; Bolds org-super-agenda headers
 
     ;; Here I set things that need it to be fixed-pitch, just in case the font I am using isn't monospace.
     ;; (dolist (face '(org-list-dt org-tag org-todo org-table org-checkbox org-priority org-date org-verbatim org-special-keyword))
@@ -1642,9 +1731,8 @@ Titles get bigger, drawers are smaller, done checkboxes turn green. Also setting
     (centered-cursor-mode)
 
     ;; (setq header-line-format "") ;; Empty header line, basically adds a blank line on top
-    (setq-local line-spacing 1)
+    (setq-local line-spacing (+ jib-default-line-spacing 1))
     )
-
 #+END_SRC
 
 ** Org Mode Config
@@ -1655,7 +1743,7 @@ Titles get bigger, drawers are smaller, done checkboxes turn green. Also setting
     :hook (org-mode . jib/org-setup)
     :hook (org-mode . jib/org-font-setup)
     :hook (org-mode . jib/prettify-symbols-setup)
-    :hook (org-agenda-mode . jib/prettify-symbols-setup)
+    :hook (org-capture-mode . evil-insert-state) ;; Start org-capture in Insert state by default
     :diminish org-indent-mode
     :diminish visual-line-mode
     :config
@@ -1693,7 +1781,7 @@ The following is org-mode configuration.
   ;; Automatically save and close the org files I most frequently archive to.
   ;; I see no need to keep them open and crowding my buffer list.
   ;; Uses my own function jib/save-and-close-this-buffer.
-  (dolist (file '("work-archive.org_archive" "todo-archive.org_archive"))
+  (dolist (file '("homework-archive.org_archive" "todo-archive.org_archive"))
     (advice-add 'org-archive-subtree-default :after 
                 (lambda () (jib/save-and-close-this-buffer file))))
 
@@ -1726,8 +1814,7 @@ The following is org-mode configuration.
   (setq org-todo-keywords '((type
                              "TODO(t)" "INPROG-TODO(i)" "HW(h)" "STUDY" "SOMEDAY"
                              "READ(r)" "PROJ(p)" "CONTACT(c)"
-                             "|"
-                             "DONE(d)" "CANCELLED(C)")))
+                             "|" "DONE(d)" "CANCELLED(C)")))
 
   (setq org-todo-keyword-faces '(("TODO" nil :foreground "orange1" :inherit fixed-pitch :weight medium)
                                  ("HW" nil :foreground "coral1" :inherit fixed-pitch :weight medium)
@@ -1738,7 +1825,7 @@ The following is org-mode configuration.
                                  ("PROJ" nil :foreground "aquamarine3" :inherit fixed-pitch :weight medium)
 
                                  ("INPROG-TODO" nil :foreground "orange1" :inherit fixed-pitch :weight medium)
-							   
+
                                  ("DONE" nil :foreground "LawnGreen" :inherit fixed-pitch :weight medium)
                                  ("CANCELLED" nil :foreground "dark red" :inherit fixed-pitch :weight medium)))
 #+END_SRC
@@ -1762,14 +1849,15 @@ The following is org-mode configuration.
    'org-babel-load-languages
    '(
      (python . t)
-     (ditaa . t)
      (shell . t)
+     (gnuplot . t)
      ))
+
+  (use-package gnuplot)
+
   ;; Don't prompt before running code in org
   (setq org-confirm-babel-evaluate nil)
   (setq python-shell-completion-native-enable nil)
-
-  (setq org-ditaa-jar-path "~/Desktop/ditaa0_9.jar")
 
   ;; How to open buffer when calling `org-edit-special'.
   (setq org-src-window-setup 'current-window)
@@ -1815,9 +1903,12 @@ My favorite part.
   (setq org-agenda-scheduled-leaders '("" ""))
 
   (setq org-agenda-prefix-format '((agenda . " %i %-1:i%?-2t% s")
-                                   (todo . "  ")
+                                   (todo . "   ")
                                    (tags . " %i %-12:c")
                                    (search . " %i %-12:c")))
+
+  ;; https://stackoverflow.com/questions/58820073/s-in-org-agenda-prefix-format-doesnt-display-dates-in-the-todo-view
+  ;; something to look into
 #+END_SRC
 
 **** Org Agenda Custom Views
@@ -1860,6 +1951,9 @@ My favorite part.
                             (:name "Short-term Todo"
                                    :tag "st"
                                    :order 4)
+                            (:name "Personal"
+                                   :category "personal"
+                                   :order 40)
                             (:name "Someday"
                                    :todo "SOMEDAY"
                                    :order 30)
@@ -1885,9 +1979,6 @@ My favorite part.
                                    :discard (:todo "SOMEDAY")
                                    :tag ("robotics" "ec")
                                    :order 13)
-                            (:name "Personal"
-                                   :category "personal"
-                                   :order 27)
                             (:name "Todo"
                                    :discard (:category "personal")
                                    :todo ("TODO" "INPROGRESS-TODO")
@@ -1913,6 +2004,9 @@ My favorite part.
                                         (:name "Short-term Todo"
                                                :tag "st"
                                                :order 4)
+                                        (:name "Personal"
+                                               :category "personal"
+                                               :order 40)
                                         (:name "Someday"
                                                :todo "SOMEDAY"
                                                :order 30)
@@ -1938,9 +2032,6 @@ My favorite part.
                                                :discard (:todo "SOMEDAY")
                                                :tag ("robotics" "ec")
                                                :order 20)
-                                        (:name "Personal"
-                                               :category "personal"
-                                               :order 27)
                                         (:name "Todo"
                                                :discard (:tag "habit")
                                                :discard (:category "personal")
@@ -2050,7 +2141,7 @@ Still working on getting this how I want it. Org-capture is very useful, but I d
   (setq org-capture-templates
         '(
           ("n" "CPB Note" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
-           "** Note: %? @ %U" :empty-lines 1)
+           "** Note: %? @ %U" :empty-lines 0)
 
           ("w" "Work Todo Entries")
               ("we" "No Time" entry (file "~/Dropbox/org/work.org")
@@ -2065,6 +2156,7 @@ Still working on getting this how I want it. Org-capture is very useful, but I d
               ("ww" "Scheduled & deadline" entry (file "~/Dropbox/org/work.org")
                "** %^{Type|TODO|HW|READ|PROJ} %^{Todo title}\nSCHEDULED: %^t DEADLINE: %^t %?" :prepend t :empty-lines-before 0)
           ))
+
 #+END_SRC
 *** Org Exporting
 Everything related to exporting from org mode to various formats (HTML, LaTeX, etc).
@@ -2125,6 +2217,11 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
 #+END_SRC
 *** Misc Org Mode
 #+BEGIN_SRC emacs-lisp :tangle yes
+  (setq org-clock-mode-line-total 'current) ;; Show only timer from current clock session in modeline
+
+  (setq org-attach-id-dir ".org-attach/")
+
+
   ) ;; This parenthesis ends the org use-package.
 #+END_SRC
 
@@ -2168,15 +2265,46 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
     :ensure nil
     :defer t
     :init
-    (setq TeX-engine 'xetex
+    (setq TeX-engine 'xetex ;; Use XeTeX
           latex-run-command "xetex")
-    (setq TeX-save-query nil ;; Don't prompt for saving the .tex file
-          TeX-auto-save t
-          TeX-show-compilation nil)
+
+    (setq TeX-parse-self t ; parse on load
+          TeX-auto-save t  ; parse on save
+          ;; Use directories in a hidden away folder for AUCTeX files.
+          TeX-auto-local (concat user-emacs-directory "auctex/auto/")
+          TeX-style-local (concat user-emacs-directory "auctex/style/")
+
+          TeX-source-correlate-mode t
+          TeX-source-correlate-method 'synctex
+
+          TeX-show-compilation nil
+
+          ;; Don't start the Emacs server when correlating sources.
+          TeX-source-correlate-start-server nil
+
+          ;; Automatically insert braces after sub/superscript in `LaTeX-math-mode'.
+          TeX-electric-sub-and-superscript t
+          ;; Just save, don't ask before each compilation.
+          TeX-save-query nil)
+
     ;; To use pdfview with auctex:
     (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
           TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
           TeX-source-correlate-start-server t)
+    :general
+    (general-define-key
+      :prefix ","
+      :states 'normal
+      :keymaps 'LaTeX-mode-map
+      "" nil
+      "a" '(TeX-command-run-all :which-key "TeX run all")
+      "c" '(TeX-command-master :which-key "TeX-command-master")
+      "c" '(TeX-command-master :which-key "TeX-command-master")
+      "e" '(LaTeX-environment :which-key "Insert environment")
+      "s" '(LaTeX-section :which-key "Insert section")
+      "m" '(TeX-insert-macro :which-key "Insert macro")
+      )
+
     )
 
   (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer) ;; Standard way
@@ -2257,12 +2385,17 @@ Mu4e configuration is in ~private.el~.
     (general-define-key :states 'motion :keymaps 'pdf-view-mode-map
                         "j" 'pdf-view-next-page
                         "k" 'pdf-view-previous-page
+
                         "C-j" 'pdf-view-next-line-or-next-page
-                        "C-k" 'pdf-view-next-line-or-next-page
+                        "C-k" 'pdf-view-previous-line-or-previous-page
 
                         ;; Arrows for movement as well
                         (kbd "<down>") 'pdf-view-next-line-or-next-page
-                        (kbd "<up>") 'pdf-view-previous-line-or-next-page
+                        (kbd "<up>") 'pdf-view-previous-line-or-previous-page
+
+                        (kbd "<down>") 'pdf-view-next-line-or-next-page
+                        (kbd "<up>") 'pdf-view-previous-line-or-previous-page
+
                         (kbd "<left>") 'image-backward-hscroll
                         (kbd "<right>") 'image-forward-hscroll
 
@@ -2369,4 +2502,17 @@ Mu4e configuration is in ~private.el~.
     "c" '(web-mode-fold-or-unfold :which-key "web mode toggle fold")
     ))
 #+END_SRC
+** DISABLED org-roam
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package org-roam
+    :defer 2
+    :config
+    (setq org-roam-directory (expand-file-name "org-roam" jib/dropbox))
+    (org-roam-db-autosync-mode))
 
+  (use-package org-roam-ui
+    :after org-roam
+    :defer t
+    :config
+    (setq org-roam-ui-follow nil))
+#+END_SRC
