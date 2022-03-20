@@ -389,7 +389,9 @@ General configurations and optimizations/better defaults. Much of this is from D
 * Keyboard
 ** Mac Configuration/Compatibility
 Use ~command~ as ~meta~ in macOS. Disable option (aka alt). Keep control ctrl. Right command turns into super (s-), and right control becomes hyper (H-). Finally, make escape quit on the first press (rather than 3, as I think it would be otherwise).
-#+BEGIN_SRC emacs-lisp :tangle yes
+
+Goes to early-init so if I have an error in my init I have keybinds I am used to.
+#+BEGIN_SRC emacs-lisp :tangle ./early-init.el
   (setq mac-command-modifier 'meta
         mac-option-modifier nil
         mac-control-modifier 'control
