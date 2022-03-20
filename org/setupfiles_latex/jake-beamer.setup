@@ -1,7 +1,7 @@
 #+startup: beamer
 #+LANGUAGE:  en
 
-Org export options
+* Org export options
 #+OPTIONS:   num:t toc:2 ::t |:t ^:{} -:t f:t *:t <:t
 #+OPTIONS:   tex:t d:nil todo:t pri:nil tags:nil
 #+OPTIONS:   timestamp:nil
@@ -9,19 +9,20 @@ Org export options
 #+EXCLUDE_TAGS: noexport
 #+PROPERTY: header-args :eval never-export
 
-Beamer configuration
+* Beamer configuration
 #+LATEX_CLASS: beamer
 #+LATEX_CLASS_OPTIONS: [c,17pt, bigger, mathserif]
-#+COLUMNS: %20ITEM %13BEAMER_env(Env) %6BEAMER_envargs(Args) %4BEAMER_col(Col) %7BEAMER_extra(Extra)
 #+OPTIONS: H:2
 
 End required configurations.
 
-Theme configuration
+If you want to use org-columns.
+#+COLUMNS: %20ITEM %13BEAMER_env(Env) %6BEAMER_envargs(Args) %4BEAMER_col(Col) %7BEAMER_extra(Extra)
+
+* Theme configuration
 #+BEAMER_THEME: Madrid
 #+BEAMER_HEADER: \setbeamertemplate{navigation symbols}{}
 
-Title slides before new sections begin
 #+BEAMER_HEADER: \AtBeginSection[]{
 #+BEAMER_HEADER:   \begin{frame}
 #+BEAMER_HEADER:   \vfill

@@ -45,3 +45,8 @@
 #+LATEX_HEADER: }
 
 #+LATEX_HEADER: \lstset{style=mystyle}
+
+\lstdefinestyle{opts}{
+   language={bash},
+   numbers=left
+}
