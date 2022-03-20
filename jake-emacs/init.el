@@ -1402,38 +1402,8 @@ _q_uit          _e_qualize        _]_forward     ^
   ;; (dolist (face '(org-list-dt org-tag org-todo org-table org-checkbox org-priority org-date org-verbatim org-special-keyword))
   ;;   (set-face-attribute `,face nil :inherit 'fixed-pitch))
 
-  (dolist (face '(org-code org-verbatim org-ellipsis org-meta-line))
-    (set-face-attribute `,face nil :inherit 'shadow :inherit 'fixed-pitch))
-  )
-
-(defun jib/prettify-symbols-setup ()
-  (push '("[ ]" .  "☐") prettify-symbols-alist)
-  ;; (push '("[X]" . "☑" ) prettify-symbols-alist)
-  (push '("[X]" . "☒" ) prettify-symbols-alist)
-  (push '("[-]" . "❍" ) prettify-symbols-alist)
-
-  (push '(":Misc:" . "" ) prettify-symbols-alist)
-  (push '(":ec:" . "" ) prettify-symbols-alist)
-  (push '(":Weekly:ec:" . "" ) prettify-symbols-alist)
-  (push '(":Robo:ec:" . "" ) prettify-symbols-alist)
-
-  (push '(":bv:" . "" ) prettify-symbols-alist)
-  (push '(":sp:" . "") prettify-symbols-alist)
-  (push '(":cl:" . "𝛑" ) prettify-symbols-alist)
-  (push '(":ch:" . "" ) prettify-symbols-alist)
-  (push '(":es:" . "" ) prettify-symbols-alist)
-  (prettify-symbols-mode)
-
-  ;; (defvar svg-font-lock-keyword  
-  ;;   `(("TODO"
-  ;;      (0 (list
-  ;;          'face nil
-  ;;          'display (svg-lib-tag "TODO" nil :stroke 2 :font-family "Roboto Mono" :font-weight 500 :padding 1 :foreground "plum3" :radius 5))))))
-
-  ;; ;; activate
-  ;; (push 'display font-lock-extra-managed-props)
-  ;; (font-lock-add-keywords nil svg-font-lock-keyword)
-  ;; (font-lock-flush (point-min) (point-max))
+  ;; (dolist (face '(org-code org-verbatim org-meta-line))
+  ;;   (set-face-attribute `,face nil :inherit 'shadow :inherit 'fixed-pitch))
   )
 
 (defun jib/org-setup ()

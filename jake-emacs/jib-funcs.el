@@ -87,7 +87,12 @@ If the universal prefix argument is used then will the windows too."
   (interactive)
   (find-file-existing jib/init.org))
 
+(defun jib/reload-emacs-configuration ()
+  (interactive)
+  (load (expand-file-name "init.el" user-emacs-directory)))
+
 (defun jib/open-buffer-file-mac ()
+  "Open current buffer file using Mac `open' command."
   (interactive)
   (shell-command (concat "open " (buffer-file-name))))
 
@@ -100,10 +105,6 @@ If the universal prefix argument is used then will the windows too."
     ;; Dynamic scoping to the rescue
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
-
-(defun jib/reload-emacs-configuration ()
-  (interactive)
-  (load (expand-file-name "init.el" user-emacs-directory)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Text Editing/Text Automation ;;
@@ -132,17 +133,8 @@ splits the sentence."
   (insert ".")
   (capitalize-word 1))
 
-;; From spacemacs
-(defun spacemacs/insert-line-below-no-indent (count)
-  "Insert a new line below with no indentation."
-  (interactive "p") (save-excursion
-					  (evil-move-end-of-line)
-					  (while (> count 0)
-						(insert "\n")
-						(setq count (1- count)))))
-
 (defun jib/listify (&optional count)
-  "Turn the region's (or count = n lines) into an orgmode list by appending a +."
+  "Turn the region's (or count = n lines) into an orgmode list by prepending a +."
   (interactive "p")
   (let ((lines (count-lines (region-beginning) (region-end)))) ;; By default grab a region
 	(if (> count 1) (setq lines count)) ;; but if there was an argument, override the # of lines
@@ -180,6 +172,12 @@ splits the sentence."
   (interactive)
   (let ((current-prefix-arg '-)) ;; emulate C-u
     (call-interactively 'counsel-fzf)))
+
+(defun jib/rg ()
+  "Allows you to select a folder to ripgrep."
+  (interactive)
+  (let ((current-prefix-arg 4)) ;; emulate C-u
+    (call-interactively 'counsel-rg)))
 
 (defun spacemacs/deft ()
   "Helper to call deft and then fix things so that it is nice and works"
@@ -221,7 +219,6 @@ If run with universal argument C-u, insert org options to make export very plain
 		(write-file (concat (make-temp-file "jibemacsorg") ".html")) ;; Write HTML to temp file
 		(jib/open-buffer-file-mac) ;; Use my custom function to open the file (Mac only)
 		(kill-this-buffer)))))
-;; https://www.reddit.com/r/emacs/comments/8qm1lb/new_orgcountwords_command/
 
 (defun jib/org-schedule-tomorrow ()
   "Org Schedule for tomorrow (+1d)."
@@ -231,6 +228,20 @@ If run with universal argument C-u, insert org options to make export very plain
 (defun jib/org-set-startup-visibility ()
   (interactive)
   (org-set-startup-visibility))
+
+(defun jib/org-refile-this-file ()
+  "Org refile to only headers in current file, 3 levels."
+  (interactive)
+  (let ((org-refile-targets '((nil . (:maxlevel . 3)))))
+	(org-refile)))
+
+(defun jib/refresh-org-agenda-from-afar ()
+  "Refresh org agenda from anywhere."
+  (interactive)
+  (if (get-buffer "*Org Agenda*")
+	  (save-window-excursion
+		(switch-to-buffer "*Org Agenda*")
+		(org-agenda-redo))))
 
 ;; Modified from https://stackoverflow.com/questions/25930097/emacs-org-mode-quickly-mark-todo-as-done?rq=1
 (defun jib/org-done-keep-todo ()
@@ -253,20 +264,36 @@ the todo type was if I look back through my archive files."
 (general-define-key :keymaps 'org-mode-map "C-c t" 'jib/org-done-keep-todo)
 
 (defun jib/org-archive-ql-search ()
-  "Input a tag to search in my archive files."
+  "Input or select a tag to search in my archive files."
   (interactive)
   (let* ((choices '("bv" "sp" "ch" "cl" "es" "Robotics ec" "Weekly ec"))
 		 (tag (completing-read "Tag: " choices)))
-	(org-ql-search '("~/Dropbox/org/org-archive/homework-archive.org_archive"
-					 "~/Dropbox/org/org-archive/todo-archive.org_archive")
-	  `(or (property "ARCHIVE_ITAGS" ,tag) (tags ,tag))
-	  :title "Class")))
+	(org-ql-search
+	  ;; Recursively get all .org_archive files from my archive directory
+	  (directory-files-recursively
+	   (expand-file-name "org-archive" org-directory) ".org_archive")
+	  ;; Has the matching tags (can be a property or just a tag) and is a todo - done or not
+	  `(and (or (property "ARCHIVE_ITAGS" ,tag) (tags ,tag)) (or (todo) (done))))))
+
+;; (defun get-tags-from-these-buffers ()
+;;   (let* ((files (directory-files-recursively (expand-file-name "org-archive" org-directory) ".org_archive")))
+
+;; 	(cl-loop for file in (files)
+;; 			 ()
+;; 			 if (buffer-file-name buf)
+;; 			 collect buf)
+
+;; 	)
+
+;; )	
+
 
 (defmacro spacemacs|org-emphasize (fname char)
   "Make function for setting the emphasis in org mode"
   `(defun ,fname () (interactive)
           (org-emphasize ,char)))
 
+;; https://www.reddit.com/r/emacs/comments/8qm1lb/new_orgcountwords_command/
 (defun ap/org-forward-to-entry-content (&optional unsafe)
   "Skip headline, planning line, and all drawers in current entry.
 If UNSAFE is non-nil, assume point is on headline."
@@ -300,18 +327,53 @@ If UNSAFE is non-nil, assume point is on headline."
               finally do (message "Subtree \"%s\" has %s lines, %s words, and %s characters."
                                   (org-get-heading t t) total-lines total-words total-characters)))))
 
+
+(defun jib/prettify-symbols-setup ()
+  ;; checkboxes
+  (push '("[ ]" .  "☐") prettify-symbols-alist)
+  ;; (push '("[X]" . "☑" ) prettify-symbols-alist)
+  (push '("[X]" . "☒" ) prettify-symbols-alist)
+  (push '("[-]" . "❍" ) prettify-symbols-alist)
+
+  ;; org-babel
+  (push '("#+BEGIN_SRC" . ?≫) prettify-symbols-alist)
+  (push '("#+END_SRC" . ?≫) prettify-symbols-alist)
+  (push '("#+begin_src" . ?≫) prettify-symbols-alist)
+  (push '("#+end_src" . ?≫) prettify-symbols-alist)
+
+  ;; (push '("#+BEGIN_SRC python" . ) prettify-symbols-alist) ;; This is the Python symbol. Comes up weird for some reason
+  (push '("#+RESULTS:" . ?≚ ) prettify-symbols-alist)
+
+  ;; drawers
+  (push '(":PROPERTIES:" . ?) prettify-symbols-alist)
+
+  ;; tags
+  (push '(":Misc:" . "" ) prettify-symbols-alist)
+  (push '(":ec:" . "" ) prettify-symbols-alist)
+  (push '(":Weekly:ec:" . "" ) prettify-symbols-alist)
+  (push '(":Robo:ec:" . "" ) prettify-symbols-alist)
+
+  (push '(":bv:" . ? ) prettify-symbols-alist)
+  (push '(":sp:" . ? ) prettify-symbols-alist)
+  (push '(":cl:" . "π" ) prettify-symbols-alist)
+  (push '(":ch:" . ?) prettify-symbols-alist)
+  (push '(":es:" . "" ) prettify-symbols-alist)
+  (prettify-symbols-mode))
+  
+
 ;;;;;;;;;;;;
 ;; Macros ;;
 ;;;;;;;;;;;;
 
-;; Converts org mode from current line to bottom to HTML and copies it to the system clipboard
-;; uses org-html-convert-region-to-html
-(fset 'jib|Brinkley-HTML
-	  (kmacro-lambda-form [?V ?G ?y ?  ?f ?n ?  ?h ?M ?O ?p ?V ?G ?, ?H ?  ?x ?C ?  ?b ?d] 0 "%d"))
+  ;; Converts org mode from current line to bottom to HTML and copies it to the system clipboard
+  ;; uses org-html-convert-region-to-html
+  (fset 'jib|Brinkley-HTML
+		(kmacro-lambda-form [?V ?G ?y ?  ?f ?n ?  ?h ?M ?O ?p ?V ?G ?, ?H ?  ?x ?C ?  ?b ?d] 0 "%d"))
 
-;; Takes an org mode list and adds bullets one indent in under each item
-(fset 'jib|Listify
-	  (kmacro-lambda-form [?0 ?i ?+ ?\S-  escape ?j] 0 "%d"))
+;; OBSELETE
+;; ;; Takes an org mode list and adds bullets one indent in under each item
+;; (fset 'jib|Listify
+;; 	  (kmacro-lambda-form [?0 ?i ?+ ?\S-  escape ?j] 0 "%d"))
 
 ;; Takes a single-leveled org mode list and adds a sub item under each item
 (fset 'jib|SubListify
