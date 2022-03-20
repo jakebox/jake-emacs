@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Jake Lab Setup
+# key: <jls
+# --
+
+#+LATEX_HEADER: \input{/Users/jake/Dropbox/Files/systems/LaTeX/jake-lab.sty}
+#+LATEX_HEADER: \let\mytitle\thetitle

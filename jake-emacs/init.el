@@ -54,7 +54,7 @@
 
                      ;; Org-related
                      ox-reveal ox-hugo org-superstar org-super-agenda org-gcal
-                     toc-org org-ql org-appear org-ql
+                     toc-org org-ql org-appear org-ql org-tree-slide
 
                      htmlize
                      ))
@@ -134,6 +134,13 @@
                   "/Library/TeX/texbin"))
 
 (setenv "PATH" "/usr/local/Cellar/pyenv-virtualenv/1.1.5/shims:/Users/jake/.pyenv/shims:/usr/local/bin:/bin:/usr/bin:/usr/sbin:/usr/local/sbin:/sbin:/Users/jake/bin:/Users/jake/doom-emacs/bin:/Library/TeX/texbin")
+
+(setq insert-directory-program "/usr/local/bin/gls")
+
+(setq browse-url-firefox-program "/Applications/Firefox.app/Contents/MacOS/firefox")
+(setq browse-url-chrome-program "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+
+(server-start)
 
 ;; A cool mode to revert window configurations.
 (winner-mode 1)
@@ -244,8 +251,11 @@
   :ensure nil
   :config
   (setq ;;recentf-auto-cleanup 'never
-          ;; recentf-max-menu-items 0
-          recentf-max-saved-items 200)
+   ;; recentf-max-menu-items 0
+   recentf-max-saved-items 200)
+  ;; Show home folder path as a ~
+  (setq recentf-filename-handlers  
+        (append '(abbreviate-file-name) recentf-filename-handlers))
   (recentf-mode))
 
 (require 'uniquify)
@@ -259,10 +269,9 @@
 
 (setq default-input-method "spanish-postfix") ;; When I need to type in Spanish (switch with C-\)
 
-(setq browse-url-firefox-program "/Applications/Firefox.app/Contents/MacOS/firefox")
-(setq browse-url-chrome-program "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 
 (setq blink-cursor-interval 0.6)
+(blink-cursor-mode 0)
 
 ;; Show current key-sequence in minibuffer ala 'set showcmd' in vim. Any
 ;; (setq echo-keystrokes 0.8)
@@ -303,6 +312,7 @@
   (evil-set-initial-state 'dashboard-mode 'motion)
   (evil-set-initial-state 'debugger-mode 'motion)
   (evil-set-initial-state 'pdf-view-mode 'motion)
+  (evil-set-initial-state 'bufler-list-mode 'emacs)
 
   ;; ----- Keybindings
   ;; I tried using evil-define-key for these. Didn't work.
@@ -344,9 +354,16 @@
   (evil-collection-define-key 'normal 'dired-mode-map
     (kbd "RET") 'dired-find-alternate-file)
 
-  (evil-define-key 'motion 'dired-mode-map "Q" 'kill-this-buffer)
-  (evil-define-key 'motion help-mode-map "q" 'kill-this-buffer)
-  (evil-define-key 'motion calendar-mode-map "q" 'kill-this-buffer))
+  )
+
+;; not working right now, from https://jblevins.org/log/dired-open
+;; (evil-define-key 'motion 'dired-mode-map "s-o" '(lambda () (interactive)
+;; 												  (let ((fn (dired-get-file-for-visit)))
+;; 													(start-process "default-app" nil "open" fn))))
+
+(evil-define-key 'motion 'dired-mode-map "Q" 'kill-this-buffer)
+(evil-define-key 'motion help-mode-map "q" 'kill-this-buffer)
+(evil-define-key 'motion calendar-mode-map "q" 'kill-this-buffer)
 
 (use-package evil-snipe
   :diminish evil-snipe-mode
@@ -364,7 +381,7 @@
  :prefix "SPC"
 
  ;; Top level functions
- "/" '(counsel-rg :which-key "ripgrep")
+ "/" '(jib/rg :which-key "ripgrep")
  ";" '(spacemacs/deft :which-key "deft")
  ":" '(projectile-find-file :which-key "p-find file")
  "." '(counsel-find-file :which-key "find file")
@@ -500,32 +517,34 @@
   )
 
 (general-def
-  :states 'normal
-  :keymaps 'org-mode-map
-  "t" 'org-todo
-  "<return>" 'org-open-at-point-global
-  "K" 'org-shiftup
-  "J" 'org-shiftdown
-  )
+    :states 'normal
+    :keymaps 'org-mode-map
+    "t" 'org-todo
+    "<return>" 'org-open-at-point-global
+    "K" 'org-shiftup
+    "J" 'org-shiftdown
+    )
 
-(general-def
-  :states '(normal insert)
-  :keymaps 'org-mode-map
-  "C-c h" 'org-html-export-to-html
-  "M-[" 'org-metaleft
-  "M-]" 'org-metaright
-  "C-M-=" 'ap/org-count-words
-  )
+  (general-def
+    :states '(normal insert emacs)
+    :keymaps 'org-mode-map
+    "M-[" 'org-metaleft
+    "M-]" 'org-metaright
+    "C-M-=" 'ap/org-count-words
+    "s-r" 'org-refile
+    )
 
-;; Org-src - when editing an org source block
-(general-def
-  :prefix ","
-  :states 'normal
-  :keymaps 'org-src-mode-map
-  "b" '(nil :which-key "org src")
-  "bc" 'org-edit-src-abort
-  "bb" 'org-edit-src-exit
-  )
+  ;; Org-src - when editing an org source block
+  (general-def
+    :prefix ","
+    :states 'normal
+    :keymaps 'org-src-mode-map
+    "b" '(nil :which-key "org src")
+    "bc" 'org-edit-src-abort
+    "bb" 'org-edit-src-exit
+    )
+
+;;  (define-key org-src-mode-map (kbd "C-c C-c") #'org-edit-src-exit)
 
 (general-define-key
  :prefix ","
@@ -542,6 +561,7 @@
  "g" '(counsel-org-goto :which-key "goto heading")
  "t" '(counsel-org-tag :which-key "set tags")
  "p" '(org-set-property :which-key "set property")
+ "r" '(jib/org-refile-this-file :which-key "refile in file")
  "e" '(org-export-dispatch :which-key "export org")
  "B" '(org-toggle-narrow-to-subtree :which-key "toggle narrow to subtree")
  "V" '(jib/org-set-startup-visibility :which-key "startup visibility")
@@ -552,6 +572,7 @@
  "bt" '(org-babel-tangle :which-key "org-babel-tangle")
  "bb" '(org-edit-special :which-key "org-edit-special")
  "bc" '(org-edit-src-abort :which-key "org-edit-src-abort")
+ "bk" '(org-babel-remove-result-one-or-many :which-key "org-babel-remove-result-one-or-many")
 
  "x" '(nil :which-key "text")
  "xb" (spacemacs|org-emphasize jib/org-bold ?*)
@@ -640,6 +661,7 @@
 (general-def
   :states '(normal visual motion)
   "gc" 'comment-dwim
+  "gC" 'comment-line
   "j" 'evil-next-visual-line ;; I prefer visual line navigation
   "k" 'evil-previous-visual-line ;; ""
   "|" '(lambda () (interactive) (org-agenda nil "n")) ;; Opens my n custom org-super-agenda view
@@ -964,7 +986,16 @@ _q_uit          _e_qualize        _]_forward     ^
   (general-define-key :keymaps 'flyspell-mouse-map
                       "<mouse-3>" #'flyspell-correct-word
                       "<mouse-2>" nil)
+  (general-define-key :keymaps 'evil-motion-state-map
+                      "zz" #'ispell-word)
   )
+
+(use-package flyspell-correct
+  :after flyspell
+  :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+
+(use-package flyspell-correct-ivy
+  :after flyspell-correct)
 
 (use-package evil-anzu :defer t)
 
@@ -1033,7 +1064,7 @@ _q_uit          _e_qualize        _]_forward     ^
 (if (eq jib/computer 'desktop)
     (setq jib-text-height 150))
 
-(set-face-attribute 'default nil :family "Roboto Mono" :weight 'regular :height jib-text-height)
+(set-face-attribute 'default nil :family "Jetbrains Mono" :weight 'medium :height jib-text-height)
 
 ;; Float height value (1.0) makes fixed-pitch take height 1.0 * height of default
 ;; This means it will scale along with default when the text is zoomed
@@ -1045,7 +1076,7 @@ _q_uit          _e_qualize        _]_forward     ^
 (use-package mixed-pitch
   :defer t
   :config
-  (setq mixed-pitch-set-height t)
+  (setq mixed-pitch-set-height nil)
   (dolist (face '(org-date org-priority org-tag org-special-keyword)) ;; Some extra faces I like to be fixed-pitch
     (add-to-list 'mixed-pitch-fixed-pitch-faces face)))
 
@@ -1055,7 +1086,7 @@ _q_uit          _e_qualize        _]_forward     ^
   (setq-default line-spacing jib-default-line-spacing)
   (setq-local line-spacing jib-default-line-spacing)
 
-  (setq ivy-height 5))
+  (setq ivy-height 6))
 
 (defun my-presentation-off ()
   (jib/reset-var 'jib-default-line-spacing)
@@ -1067,7 +1098,7 @@ _q_uit          _e_qualize        _]_forward     ^
 (add-hook 'presentation-off-hook #'my-presentation-off)
 
 (if (eq jib/computer 'laptop)
-    (setq presentation-default-text-scale 4)
+    (setq presentation-default-text-scale 5)
   (setq presentation-default-text-scale 5))
 
 (use-package presentation
@@ -1130,6 +1161,7 @@ _q_uit          _e_qualize        _]_forward     ^
   (doom-themes-visual-bell-config)
   (doom-themes-org-config)
   :custom-face
+  (org-ellipsis ((t (:height 0.8 :inherit 'shadow))))
   ;; Keep the modeline proper every time I use these themes.
   (mode-line ((t (:height ,jib-doom-modeline-text-height))))
   (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
@@ -1142,12 +1174,10 @@ _q_uit          _e_qualize        _]_forward     ^
   ;; Keep the modeline proper every time I use these themes.
   (mode-line ((t (:height ,jib-doom-modeline-text-height))))
   (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
-
   ;; Disable underline for org deadline warnings. I don't like the way it looks.
   (org-warning ((t (:underline nil))))
-
   ;; Darkens the org-ellipsis (first unset the color, then give it shadow)
-  (org-ellipsis ((t (:foreground unspecified :inherit 'shadow)))))
+  (org-ellipsis ((t (:foreground unspecified :height 0.8 :inherit 'shadow)))))
 
 (use-package modus-themes
   :init
@@ -1161,6 +1191,7 @@ _q_uit          _e_qualize        _]_forward     ^
         '((t . (rainbow))))
   (modus-themes-load-themes)
   :custom-face
+  (org-ellipsis ((t (:height 0.8 :inherit 'shadow))))
   ;; Keep the modeline proper every time I use these themes.
   (mode-line ((t (:height ,jib-doom-modeline-text-height))))
   (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height)))))
@@ -1194,6 +1225,7 @@ _q_uit          _e_qualize        _]_forward     ^
                 pdf-view-mode-hook
                 help-mode-hook
                 image-mode-hook
+                eww-mode-hook
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
@@ -1362,6 +1394,12 @@ _q_uit          _e_qualize        _]_forward     ^
                       "q" 'kill-buffer-and-window)
   )
 
+(use-package org-tree-slide
+  :defer t
+  :config
+  (setq org-tree-slide-slide-in-effect nil
+        org-tree-slide-skip-outline-level 3))
+
 ;; (use-package org-pretty-tags
 ;;   :config
 ;;   (setq org-pretty-tags-surrogate-strings
@@ -1377,10 +1415,10 @@ _q_uit          _e_qualize        _]_forward     ^
   (kbd "b") 'org-agenda-earlier)
 
 (defun jib/org-font-setup ()
-  (set-face-attribute 'org-document-title nil :height 1.1) ;; Bigger titles, smaller drawers
+  ;; (set-face-attribute 'org-document-title nil :height 1.1) ;; Bigger titles, smaller drawers
   (set-face-attribute 'org-checkbox-statistics-done nil :inherit 'org-done :foreground "green3") ;; Makes org done checkboxes green
   ;; (set-face-attribute 'org-drawer nil :inherit 'fixed-pitch :inherit 'shadow :height 0.6 :foreground nil) ;; Makes org-drawer way smaller
-  (set-face-attribute 'org-ellipsis nil :inherit 'shadow :height 0.8) ;; Makes org-ellipsis shadow (blends in better)
+  ;; (set-face-attribute 'org-ellipsis nil :inherit 'shadow :height 0.8) ;; Makes org-ellipsis shadow (blends in better)
   (set-face-attribute 'org-scheduled-today nil :weight 'normal) ;; Removes bold from org-scheduled-today
   (set-face-attribute 'org-super-agenda-header nil :inherit 'org-agenda-structure :weight 'bold) ;; Bolds org-super-agenda headers
   (set-face-attribute 'org-scheduled-previously nil :background "red") ;; Bolds org-super-agenda headers
@@ -1413,10 +1451,10 @@ _q_uit          _e_qualize        _]_forward     ^
   :diminish visual-line-mode
   :config
 
-;; (setq org-ellipsis "⤵")
-(setq org-ellipsis " ▼ ")
+(setq org-ellipsis " ▼ ") ;; ⤵
 (setq org-src-fontify-natively t) ;; Syntax highlighting in org src blocks
-(setq org-startup-folded t) ;; Org files start up folded by default
+(setq org-highlight-latex-and-related '(native)) ;; Highlight inline LaTeX
+(setq org-startup-folded 'show2levels) ;; Org files start up folded by default
 (setq org-image-actual-width nil)
 
 (setq org-cycle-separator-lines 1)
@@ -1486,12 +1524,12 @@ _q_uit          _e_qualize        _]_forward     ^
 (setq org-default-priority ?E) ;; If an item has no priority, it is considered [#D].
 
 (setq org-priority-faces
-'((65 nil :inherit fixed-pitch :foreground "red2" :weight medium)
-  (66 . "Gold1")
-  (67 . "Goldenrod2")
-  (68 . "PaleTurquoise3")
-  (69 . "DarkSlateGray4")
-  (70 . "PaleTurquoise4")))
+      '((65 nil :inherit fixed-pitch :foreground "red2" :weight medium)
+        (66 . "Gold1")
+        (67 . "Goldenrod2")
+        (68 . "PaleTurquoise3")
+        (69 . "DarkSlateGray4")
+        (70 . "PaleTurquoise4")))
 
 ;; Org-Babel
 (org-babel-do-load-languages
@@ -1511,10 +1549,11 @@ _q_uit          _e_qualize        _]_forward     ^
 ;; How to open buffer when calling `org-edit-special'.
 (setq org-src-window-setup 'current-window)
 
-(setq org-habit-preceding-days 3)
-(setq org-habit-following-days 3)
-;; (setq org-habit-today-glyph ?X);;‖
-
+(setq org-habit-preceding-days 6)
+(setq org-habit-following-days 6)
+(setq org-habit-show-habits-only-for-today nil)
+(setq org-habit-today-glyph ?⍟) ;;‖
+(setq org-habit-completed-glyph ?✓)
 (setq org-habit-graph-column 40)
 
 ;; Uses custom time stamps
@@ -1545,6 +1584,7 @@ _q_uit          _e_qualize        _]_forward     ^
 (setq org-agenda-block-separator 8213) ;; Unicode: ―
 (setq org-agenda-current-time-string "<----------------- Now")
 (setq org-agenda-scheduled-leaders '("" ""))
+;; note: maybe some day I want to use org-agenda-deadline-leaders
 
 (setq org-agenda-prefix-format '((agenda . " %i %-1:i%?-2t% s")
                                  (todo . "   ")
@@ -1571,7 +1611,7 @@ _q_uit          _e_qualize        _]_forward     ^
                                 ;; :discard (:deadline today)
                                 :scheduled t
                                 :order 2)
-                         (:name "Unscheduled Deadlines"
+                         (:name "Unscheduled Tasks"
                                 :deadline t
                                 :order 3)
                          ))))
@@ -1580,12 +1620,12 @@ _q_uit          _e_qualize        _]_forward     ^
                        (org-super-agenda-groups
                         '(
                           (:name "Overdue"
+                                 :discard (:tag "habit")
                                  :face (:background "red")
                                  :scheduled past
                                  :deadline past
                                  :order 2)
                           (:name "Important"
-                                 :discard (:tag "habit")
                                  :and (:todo "TODO" :priority "A") ;; Homework doesn't count here
                                  :todo "CONTACT"
                                  :order 3)
@@ -1622,7 +1662,7 @@ _q_uit          _e_qualize        _]_forward     ^
                                  :order 13)
                           (:name "Todo"
                                  :discard (:category "personal")
-                                 :todo ("TODO" "INPROGRESS-TODO")
+                                 :todo ("TODO" "INPROG-TODO")
                                  :order 20)
                           ))))))
         ("m" "Agendaless Super zaen view"
@@ -1676,7 +1716,7 @@ _q_uit          _e_qualize        _]_forward     ^
                                       (:name "Todo"
                                              :discard (:tag "habit")
                                              :discard (:category "personal")
-                                             :todo ("TODO" "INPROGRESS-TODO")
+                                             :todo ("TODO" "INPROG-TODO")
                                              :order 13)
                                       ))))))
 
@@ -1732,7 +1772,7 @@ _q_uit          _e_qualize        _]_forward     ^
                                       (:name "Todo"
                                              :discard (:tag "habit")
                                              :discard (:category "personal")
-                                             :todo ("TODO" "INPROGRESS-TODO")
+                                             :todo ("TODO" "INPROG-TODO")
                                              :order 13)
                                       ))))))
 

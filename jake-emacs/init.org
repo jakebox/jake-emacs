@@ -2,7 +2,7 @@
 :PROPERTIES:
 #+AUTHOR: Jake B
 #+STARTUP: folded
-#+PROPERTY: header-args:emacs-lisp :results silent
+#+PROPERTY: header-args :results silent :tangle yes
 #+HTML_HEAD: <link rel="stylesheet" href="https://sandyuraz.com/styles/org.min.css">
 #+SEQ_TODO: TODO(t) | DISABLED(d)
 :END:
@@ -10,10 +10,17 @@
 
 * Things to do
 + Paredit? Smartparens?
-  
+** Consider auto-updating org agenda
+#+BEGIN_SRC emacs-lisp :tangle no
+(dolist (hook '(org-after-todo-state-change-hook
+		org-shiftup-final-hook ;; these will always be one behind
+		org-shiftdown-final-hook
+		after-save-hook)) ;; the after-save-hook I don't love
+  (add-hook hook 'jib/refresh-org-agenda-from-afar))
+#+END_SRC
+
 * Meta
 This file contains my Emacs configuration. I have roughly ordered the org headings in order of importance/reliability. For example, misc packages is loaded last as I try new stuff there. Keyboard section is also important as if there's error I feel comfortable enough to go fix it.
-
 ** Dependencies
 Here is a list of programs I have installed for Emacs. They are not all explicitly required, however.
 
@@ -27,7 +34,7 @@ Here is a list of programs I have installed for Emacs. They are not all explicit
   
 ** Exported file note
 The following is exported to the top of the tangled init.el file as a note.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; -*- lexical-binding: t; -*-
   ;;; 
   ;;; Jake B's Emacs Configuration
@@ -81,7 +88,7 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
   (setq inhibit-compacting-font-caches t)
 #+END_SRC
 ** Packages
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (require 'package)
 
   (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
@@ -125,7 +132,7 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
 
                        ;; Org-related
                        ox-reveal ox-hugo org-superstar org-super-agenda org-gcal
-                       toc-org org-ql org-appear org-ql
+                       toc-org org-ql org-appear org-ql org-tree-slide
 
                        htmlize
                        ))
@@ -147,7 +154,7 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
 
 #+END_SRC
 ** Garbage Collections/Collector
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package gcmh
     :diminish gcmh-mode
     :config
@@ -171,38 +178,24 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
 * Files, variables, etc
 ** Setting custom variables
 I keep all of my Emacs configuration files and org files in Dropbox. To keep stuff clean and to make it easier to move stuff around in the future I set a bunch of variables up here that can be used later.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
+(load (expand-file-name "jib-variables.el" user-emacs-directory))
 
-  (defvar jib/home (concat (getenv "HOME") "/") "My home directory.")
-  (defvar jib/computer 'laptop "Which computer I am on -- 'desktop or 'laptop.")
-  (defvar jib-text-height nil "My preferred default text height.")
-  (defvar jib-doom-modeline-text-height nil "My preferred modeline text height.")
-  (defvar jib-default-line-spacing 0 "Baseline line spacing.")
-  (setq-default jib-default-line-spacing 0)
-
-  ;; Referring to external (Dropbox) locations/files
-  (defvar jib/dropbox (concat jib/home "Dropbox/") "The parent Dropbox folder.")
-  (defvar org-directory (concat jib/dropbox "org") "Directory with org files.")
-  (defvar jib/emacs-stuff (concat jib/dropbox "Files/systems/emacs-stuff") "Dropbox directory where all Emacs files are kept")
-
-  ;; At this point things can be local now
-  (setq jib/init.org (expand-file-name "init.org" user-emacs-directory))
-  (setq bookmark-default-file (concat jib/emacs-stuff "/bookmarks"))
-  (setq custom-theme-directory (expand-file-name "themes" jib/emacs-stuff))
-
+;; At this point things can be local now
+(setq jib/init.org (expand-file-name "init.org" user-emacs-directory))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;; Calculated variables ;;
+;; Calculated variables ;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  ;; Set `jib/computer' to 'laptop or 'desktop.
-  (let ((sys (system-name)))
-    (if (or (or (string= sys "MJBs-MacBook-Air.local") (string= sys "MJBs-Air.fwparker.org")) (string= sys "mjbs-air.lan"))
-        (setq jib/computer 'laptop)
-      (setq jib/computer 'desktop)))
+;; Set `jib/computer' to 'laptop or 'desktop.
+(let ((sys (system-name)))
+  (if (or (or (string= sys "MJBs-MacBook-Air.local") (string= sys "MJBs-Air.fwparker.org")) (string= sys "mjbs-air.lan"))
+      (setq jib/computer 'laptop)
+    (setq jib/computer 'desktop)))
 #+END_SRC
 ** Loading custom lisp files
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (load (expand-file-name "jib-funcs.el" user-emacs-directory))
   (load (expand-file-name "private.el" user-emacs-directory))
   (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
@@ -216,7 +209,7 @@ I keep all of my Emacs configuration files and org files in Dropbox. To keep stu
 #+END_SRC
 ** Registers
 Variables, registers, more.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (setq register-preview-delay 0) ;; Show registers ASAP
 
   (set-register ?i (cons 'file (concat org-directory "/cpb.org")))
@@ -227,7 +220,7 @@ Variables, registers, more.
 #+END_SRC
 ** Path
 Pretty sure this isn't the proper way to do it and that I should be using ~exec-path-from-shell~, but it works and I don't see this changing. So it's fine.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (setq exec-path '("/usr/local/Cellar/pyenv-virtualenv/1.1.5/shims"
                     "/Users/jake/.pyenv/shims" "/usr/local/bin" "/bin"
                     "/usr/bin" "/usr/sbin" "/usr/local/sbin" "/sbin"
@@ -235,11 +228,18 @@ Pretty sure this isn't the proper way to do it and that I should be using ~exec-
                     "/Library/TeX/texbin"))
 
   (setenv "PATH" "/usr/local/Cellar/pyenv-virtualenv/1.1.5/shims:/Users/jake/.pyenv/shims:/usr/local/bin:/bin:/usr/bin:/usr/sbin:/usr/local/sbin:/sbin:/Users/jake/bin:/Users/jake/doom-emacs/bin:/Library/TeX/texbin")
+
+  (setq insert-directory-program "/usr/local/bin/gls")
+
+  (setq browse-url-firefox-program "/Applications/Firefox.app/Contents/MacOS/firefox")
+  (setq browse-url-chrome-program "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 #+END_SRC
 
 * General configuration
 General configurations and optimizations/better defaults. Much of this is from Doom Emacs.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
+  (server-start)
+
   ;; A cool mode to revert window configurations.
   (winner-mode 1)
 
@@ -349,8 +349,11 @@ General configurations and optimizations/better defaults. Much of this is from D
     :ensure nil
     :config
     (setq ;;recentf-auto-cleanup 'never
-            ;; recentf-max-menu-items 0
-            recentf-max-saved-items 200)
+     ;; recentf-max-menu-items 0
+     recentf-max-saved-items 200)
+    ;; Show home folder path as a ~
+    (setq recentf-filename-handlers  
+          (append '(abbreviate-file-name) recentf-filename-handlers))
     (recentf-mode))
 
   (require 'uniquify)
@@ -364,10 +367,9 @@ General configurations and optimizations/better defaults. Much of this is from D
 
   (setq default-input-method "spanish-postfix") ;; When I need to type in Spanish (switch with C-\)
 
-  (setq browse-url-firefox-program "/Applications/Firefox.app/Contents/MacOS/firefox")
-  (setq browse-url-chrome-program "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 
   (setq blink-cursor-interval 0.6)
+  (blink-cursor-mode 0)
 
   ;; Show current key-sequence in minibuffer ala 'set showcmd' in vim. Any
   ;; (setq echo-keystrokes 0.8)
@@ -402,7 +404,7 @@ Goes to early-init so if I have an error in my init I have keybinds I am used to
 #+END_SRC
 
 ** Which-key
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package which-key
     :diminish which-key-mode
     :init
@@ -417,7 +419,7 @@ Goes to early-init so if I have an error in my init I have keybinds I am used to
   #+END_SRC
   
 ** Evil
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package evil
     :init
     ;; (setq evil-want-keybinding t)
@@ -429,6 +431,7 @@ Goes to early-init so if I have an error in my init I have keybinds I am used to
     (evil-set-initial-state 'dashboard-mode 'motion)
     (evil-set-initial-state 'debugger-mode 'motion)
     (evil-set-initial-state 'pdf-view-mode 'motion)
+    (evil-set-initial-state 'bufler-list-mode 'emacs)
 
     ;; ----- Keybindings
     ;; I tried using evil-define-key for these. Didn't work.
@@ -470,13 +473,20 @@ Goes to early-init so if I have an error in my init I have keybinds I am used to
     (evil-collection-define-key 'normal 'dired-mode-map
       (kbd "RET") 'dired-find-alternate-file)
 
-    (evil-define-key 'motion 'dired-mode-map "Q" 'kill-this-buffer)
-    (evil-define-key 'motion help-mode-map "q" 'kill-this-buffer)
-    (evil-define-key 'motion calendar-mode-map "q" 'kill-this-buffer))
+    )
+
+  ;; not working right now, from https://jblevins.org/log/dired-open
+  ;; (evil-define-key 'motion 'dired-mode-map "s-o" '(lambda () (interactive)
+  ;; 												  (let ((fn (dired-get-file-for-visit)))
+  ;; 													(start-process "default-app" nil "open" fn))))
+
+  (evil-define-key 'motion 'dired-mode-map "Q" 'kill-this-buffer)
+  (evil-define-key 'motion help-mode-map "q" 'kill-this-buffer)
+  (evil-define-key 'motion calendar-mode-map "q" 'kill-this-buffer)
 #+END_SRC
 
 *** evil-snipe
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package evil-snipe
     :diminish evil-snipe-mode
     :diminish evil-snipe-local-mode
@@ -487,7 +497,7 @@ Goes to early-init so if I have an error in my init I have keybinds I am used to
 ** General.el (main keybindings set here)
 [[https://github.com/noctuid/general.el][General.el]]
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package general
     :config
 #+END_SRC
@@ -498,14 +508,14 @@ it along with :keymaps 'override when you need to override other stuff
 (?)
 *** SPC Leader Key
 **** Preamble
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (general-define-key
    :states '(normal motion visual)
    :keymaps 'override
    :prefix "SPC"
 
    ;; Top level functions
-   "/" '(counsel-rg :which-key "ripgrep")
+   "/" '(jib/rg :which-key "ripgrep")
    ";" '(spacemacs/deft :which-key "deft")
    ":" '(projectile-find-file :which-key "p-find file")
    "." '(counsel-find-file :which-key "find file")
@@ -516,7 +526,7 @@ it along with :keymaps 'override when you need to override other stuff
    "r" '(jump-to-register :which-key "registers")
 #+END_SRC
 **** Application
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; "Applications"
   "a" '(nil :which-key "applications")
   "ao" '(org-agenda :which-key "org-agenda")
@@ -534,7 +544,7 @@ it along with :keymaps 'override when you need to override other stuff
   "ad" '(dired :which-key "dired")
 #+END_SRC
 **** Buffers
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Buffers
   "b" '(nil :which-key "buffer")
   "bb" '(counsel-switch-buffer :which-key "switch buffers")
@@ -545,7 +555,7 @@ it along with :keymaps 'override when you need to override other stuff
   "br" '(revert-buffer :which-key "revert buffer")
 #+END_SRC
 **** Files
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Files
   "f" '(nil :which-key "files")
   "fb" '(counsel-bookmark :which-key "bookmarks")
@@ -560,7 +570,7 @@ it along with :keymaps 'override when you need to override other stuff
 
 #+END_SRC
 **** "Jake"
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Jake
   "j" '(nil :which-key "jake")
   "jb" '((lambda() (interactive)(find-file (concat jib/dropbox "org/work.org"))) :which-key "work.org")
@@ -582,7 +592,7 @@ it along with :keymaps 'override when you need to override other stuff
   "jkq" '((lambda () (interactive) (org-ql-view "Jake Work Full View")) :which-key "jake ql")
 #+END_SRC
 **** Help/Emacs
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Help/emacs
   "h" '(nil :which-key "help/emacs")
 
@@ -601,7 +611,7 @@ it along with :keymaps 'override when you need to override other stuff
   "hmt" '(text-mode :which-key "text mode")
 #+END_SRC
 **** Text
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Help/emacs
   "x" '(nil :which-key "text")
   "xC" '(jib/copy-whole-buffer-to-clipboard :which-key "copy whole buffer to clipboard")
@@ -609,7 +619,7 @@ it along with :keymaps 'override when you need to override other stuff
   "xs" '(yas-insert-snippet :which-key "insert yasnippet")
 #+END_SRC
 **** Toggles/Visuals
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Toggles
   "t" '(nil :which-key "toggles")
   "tT" '(toggle-truncate-lines :which-key "truncate lines")
@@ -625,7 +635,7 @@ it along with :keymaps 'override when you need to override other stuff
   "tm" '(hide-mode-line-mode :which-key "hide modeline mode")
 #+END_SRC
 **** Windows
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Windows
   "w" '(nil :which-key "window")
   "wm" '(jib/toggle-maximize-buffer :which-key "maximize buffer")
@@ -644,7 +654,7 @@ it along with :keymaps 'override when you need to override other stuff
 *** Emacs-Lisp Mode ~,~ Bindings
 Sets up my comma leader key for elisp mode. Has functions like
 evaluating areas and checking parenthesis.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (general-def
     :prefix ","
     :states 'motion
@@ -663,7 +673,7 @@ evaluating areas and checking parenthesis.
 #+END_SRC
 *** Org Mode Bindings
 Functions that can be run in normal mode in Org Mode.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (general-def
     :states 'normal
     :keymaps 'org-mode-map
@@ -674,12 +684,12 @@ Functions that can be run in normal mode in Org Mode.
     )
 
   (general-def
-    :states '(normal insert)
+    :states '(normal insert emacs)
     :keymaps 'org-mode-map
-    "C-c h" 'org-html-export-to-html
     "M-[" 'org-metaleft
     "M-]" 'org-metaright
     "C-M-=" 'ap/org-count-words
+    "s-r" 'org-refile
     )
 
   ;; Org-src - when editing an org source block
@@ -691,11 +701,13 @@ Functions that can be run in normal mode in Org Mode.
     "bc" 'org-edit-src-abort
     "bb" 'org-edit-src-exit
     )
+
+;;  (define-key org-src-mode-map (kbd "C-c C-c") #'org-edit-src-exit)
 #+END_SRC
 **** Org Mode ~,~ Bindings
 Org mode comma leader key setup. My most-used functions live here with
 just a single keypress (after the ~,~).
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (general-define-key
    :prefix ","
    :states 'motion
@@ -711,6 +723,7 @@ just a single keypress (after the ~,~).
    "g" '(counsel-org-goto :which-key "goto heading")
    "t" '(counsel-org-tag :which-key "set tags")
    "p" '(org-set-property :which-key "set property")
+   "r" '(jib/org-refile-this-file :which-key "refile in file")
    "e" '(org-export-dispatch :which-key "export org")
    "B" '(org-toggle-narrow-to-subtree :which-key "toggle narrow to subtree")
    "V" '(jib/org-set-startup-visibility :which-key "startup visibility")
@@ -721,6 +734,7 @@ just a single keypress (after the ~,~).
    "bt" '(org-babel-tangle :which-key "org-babel-tangle")
    "bb" '(org-edit-special :which-key "org-edit-special")
    "bc" '(org-edit-src-abort :which-key "org-edit-src-abort")
+   "bk" '(org-babel-remove-result-one-or-many :which-key "org-babel-remove-result-one-or-many")
 
    "x" '(nil :which-key "text")
    "xb" (spacemacs|org-emphasize jib/org-bold ?*)
@@ -767,7 +781,7 @@ just a single keypress (after the ~,~).
 #+END_SRC
 *** All-mode keybindings
 Below are general keybindings for the various Evil modes.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; All-mode keymaps
   (general-def
     :keymaps 'override
@@ -809,11 +823,12 @@ Below are general keybindings for the various Evil modes.
     )
     #+END_SRC
 *** Non-insert mode keymaps
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Non-insert mode keymaps
   (general-def
     :states '(normal visual motion)
     "gc" 'comment-dwim
+    "gC" 'comment-line
     "j" 'evil-next-visual-line ;; I prefer visual line navigation
     "k" 'evil-previous-visual-line ;; ""
     "|" '(lambda () (interactive) (org-agenda nil "n")) ;; Opens my n custom org-super-agenda view
@@ -821,7 +836,7 @@ Below are general keybindings for the various Evil modes.
     )
 #+END_SRC
 *** Insert mode keymaps (bringing Emacs binds to Evil)
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Insert keymaps
   ;; Many of these are emulating standard Emacs bindings in Evil insert mode, such as C-a, or C-e.
   (general-def
@@ -837,7 +852,7 @@ Below are general keybindings for the various Evil modes.
 
 **** Bindings for Applications/Utilities
 And here are more application/more specific keybindings.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Xwidget ------
   (general-define-key :states 'normal :keymaps 'xwidget-webkit-mode-map 
                       "j" 'xwidget-webkit-scroll-up-line
@@ -853,7 +868,7 @@ And here are more application/more specific keybindings.
 ** Hydra
 Allows those cool 'transient' states -- press a key as many times as
 you want to run a function without doing anything else.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package hydra
     :defer t)
 
@@ -965,7 +980,7 @@ you want to run a function without doing anything else.
 ** Completion - Ivy, Counsel, Prescient, Company
 *** Company
 Company provides autosuggestion/completion in buffers (writing code, pathing to files, etc). 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package company
     :diminish company-mode
     :general
@@ -1012,7 +1027,7 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
   ;;   )
 #+END_SRC
 *** Ivy
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package ivy
     :diminish ivy-mode
     :config
@@ -1052,7 +1067,7 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
 
 #+END_SRC
 *** Counsel
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package counsel
     :config
     (setq default-directory jib/home)
@@ -1080,7 +1095,7 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
     )
 #+END_SRC
 *** Prescient
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package prescient
     :config
     (setq-default history-length 1000)
@@ -1104,7 +1119,7 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
 #+END_SRC
 ** Smartparens
 Most of this configuration is from Doom Emacs' [[https://github.com/hlissner/doom-emacs/blob/develop/core/core-editor.el][core-editor.el]]. For some reason smartparens is sort of confusing to configure (at least to me!)
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package smartparens
     :diminish smartparens-mode
     :defer 1
@@ -1151,7 +1166,7 @@ Most of this configuration is from Doom Emacs' [[https://github.com/hlissner/doo
 #+END_SRC
 ** Spellcheck
 Enable Flyspell (spellchecking) in these modes. Requires ~aspell~ to be installed.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package flyspell
     :defer t
     :config
@@ -1169,14 +1184,23 @@ Enable Flyspell (spellchecking) in these modes. Requires ~aspell~ to be installe
     (general-define-key :keymaps 'flyspell-mouse-map
                         "<mouse-3>" #'flyspell-correct-word
                         "<mouse-2>" nil)
+    (general-define-key :keymaps 'evil-motion-state-map
+                        "zz" #'ispell-word)
     )
+
+  (use-package flyspell-correct
+    :after flyspell
+    :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+
+  (use-package flyspell-correct-ivy
+    :after flyspell-correct)
 #+END_SRC
 ** Evil-Anzu (search and replace)
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package evil-anzu :defer t)
 #+END_SRC
 ** Clipboard (simpleclip)
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package simpleclip
     :config
     (simpleclip-mode 1))
@@ -1194,14 +1218,14 @@ Enable Flyspell (spellchecking) in these modes. Requires ~aspell~ to be installe
 #+END_SRC
 ** Undo/Redo (undofu)
 More obvious/easy to use undo and redo.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package undo-fu
     :config
     (define-key evil-normal-state-map "u" 'undo-fu-only-undo)
     (define-key evil-normal-state-map "U" 'undo-fu-only-redo))
 #+END_SRC
 ** Super-save
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package super-save
     :diminish super-save-mode
     :defer 2
@@ -1220,13 +1244,13 @@ More obvious/easy to use undo and redo.
   (advice-add 'super-save-command :after 'jib-clear-echo-area-timer)
 #+END_SRC
 ** Saveplace
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package saveplace
     :init (setq save-place-limit 100)
     :config (save-place-mode))
 #+END_SRC
 ** Yasnippet
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package yasnippet
     :diminish yas-minor-mode
     :defer 5
@@ -1244,7 +1268,7 @@ More obvious/easy to use undo and redo.
 * Visuals
 ** Fonts
 *** Font configuration
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (setq text-scale-mode-step 1.1) ;; How much to adjust text scale by when using `text-scale-mode'
   (setq jib-default-line-spacing 0) ;; This happens in the variables but I guess I have it here too.
 
@@ -1256,7 +1280,7 @@ More obvious/easy to use undo and redo.
   (if (eq jib/computer 'desktop)
       (setq jib-text-height 150))
 
-  (set-face-attribute 'default nil :family "Roboto Mono" :weight 'regular :height jib-text-height)
+  (set-face-attribute 'default nil :family "Jetbrains Mono" :weight 'medium :height jib-text-height)
 
   ;; Float height value (1.0) makes fixed-pitch take height 1.0 * height of default
   ;; This means it will scale along with default when the text is zoomed
@@ -1267,24 +1291,24 @@ More obvious/easy to use undo and redo.
   #+END_SRC
 *** mixed-pitch
 A better version of variable-pitch mode. This keeps certain faces (defined in ~mixed-pitch-fixed-pitch-faces~) fixed-pitch.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package mixed-pitch
     :defer t
     :config
-    (setq mixed-pitch-set-height t)
+    (setq mixed-pitch-set-height nil)
     (dolist (face '(org-date org-priority org-tag org-special-keyword)) ;; Some extra faces I like to be fixed-pitch
       (add-to-list 'mixed-pitch-fixed-pitch-faces face)))
 #+END_SRC
 ** Presentation Mode
 Mode for giving presentations, filming videos, etc. Bigger font, larger spacing, smaller Ivy.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (defun my-presentation-on ()
     (setq jib-default-line-spacing 3)
 
     (setq-default line-spacing jib-default-line-spacing)
     (setq-local line-spacing jib-default-line-spacing)
 
-    (setq ivy-height 5))
+    (setq ivy-height 6))
 
   (defun my-presentation-off ()
     (jib/reset-var 'jib-default-line-spacing)
@@ -1296,14 +1320,14 @@ Mode for giving presentations, filming videos, etc. Bigger font, larger spacing,
   (add-hook 'presentation-off-hook #'my-presentation-off)
 
   (if (eq jib/computer 'laptop)
-      (setq presentation-default-text-scale 4)
+      (setq presentation-default-text-scale 5)
     (setq presentation-default-text-scale 5))
 
   (use-package presentation
     :defer t)
 #+END_SRC
 ** Modeline
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Disables showing system load in modeline, useless anyway
   (setq display-time-default-load-average nil)
 
@@ -1337,7 +1361,7 @@ Mode for giving presentations, filming videos, etc. Bigger font, larger spacing,
 #+END_SRC
 ** Window features
 *** Window
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Window's initial size and a bit of border
   (if (eq jib/computer 'laptop)
       (setq default-frame-alist '((left . 150)
@@ -1371,60 +1395,60 @@ Hides scroll, toolbar. Goes to the early-init.el.
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 #+END_SRC
 ** Theme & Icons
-   #+BEGIN_SRC emacs-lisp :tangle yes
-     (use-package all-the-icons) 
+#+BEGIN_SRC emacs-lisp 
+  (use-package all-the-icons) 
 
-     (use-package doom-themes
-       :after mixed-pitch
-       :config
-       (doom-themes-visual-bell-config)
-       (doom-themes-org-config)
-       :custom-face
-       ;; Keep the modeline proper every time I use these themes.
-       (mode-line ((t (:height ,jib-doom-modeline-text-height))))
-       (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
-       (org-scheduled-previously ((t (:background "red")))))
+  (use-package doom-themes
+    :after mixed-pitch
+    :config
+    (doom-themes-visual-bell-config)
+    (doom-themes-org-config)
+    :custom-face
+    (org-ellipsis ((t (:height 0.8 :inherit 'shadow))))
+    ;; Keep the modeline proper every time I use these themes.
+    (mode-line ((t (:height ,jib-doom-modeline-text-height))))
+    (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
+    (org-scheduled-previously ((t (:background "red")))))
 
-     (use-package kaolin-themes
-       :config
-       (setq kaolin-themes-modeline-border nil)
-       :custom-face
-       ;; Keep the modeline proper every time I use these themes.
-       (mode-line ((t (:height ,jib-doom-modeline-text-height))))
-       (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
+  (use-package kaolin-themes
+    :config
+    (setq kaolin-themes-modeline-border nil)
+    :custom-face
+    ;; Keep the modeline proper every time I use these themes.
+    (mode-line ((t (:height ,jib-doom-modeline-text-height))))
+    (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
+    ;; Disable underline for org deadline warnings. I don't like the way it looks.
+    (org-warning ((t (:underline nil))))
+    ;; Darkens the org-ellipsis (first unset the color, then give it shadow)
+    (org-ellipsis ((t (:foreground unspecified :height 0.8 :inherit 'shadow)))))
 
-       ;; Disable underline for org deadline warnings. I don't like the way it looks.
-       (org-warning ((t (:underline nil))))
-
-       ;; Darkens the org-ellipsis (first unset the color, then give it shadow)
-       (org-ellipsis ((t (:foreground unspecified :inherit 'shadow)))))
-
-     (use-package modus-themes
-       :init
-       (setq modus-themes-italic-constructs t
-             modus-themes-bold-constructs nil
-             modus-themes-region '(bg-only no-extend)
-             modus-themes-hl-line '(accented) 
-             modus-themes-syntax '(yellow-comments)
-             modus-themes-mode-line '(accented borderless)) ;; Color modeline in active window, remove border
-       (setq modus-themes-headings ;; Makes org headings more colorful
-             '((t . (rainbow))))
-       (modus-themes-load-themes)
-       :custom-face
-       ;; Keep the modeline proper every time I use these themes.
-       (mode-line ((t (:height ,jib-doom-modeline-text-height))))
-       (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height)))))
+  (use-package modus-themes
+    :init
+    (setq modus-themes-italic-constructs t
+          modus-themes-bold-constructs nil
+          modus-themes-region '(bg-only no-extend)
+          modus-themes-hl-line '(accented) 
+          modus-themes-syntax '(yellow-comments)
+          modus-themes-mode-line '(accented borderless)) ;; Color modeline in active window, remove border
+    (setq modus-themes-headings ;; Makes org headings more colorful
+          '((t . (rainbow))))
+    (modus-themes-load-themes)
+    :custom-face
+    (org-ellipsis ((t (:height 0.8 :inherit 'shadow))))
+    ;; Keep the modeline proper every time I use these themes.
+    (mode-line ((t (:height ,jib-doom-modeline-text-height))))
+    (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height)))))
 
 
-     ;; Loading theme based on the time.
-     (let ((hour (string-to-number (substring (current-time-string) 11 13))))
-       (if (or (> hour 16) (< hour 7))
-           (load-theme 'doom-one t) ;; Night
-         (load-theme 'doom-opera-light t))) ;; Day
+  ;; Loading theme based on the time.
+  (let ((hour (string-to-number (substring (current-time-string) 11 13))))
+    (if (or (> hour 16) (< hour 7))
+        (load-theme 'doom-one t) ;; Night
+      (load-theme 'doom-opera-light t))) ;; Day
 #+END_SRC
 ** Line numbers, fringe, hl-line
 The way I've configured line numbers is they are on by default, and then in specific modes they are turned off. Seems to work. As for fringes, they're fairly wide. I think those three setq-default lines are from Prot.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (setq-default fringes-outside-margins nil)
   (setq-default indicate-buffer-boundaries nil) ;; Otherwise shows a corner icon on the edge
   (setq-default indicate-empty-lines nil) ;; Otherwise there are weird fringes on blank lines
@@ -1447,6 +1471,7 @@ The way I've configured line numbers is they are on by default, and then in spec
                   pdf-view-mode-hook
                   help-mode-hook
                   image-mode-hook
+                  eww-mode-hook
                   eshell-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
@@ -1458,7 +1483,7 @@ The way I've configured line numbers is they are on by default, and then in spec
 #+END_SRC
 ** Dashboard
 Uses [[https://github.com/emacs-dashboard/emacs-dashboard]].
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package dashboard
     :init
     (add-hook 'after-init-hook 'dashboard-refresh-buffer)
@@ -1495,7 +1520,7 @@ Uses [[https://github.com/emacs-dashboard/emacs-dashboard]].
 #+END_SRC
 ** Writeroom + Visual-Fill-Column
 Visual fill column centers the buffer and limits the width. Writeroom is a nicer writing enviroment. Usually I activate ~writeroom-mode~ as it activates ~visual-fill-column-mode~.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package visual-fill-column
     :defer t
     :config
@@ -1514,7 +1539,7 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
     )
 #+END_SRC
 ** Misc
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package centered-cursor-mode
     :diminish centered-cursor-mode)
 
@@ -1556,7 +1581,7 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
 * Org-mode
 ** Orgmode packages
 *** Org-super-agenda
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package org-super-agenda
     :after org
     :config
@@ -1565,7 +1590,7 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
     (org-super-agenda-mode))
 #+END_SRC
 *** Org-superstar
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package org-superstar
     :config
     (setq org-superstar-leading-bullet " ")
@@ -1585,7 +1610,7 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
   (setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
 #+END_SRC
 *** Evil Org
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package evil-org
     :diminish evil-org-mode
     :after org
@@ -1598,7 +1623,7 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
   (evil-org-agenda-set-keys)
 #+END_SRC
 *** Org-gcal
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package org-gcal
     :defer t
     :config
@@ -1611,7 +1636,7 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
     )
 #+END_SRC
 *** Org-appear
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package org-appear
     :commands (org-appear-mode)
     :hook (org-mode . org-appear-mode)
@@ -1624,12 +1649,12 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
 
 #+END_SRC
 *** Org-reveal
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package ox-reveal
     :defer 5)
 #+END_SRC
 *** org-modules
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (setq org-modules '(org-habit))
 
   (eval-after-load 'org
@@ -1637,7 +1662,7 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
 #+END_SRC
 *** org-ql
 Note in case I forget: I set org-ql-view to /not/ be sorted by ~prescient.el~. See [[Prescient]].
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package org-ql
     :general
     (general-define-key :keymaps 'org-ql-view-map
@@ -1651,9 +1676,17 @@ Note in case I forget: I set org-ql-view to /not/ be sorted by ~prescient.el~. S
     :config
     (setq org-preview-html-viewer 'xwidget))
 #+END_SRC
+*** org-tree-slide
+#+BEGIN_SRC emacs-lisp 
+  (use-package org-tree-slide
+    :defer t
+    :config
+    (setq org-tree-slide-slide-in-effect nil
+          org-tree-slide-skip-outline-level 3))
+#+END_SRC
 *** DISABLED org-prettify-tags
 CLOSED: [2021-10-12 Tue 08:54]
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; (use-package org-pretty-tags
   ;;   :config
   ;;   (setq org-pretty-tags-surrogate-strings
@@ -1665,7 +1698,7 @@ CLOSED: [2021-10-12 Tue 08:54]
 #+END_SRC
 ** Org Bindings
 For the rest of them go to [[Org Mode Bindings][here]]
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Org-agenda specific bindings
   (evil-define-key 'motion org-agenda-mode-map
     (kbd "f") 'org-agenda-later
@@ -1674,12 +1707,12 @@ For the rest of them go to [[Org Mode Bindings][here]]
 ** Org Custom Startup Functions
 *** Org Font Setup
 Titles get bigger, drawers are smaller, done checkboxes turn green. Also setting stuff to always be fixed-pitch.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (defun jib/org-font-setup ()
-    (set-face-attribute 'org-document-title nil :height 1.1) ;; Bigger titles, smaller drawers
+    ;; (set-face-attribute 'org-document-title nil :height 1.1) ;; Bigger titles, smaller drawers
     (set-face-attribute 'org-checkbox-statistics-done nil :inherit 'org-done :foreground "green3") ;; Makes org done checkboxes green
     ;; (set-face-attribute 'org-drawer nil :inherit 'fixed-pitch :inherit 'shadow :height 0.6 :foreground nil) ;; Makes org-drawer way smaller
-    (set-face-attribute 'org-ellipsis nil :inherit 'shadow :height 0.8) ;; Makes org-ellipsis shadow (blends in better)
+    ;; (set-face-attribute 'org-ellipsis nil :inherit 'shadow :height 0.8) ;; Makes org-ellipsis shadow (blends in better)
     (set-face-attribute 'org-scheduled-today nil :weight 'normal) ;; Removes bold from org-scheduled-today
     (set-face-attribute 'org-super-agenda-header nil :inherit 'org-agenda-structure :weight 'bold) ;; Bolds org-super-agenda headers
     (set-face-attribute 'org-scheduled-previously nil :background "red") ;; Bolds org-super-agenda headers
@@ -1709,7 +1742,7 @@ Moved to ~jib-funcs.el~. For some reason org-babel source blocks mess up some of
 
 ** Org Mode Config
 *** Preamble
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package org
     :pin gnu
     :hook (org-mode . jib/org-setup)
@@ -1722,15 +1755,15 @@ Moved to ~jib-funcs.el~. For some reason org-babel source blocks mess up some of
 #+END_SRC
 The following is org-mode configuration.
 *** Visuals
-#+BEGIN_SRC emacs-lisp :tangle yes
-  ;; (setq org-ellipsis "⤵")
-  (setq org-ellipsis " ▼ ")
+#+BEGIN_SRC emacs-lisp 
+  (setq org-ellipsis " ▼ ") ;; ⤵
   (setq org-src-fontify-natively t) ;; Syntax highlighting in org src blocks
-  (setq org-startup-folded t) ;; Org files start up folded by default
+  (setq org-highlight-latex-and-related '(native)) ;; Highlight inline LaTeX
+  (setq org-startup-folded 'show2levels) ;; Org files start up folded by default
   (setq org-image-actual-width nil)
 #+END_SRC
 *** Interaction
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (setq org-cycle-separator-lines 1)
   (setq org-catch-invisible-edits 'smart)
   (setq org-src-tab-acts-natively t)
@@ -1761,7 +1794,7 @@ The following is org-mode configuration.
 #+END_SRC
 *** Tags, Todos, Priorities
 **** Tags
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (setq counsel-org-tags '("qp" "ec" "st")) ;; Quick-picks, extracurricular, short-term
 
   (setq org-tag-faces '(
@@ -1782,7 +1815,7 @@ The following is org-mode configuration.
   (setq org-tags-column 1)
   #+END_SRC
 **** Todos
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (setq org-todo-keywords '((type
                              "TODO(t)" "INPROG-TODO(i)" "HW(h)" "STUDY" "SOMEDAY"
                              "READ(r)" "PROJ(p)" "CONTACT(c)"
@@ -1802,20 +1835,20 @@ The following is org-mode configuration.
                                  ("CANCELLED" nil :foreground "dark red" :inherit fixed-pitch :weight medium)))
 #+END_SRC
 **** Priorities
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (setq org-lowest-priority ?F)  ;; Gives us priorities A through F
   (setq org-default-priority ?E) ;; If an item has no priority, it is considered [#D].
 
   (setq org-priority-faces
-  '((65 nil :inherit fixed-pitch :foreground "red2" :weight medium)
-    (66 . "Gold1")
-    (67 . "Goldenrod2")
-    (68 . "PaleTurquoise3")
-    (69 . "DarkSlateGray4")
-    (70 . "PaleTurquoise4")))
+        '((65 nil :inherit fixed-pitch :foreground "red2" :weight medium)
+          (66 . "Gold1")
+          (67 . "Goldenrod2")
+          (68 . "PaleTurquoise3")
+          (69 . "DarkSlateGray4")
+          (70 . "PaleTurquoise4")))
 #+END_SRC
 *** Org-Babel
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Org-Babel
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -1835,16 +1868,17 @@ The following is org-mode configuration.
   (setq org-src-window-setup 'current-window)
 #+END_SRC
 *** Org-Habits
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (setq org-habit-preceding-days 3)
-  (setq org-habit-following-days 3)
-  ;; (setq org-habit-today-glyph ?X);;‖
-  
+#+BEGIN_SRC emacs-lisp 
+  (setq org-habit-preceding-days 6)
+  (setq org-habit-following-days 6)
+  (setq org-habit-show-habits-only-for-today nil)
+  (setq org-habit-today-glyph ?⍟) ;;‖
+  (setq org-habit-completed-glyph ?✓)
   (setq org-habit-graph-column 40)
 #+END_SRC
 *** Org-Agenda
 My favorite part.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; Uses custom time stamps
   (setq org-time-stamp-custom-formats '("<%A, %B %d, %Y" . "<%m/%d/%y %a %I:%M %p>"))
 
@@ -1873,6 +1907,7 @@ My favorite part.
   (setq org-agenda-block-separator 8213) ;; Unicode: ―
   (setq org-agenda-current-time-string "<----------------- Now")
   (setq org-agenda-scheduled-leaders '("" ""))
+  ;; note: maybe some day I want to use org-agenda-deadline-leaders
 
   (setq org-agenda-prefix-format '((agenda . " %i %-1:i%?-2t% s")
                                    (todo . "   ")
@@ -1884,7 +1919,7 @@ My favorite part.
 #+END_SRC
 
 **** Org Agenda Custom Views
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (setq org-agenda-custom-commands
         '(
           ("n" "Super zaen view"
@@ -1902,7 +1937,7 @@ My favorite part.
                                   ;; :discard (:deadline today)
                                   :scheduled t
                                   :order 2)
-                           (:name "Unscheduled Deadlines"
+                           (:name "Unscheduled Tasks"
                                   :deadline t
                                   :order 3)
                            ))))
@@ -1911,12 +1946,12 @@ My favorite part.
                          (org-super-agenda-groups
                           '(
                             (:name "Overdue"
+                                   :discard (:tag "habit")
                                    :face (:background "red")
                                    :scheduled past
                                    :deadline past
                                    :order 2)
                             (:name "Important"
-                                   :discard (:tag "habit")
                                    :and (:todo "TODO" :priority "A") ;; Homework doesn't count here
                                    :todo "CONTACT"
                                    :order 3)
@@ -1953,7 +1988,7 @@ My favorite part.
                                    :order 13)
                             (:name "Todo"
                                    :discard (:category "personal")
-                                   :todo ("TODO" "INPROGRESS-TODO")
+                                   :todo ("TODO" "INPROG-TODO")
                                    :order 20)
                             ))))))
           ("m" "Agendaless Super zaen view"
@@ -2007,7 +2042,7 @@ My favorite part.
                                         (:name "Todo"
                                                :discard (:tag "habit")
                                                :discard (:category "personal")
-                                               :todo ("TODO" "INPROGRESS-TODO")
+                                               :todo ("TODO" "INPROG-TODO")
                                                :order 13)
                                         ))))))
 
@@ -2063,7 +2098,7 @@ My favorite part.
                                         (:name "Todo"
                                                :discard (:tag "habit")
                                                :discard (:category "personal")
-                                               :todo ("TODO" "INPROGRESS-TODO")
+                                               :todo ("TODO" "INPROG-TODO")
                                                :order 13)
                                         ))))))
 
@@ -2100,7 +2135,7 @@ certain events certain colors -- like "Spanish 4" is always red)using the list o
 #+END_SRC
 *** Org-Capture
 Still working on getting this how I want it. Org-capture is very useful, but I don't make enough use of it.
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; By default an org-capture/refile will save a bookmark. This
   ;; disables that and keeps my bookmark list how I want it.
   (setq org-bookmark-names-plist nil)
@@ -2132,7 +2167,7 @@ Still working on getting this how I want it. Org-capture is very useful, but I d
 #+END_SRC
 *** Org Exporting
 Everything related to exporting from org mode to various formats (HTML, LaTeX, etc).
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (setq org-export-backends '(ascii beamer html latex md odt))
 
   (setq org-export-with-broken-links t)
@@ -2164,7 +2199,7 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
     (setq org-hugo-base-dir "~/Dropbox/Projects/cpb"))
 #+END_SRC
 **** LaTeX Classes
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (setq org-latex-listings t) ;; Uses listings package for code exports
   (setq org-latex-compiler "xelatex") ;; XeLaTex rather than pdflatex
 
@@ -2188,7 +2223,7 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
     )
 #+END_SRC
 *** Misc Org Mode
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (setq org-clock-mode-line-total 'current) ;; Show only timer from current clock session in modeline
 
   (setq org-attach-id-dir ".org-attach/")
@@ -2199,7 +2234,7 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
 
 * Misc Packages
 ** Deft
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (defun jib/deft-kill ()
     (kill-buffer "*Deft*"))
 
@@ -2232,7 +2267,7 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
     )
 #+END_SRC
 ** LaTeX-related
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package latex ;; This is a weird one. Package is auctex but needs to be managed like this.
     :ensure nil
     :defer t
@@ -2335,7 +2370,7 @@ Mu4e configuration is in ~private.el~.
     )
 #+END_SRC
 ** Mw-thesaurus
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package mw-thesaurus
     :defer t
     :config
@@ -2343,7 +2378,7 @@ Mu4e configuration is in ~private.el~.
     (add-hook 'mw-thesaurus-mode-hook (lambda () (define-key evil-normal-state-local-map (kbd "q") 'mw-thesaurus--quit))))
 #+END_SRC
 ** Pdf-Tools
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package pdf-tools
     :defer t
     :pin manual
@@ -2384,7 +2419,7 @@ Mu4e configuration is in ~private.el~.
     )
 #+END_SRC
 ** Popper.el
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package popper
     :bind (("C-`"   . popper-toggle-latest)
            ("M-`"   . popper-cycle)
@@ -2400,7 +2435,7 @@ Mu4e configuration is in ~private.el~.
 #+END_SRC
 ** Programming-related
 *** Projectile
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package projectile
     :defer t
     :general
@@ -2413,7 +2448,7 @@ Mu4e configuration is in ~private.el~.
     (projectile-mode +1))
 #+END_SRC
 *** Rainbow-mode, hl-todo
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package rainbow-mode
     :defer t)
   
@@ -2429,7 +2464,7 @@ Mu4e configuration is in ~private.el~.
           ("WIP"   . "#1E90FF"))))
 #+END_SRC
 *** Python
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   ;; A better python mode (supposedly)
   (use-package python-mode
     :defer t)
@@ -2455,7 +2490,7 @@ Mu4e configuration is in ~private.el~.
   ;;   (advice-add 'python-mode :before 'elpy-enable))
 #+END_SRC
 *** HTML/CSS/JS
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp 
   (use-package web-mode
     :defer t
     :init
