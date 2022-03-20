@@ -93,27 +93,14 @@
                               (time-subtract after-init-time before-init-time)))
                      gcs-done)))
 
-(defvar jib/home (concat (getenv "HOME") "/") "My home directory.")
-(defvar jib/computer 'laptop "Which computer I am on -- 'desktop or 'laptop.")
-(defvar jib-text-height nil "My preferred default text height.")
-(defvar jib-doom-modeline-text-height nil "My preferred modeline text height.")
-(defvar jib-default-line-spacing 0 "Baseline line spacing.")
-(setq-default jib-default-line-spacing 0)
-
-;; Referring to external (Dropbox) locations/files
-(defvar jib/dropbox (concat jib/home "Dropbox/") "The parent Dropbox folder.")
-(defvar org-directory (concat jib/dropbox "org") "Directory with org files.")
-(defvar jib/emacs-stuff (concat jib/dropbox "Files/systems/emacs-stuff") "Dropbox directory where all Emacs files are kept")
+(load (expand-file-name "jib-variables.el" user-emacs-directory))
 
 ;; At this point things can be local now
 (setq jib/init.org (expand-file-name "init.org" user-emacs-directory))
-(setq bookmark-default-file (concat jib/emacs-stuff "/bookmarks"))
-(setq custom-theme-directory (expand-file-name "themes" jib/emacs-stuff))
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Calculated variables ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Set `jib/computer' to 'laptop or 'desktop.
 (let ((sys (system-name)))
