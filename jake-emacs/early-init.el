@@ -31,6 +31,14 @@
 (setq fast-but-imprecise-scrolling t)
 (setq inhibit-compacting-font-caches t)
 
+(setq mac-command-modifier 'meta
+      mac-option-modifier nil
+      mac-control-modifier 'control
+      mac-right-command-modifier 'super
+      mac-right-control-modifier 'hyper)
+
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
 ;; Window configuration
 (setq frame-inhibit-implied-resize t) ;; Supposed to hasten startup
 

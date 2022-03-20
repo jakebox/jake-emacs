@@ -293,14 +293,6 @@
 ;; How thin the window should be to stop splitting vertically (I think)
 (setq split-width-threshold 80)
 
-(setq mac-command-modifier 'meta
-      mac-option-modifier nil
-      mac-control-modifier 'control
-      mac-right-command-modifier 'super
-      mac-right-control-modifier 'hyper)
-
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-
 (use-package which-key
   :diminish which-key-mode
   :init
