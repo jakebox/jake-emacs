@@ -1920,190 +1920,83 @@ My favorite part.
 
 **** Org Agenda Custom Views
 #+BEGIN_SRC emacs-lisp 
-  (setq org-agenda-custom-commands
-        '(
-          ("n" "Super zaen view"
-           ((agenda "" ((org-agenda-span 'day)
-                        (org-super-agenda-groups
-                         '(
-                           (:name "Schedule"
-                                  :time-grid t
-                                  ;; :discard (:anything t)
-                                  ;; :discard (:scheduled today)
-                                  :order 1)
-                           (:name "Today's Tasks"
-                                  ;; Still working on this. Not how I want yet.
-                                  ;; :discard (:not (:scheduled today))
-                                  ;; :discard (:deadline today)
-                                  :scheduled t
-                                  :order 2)
-                           (:name "Unscheduled Tasks"
-                                  :deadline t
-                                  :order 3)
-                           ))))
+  (setq org-agenda-custom-commands nil)
 
-            (alltodo "" ((org-agenda-overriding-header "")
-                         (org-super-agenda-groups
-                          '(
-                            (:name "Overdue"
-                                   :discard (:tag "habit")
-                                   :face (:background "red")
-                                   :scheduled past
-                                   :deadline past
-                                   :order 2)
-                            (:name "Important"
-                                   :and (:todo "TODO" :priority "A") ;; Homework doesn't count here
-                                   :todo "CONTACT"
-                                   :order 3)
-                            (:name "Short-term Todo"
-                                   :tag "st"
-                                   :order 4)
-                            (:name "Personal"
-                                   :category "personal"
-                                   :order 40)
-                            (:name "Someday"
-                                   :todo "SOMEDAY"
-                                   :order 30)
-                            (:name "Homework"
-                                   :todo ("HW" "READ")
-                                   :order 5)
-                            (:name "Studying"
-                                   :todo "STUDY"
-                                   :order 7)
-                            (:name "Quick Picks"
-                                   :tag "qp"
-                                   :order 11)
-                            (:name "College"
-                                   :category "college"
-                                   :order 35)
-                            (:name "Projects"
-                                   :todo "PROJ"
-                                   :order 12)
-                            (:name "Weekly"
-                                   :tag "weekly"
-                                   :order 15)
-                            (:name "Extracurricular"
-                                   :discard (:todo "SOMEDAY")
-                                   :tag ("robotics" "ec")
-                                   :order 13)
-                            (:name "Todo"
-                                   :discard (:category "personal")
-                                   :todo ("TODO" "INPROG-TODO")
-                                   :order 20)
-                            ))))))
-          ("m" "Agendaless Super zaen view"
-           (            (alltodo "" ((org-agenda-overriding-header "Agendaless Todo View")
-                                     (org-super-agenda-groups
-                                      '(
-                                        (:name "Today's Tasks"
-                                               :scheduled today
-                                               :deadline today)
-                                        (:name "Overdue"
-                                               :face (:background "red")
-                                               :scheduled past
-                                               :discard (:tag "habit")
-                                               :deadline past
-                                               :order 2)
-                                        (:name "Important"
-                                               :and (:todo "TODO" :priority "A") ;; Homework doesn't count here
-                                               :todo "CONTACT"
-                                               :order 3)
-                                        (:name "Short-term Todo"
-                                               :tag "st"
-                                               :order 4)
-                                        (:name "Personal"
-                                               :category "personal"
-                                               :order 40)
-                                        (:name "Someday"
-                                               :todo "SOMEDAY"
-                                               :order 30)
-                                        (:name "Homework"
-                                               :todo ("HW" "READ")
-                                               :order 5)
-                                        (:name "Studying"
-                                               :todo "STUDY"
-                                               :order 7)
-                                        (:name "Quick Picks"
-                                               :tag "qp"
-                                               :order 11)
-                                        (:name "College"
-                                               :category "college"
-                                               :order 35)
-                                        (:name "Projects"
-                                               :todo "PROJ"
-                                               :order 12)
-                                        (:name "Weekly"
-                                               :tag "weekly"
-                                               :order 15)
-                                        (:name "Extracurricular"
-                                               :discard (:todo "SOMEDAY")
-                                               :tag ("robotics" "ec")
-                                               :order 20)
-                                        (:name "Todo"
-                                               :discard (:tag "habit")
-                                               :discard (:category "personal")
-                                               :todo ("TODO" "INPROG-TODO")
-                                               :order 13)
-                                        ))))))
+  (setq jib-org-super-agenda-school-groups
+                                '(
+                                  (:name "Overdue"
+                                         :discard (:tag "habit") ;; No habits in this todo view
+                                         :face (:background "red")
+                                         :scheduled past
+                                         :deadline past
+                                         :order 2)
+                                  (:name "Important"
+                                         :and (:todo "TODO" :priority "A") ;; Homework doesn't count here
+                                         :todo "CONTACT"
+                                         :order 3)
+                                  (:name "Short-term Todo"
+                                         :tag "st"
+                                         :order 4)
+                                  (:name "Personal"
+                                         :category "personal"
+                                         :order 40)
+                                  (:name "Someday"
+                                         :todo "SOMEDAY"
+                                         :order 30)
+                                  (:name "Homework"
+                                         :todo ("HW" "READ")
+                                         :order 5)
+                                  (:name "Studying"
+                                         :todo "STUDY"
+                                         :order 7)
+                                  (:name "Quick Picks"
+                                         :tag "qp"
+                                         :order 11)
+                                  (:name "Projects"
+                                         :todo "PROJ"
+                                         :order 12)
+                                  (:name "Weekly"
+                                         :tag "weekly"
+                                         :order 15)
+                                  (:name "Extracurricular"
+                                         :discard (:todo "SOMEDAY")
+                                         :tag "ec"
+                                         :order 13)
+                                  (:name "Todo"
+                                         :discard (:category "personal")
+                                         :todo ("TODO" "INPROG-TODO")
+                                         :order 20)))
 
-          ("p" "Agendaless w/o scheduled Super zaen view"
-           (            (alltodo "" ((org-agenda-overriding-header "Agendaless Todo View - Today and Unscheduled Tasks")
-                                     (org-super-agenda-groups
-                                      '(
-                                        (:name "Today's Tasks"
-                                               :scheduled today
-                                               :discard (:scheduled future)
-                                               :deadline today)
-                                        (:name "Overdue"
-                                               :face (:background "red")
-                                               :scheduled past
-                                               :discard (:tag "habit")
-                                               :deadline past
-                                               :order 2)
-                                        (:name "Important"
-                                               :and (:todo "TODO" :priority "A") ;; Homework doesn't count here
-                                               :todo "CONTACT"
-                                               :order 3)
-                                        (:name "Short-term Todo"
-                                               :tag "st"
-                                               :order 4)
-                                        (:name "Someday"
-                                               :todo "SOMEDAY"
-                                               :order 30)
-                                        (:name "Homework"
-                                               :todo ("HW" "READ")
-                                               :order 5)
-                                        (:name "Studying"
-                                               :todo "STUDY"
-                                               :order 7)
-                                        (:name "Quick Picks"
-                                               :tag "qp"
-                                               :order 11)
-                                        (:name "College"
-                                               :category "college"
-                                               :order 35)
-                                        (:name "Projects"
-                                               :todo "PROJ"
-                                               :order 12)
-                                        (:name "Weekly"
-                                               :tag "weekly"
-                                               :order 15)
-                                        (:name "Extracurricular"
-                                               :discard (:todo "SOMEDAY")
-                                               :tag ("robotics" "ec")
-                                               :order 20)
-                                        (:name "Personal"
-                                               :category "personal"
-                                               :order 27)
-                                        (:name "Todo"
-                                               :discard (:tag "habit")
-                                               :discard (:category "personal")
-                                               :todo ("TODO" "INPROG-TODO")
-                                               :order 13)
-                                        ))))))
+  (add-to-list 'org-agenda-custom-commands
+               '("n" "Super zaen view"
+                 ((agenda "" ((org-agenda-span 'day) (org-agenda-overriding-header "Today's Agenda:")
+                              (org-super-agenda-groups '(
+                                                         (:name "Schedule"
+                                                                :time-grid t
+                                                                :order 1)
+                                                         (:name "Tasks"
+                                                                ;; :discard (:not (:scheduled today))
+                                                                ;; :discard (:deadline today)
+                                                                :scheduled t
+                                                                :order 2)
+                                                         (:name "Unscheduled Tasks"
+                                                                :deadline t
+                                                                :order 3)
+                                                         ))))
 
+                  (alltodo "" ((org-agenda-overriding-header "All Tasks:") 
+                               (org-super-agenda-groups jib-org-super-agenda-school-groups 
+                                                        ))))
+                 ))
 
-          ))
+  (add-to-list 'org-agenda-custom-commands
+               '("m" "Agendaless Super zaen view"
+                 ((alltodo "" ((org-agenda-overriding-header "Agendaless Todo View")
+                               (org-super-agenda-groups (push '(:name "Today's Tasks" ;; jib-org-super-agenda-school-groups, with this added on
+                                                                      :scheduled today
+                                                                      :deadline today) jib-org-super-agenda-school-groups)
+                                                        )))))
+               )
   ;; Org-super-agenda-mode itself is activated in the use-package block
 #+END_SRC
 **** DISABLED Color blocks in Org Agenda
