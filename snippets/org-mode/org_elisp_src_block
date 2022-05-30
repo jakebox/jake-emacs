@@ -2,6 +2,6 @@
 # name: Org Elisp Src Block 
 # key: <esrc
 # --
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 $0
 #+END_SRC
