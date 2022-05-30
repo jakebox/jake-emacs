@@ -9,7 +9,7 @@ Jake LaTeX Quicksport
 #+LATEX_HEADER: \author{} % so we get no error
 
 * Page setup
-#+LATEX_HEADER: \usepackage[letterpaper, top=1in, bottom=1.0in, left=1.0in, right=1.0in]{geometry}
+#+LATEX_HEADER: \usepackage[letterpaper, top=0.8in, bottom=0.8in, left=0.8in, right=0.8in]{geometry}
 #+LATEX_HEADER: \usepackage{fontspec}
 
 * Body config

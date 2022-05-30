@@ -1,0 +1,13 @@
+LaTeX export to fit in my journal.
+
+By Jake B.
+
+#+OPTIONS: toc:nil
+
+#+LATEX_CLASS: org-plain-latex
+#+LATEX_CLASS_OPTIONS: [11pt]
+
+#+LATEX_HEADER: \usepackage[letterpaper, total={11cm, 19cm}, footskip=1in]{geometry}
+#+LATEX_HEADER: \renewcommand{\baselinestretch}{1.10}
+#+LATEX_HEADER: \usepackage{libertine}
+#+LATEX_HEADER: \usepackage{hyperref}

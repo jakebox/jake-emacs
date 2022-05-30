@@ -4,7 +4,8 @@ Jake LaTeX Basic Notes Export
 #options toc:2 date:nil
 
 #+LaTeX_CLASS: org-plain-latex
-#+LaTeX_CLASS_OPTIONS: [12pt]
++LaTeX_CLASS_OPTIONS: [11pt]
+#+OPTIONS: H:5
 
 #+LATEX_HEADER: \author{} % so we get no error
 
@@ -19,10 +20,6 @@ Jake LaTeX Basic Notes Export
 #+LATEX_HEADER: \renewcommand{\baselinestretch}{1.20}
 
 * Fonts
-#+LATEX_HEADER: \usepackage{cochineal} % use proportional osf
-#+LATEX_HEADER: \setmonofont{Inconsolatazi4-Regular.otf}[Scale=MatchLowercase]
-
-+LATEX_HEADER: \usepackage{libertine}
 
 #+LATEX_HEADER: \setsansfont[
 #+LATEX_HEADER: BoldFont=HK Grotesk Bold,
@@ -30,6 +27,11 @@ Jake LaTeX Basic Notes Export
 #+LATEX_HEADER: BoldItalicFont=HK Grotesk Bold Italic
 #+LATEX_HEADER: ]{HK Grotesk Medium}
 #+LATEX_HEADER: \newfontfamily\extrabf{HK Grotesk ExtraBold}
+
+#+LATEX_HEADER: \usepackage{cochineal} % use proportional osf
++LATEX_HEADER: \usepackage{libertine}
+#+LATEX_HEADER: \setmonofont{Inconsolatazi4-Regular.otf}[Scale=MatchLowercase]
+
 
 +LATEX_HEADER \setmonofont[Color={000000}, Scale=0.8]{Source Code Pro}
 
@@ -87,14 +89,14 @@ Adjust header formats
 #+LATEX_HEADER: \titleformat*{\section}{\Large\bfseries\sffamily\color{HeadingBlue}}
 #+LATEX_HEADER: \titleformat*{\subsection}{\large\bfseries\sffamily\color{SubheadingBlue}}
 #+LATEX_HEADER: \titleformat*{\subsubsection}{\normalsize\bfseries\sffamily\color{SubheadingBlue}}
-#+LATEX_HEADER: \titleformat{\paragraph}{\fontsize{12}{12}\sffamily}{\theparagraph}{0pt}{}
+#+LATEX_HEADER: \titleformat{\paragraph}{\fontsize{9}{9}\bfseries\sffamily}{\theparagraph}{0pt}{   }
 
 Adjust header spacing
 left margin, space before section header, space after section header
 #+LATEX_HEADER: \titlespacing{\section}{0pt}{12pt plus 8pt minus 2pt}{0pt plus 7pt minus 2pt}
 #+LATEX_HEADER: \titlespacing{\subsection}{3pt}{0pt plus 15pt minus 2pt}{0pt plus 5pt minus 3pt}
 #+LATEX_HEADER: \titlespacing{\subsubsection}{6pt}{0pt plus 10pt minus 3pt}{-5pt plus 7pt minus 3pt}
-#+LATEX_HEADER: \titlespacing{\paragraph}{10pt}{0pt plus 0pt minus 4pt}{-5pt plus 7pt minus 3pt}
+#+LATEX_HEADER: \titlespacing{\paragraph}{10pt}{0pt plus 0pt minus 4pt}{-2pt plus 7pt minus 3pt} 
 
 * TOC config
 #+LATEX_HEADER: \renewcommand*\contentsname{Table of Contents}
@@ -106,7 +108,8 @@ left margin, space before section header, space after section header
 #+LATEX_HEADER: \usepackage{fancyhdr}
 #+LATEX_HEADER: \pagestyle{fancy}
 #+LATEX_HEADER: \fancyhf{}
+#+LATEX_HEADER: \cfoot{\thepage} % Page numbers at bottom
 #+LATEX_HEADER: \rhead{}
-#+LATEX_HEADER: \rhead{{\textit{\leftmark }}}
-#+LATEX_HEADER: \renewcommand{\headrulewidth}{0.0pt}
+#+LATEX_HEADER: \rhead{{\textit{Section \leftmark }}}
+#+LATEX_HEADER: \renewcommand{\headrulewidth}{0.5pt}
 #+LATEX_HEADER: \setlength{\headheight}{15pt}
