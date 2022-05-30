@@ -8,20 +8,16 @@
 (setq gc-cons-percentage 0.6)
 
 ;; Compile warnings
-;;  (setq byte-compile-warnings t)
 ;;  (setq warning-minimum-level :emergency)
-(setq comp-async-report-warnings-errors nil) ;; native-comp warning
+(setq native-comp-async-report-warnings-errors 'silent) ;; native-comp warning
 (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
 
 
 ;; MISC OPTIMIZATIONS ----
-;; Emacs "updates" its ui more often than it needs to, so we slow it down
-;; slightly from 0.5s:
-                   ;;; optimizations (froom Doom's core.el). See that file for descriptions.
+;;; optimizations (froom Doom's core.el). See that file for descriptions.
 (setq idle-update-delay 1.0)
 
 ;; Disabling bidi (bidirectional editing stuff)
-;; Disables bi-directional editing (like if I wrote in both Hebrew and English)
 (setq-default bidi-display-reordering 'left-to-right 
               bidi-paragraph-direction 'left-to-right)
 (setq bidi-inhibit-bpa t)  ; emacs 27 only - disables bidirectional parenthesis
@@ -31,9 +27,9 @@
 (setq fast-but-imprecise-scrolling t)
 (setq inhibit-compacting-font-caches t)
 
-(setq mac-command-modifier 'meta
-      mac-option-modifier nil
-      mac-control-modifier 'control
+(setq mac-command-modifier       'meta
+      mac-option-modifier        nil
+      mac-control-modifier       'control
       mac-right-command-modifier 'super
       mac-right-control-modifier 'hyper)
 

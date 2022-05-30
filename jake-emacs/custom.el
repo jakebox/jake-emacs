@@ -53,14 +53,17 @@
 	  :title "CPB Todos, Ideas, Projects " :super-groups
 	  ((:auto-outline-path))
 	  :narrow nil)
-	 ("CPB Long Term Todos" :buffers-files "~/Dropbox/org/cpb.org" :query
-	  (and
-	   (todo "TODO")
-	   (tags "todo"))
-	  :title "CPB Long Term Todos" :sort
-	  (priority)
+	 ("Refile" :buffers-files
+	  ("~/Dropbox/org/cpb.org")
+	  :query
+	  (parent
+	   (heading "Refile"))
 	  :super-groups
-	  ((:auto-parent)))
+	  ((:auto-outline-path)))
+	 ("CPB Articles" :buffers-files "~/Dropbox/org/cpb.org" :query
+	  (tags "article")
+	  :title "CPB Articles" :super-groups
+	  ((:auto-outline-path)))
 	 ("Jake Work Full View" :buffers-files
 	  ("~/Dropbox/org/work.org" "~/Dropbox/org/cpb.org")
 	  :query
@@ -105,10 +108,8 @@
 	  (deadline)
 	  :narrow nil)))
  '(package-selected-packages
-   '(magit magit-svn flyspell-correct-ivy org-tree-slide wordel burly evil-collection htmlize helm-org-ql gnuplot resize-window windresize ace-window presentation marginalia bufler latex elpy company-auctex org-preview-html-mode svg-lib fireplace yasnippet writeroom-mode which-key web-mode use-package unfill undo-fu toc-org super-save spacemacs-theme solaire-mode smartparens simpleclip reveal-in-osx-finder restart-emacs rainbow-mode python-mode projectile popper pdf-tools ox-reveal ox-hugo org-superstar org-ql org-gcal org-appear org-analyzer mw-thesaurus mu4e-views modus-themes mixed-pitch kaolin-themes ivy-prescient hydra hl-todo highlight-indentation hide-mode-line general gcmh evil-surround evil-snipe evil-org evil-anzu doom-themes doom-modeline diminish deft define-word dashboard counsel company-prescient centered-cursor-mode auto-virtualenv auctex annalist all-the-icons-ivy-rich))
+   '(emacs-lisp-mode pyvenv org-super-agenda visual-fill-column evil popper writeroom-mode wordel windresize which-key web-mode use-package unfill undo-fu svg-lib super-save smartparens simpleclip shrink-path reveal-in-osx-finder restart-emacs rainbow-mode python-mode presentation pdf-tools ox-reveal ox-hugo org-tree-slide org-superstar org-real org-ql org-gcal org-download org-appear org-analyzer mw-thesaurus modus-themes mixed-pitch magit kaolin-themes ivy-prescient ivy-hydra htmlize hl-todo hide-mode-line gnuplot general gcmh flyspell-correct-ivy evil-surround evil-snipe evil-org evil-collection evil-anzu esxml elpy doom-themes diminish deft define-word dashboard counsel company-prescient company-auctex centered-cursor-mode burly bufler auto-virtualenv all-the-icons-ivy-rich ace-window))
  '(pdf-view-midnight-colors (cons "#bbc2cf" "#282c34"))
- '(projectile-ignored-projects
-   '("~/Documents/Marcusboxerman.com/" "/usr/local/Cellar/" "~/.emacs.d/" "~/.spacemacs-devel" "~/.spacemacs-emacs" "~/Dropbox/Projects/weblorg" "~/Dropbox/Projects/cpb/themes/book/" "~/Dropbox/Projects/cpb/themes/minima/"))
  '(safe-local-variable-values
    '((org-image-actual-width . 500)
 	 (org-cycle-include-plain-lists . integrate)))

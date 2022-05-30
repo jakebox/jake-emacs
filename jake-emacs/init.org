@@ -1,7 +1,7 @@
 #+TITLE: Jake B's Emacs Config
 :PROPERTIES:
 #+AUTHOR: Jake B
-#+STARTUP: folded
+#+STARTUP: fold
 #+PROPERTY: header-args :results silent :tangle yes
 #+HTML_HEAD: <link rel="stylesheet" href="https://sandyuraz.com/styles/org.min.css">
 #+SEQ_TODO: TODO(t) | DISABLED(d)
@@ -9,15 +9,6 @@
 
 
 * Things to do
-+ Paredit? Smartparens?
-** Consider auto-updating org agenda
-#+BEGIN_SRC emacs-lisp :tangle no
-(dolist (hook '(org-after-todo-state-change-hook
-		org-shiftup-final-hook ;; these will always be one behind
-		org-shiftdown-final-hook
-		after-save-hook)) ;; the after-save-hook I don't love
-  (add-hook hook 'jib/refresh-org-agenda-from-afar))
-#+END_SRC
 
 * Meta
 This file contains my Emacs configuration. I have roughly ordered the org headings in order of importance/reliability. For example, misc packages is loaded last as I try new stuff there. Keyboard section is also important as if there's error I feel comfortable enough to go fix it.
@@ -64,20 +55,16 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
   (setq gc-cons-percentage 0.6)
 
   ;; Compile warnings
-  ;;  (setq byte-compile-warnings t)
   ;;  (setq warning-minimum-level :emergency)
-  (setq comp-async-report-warnings-errors nil) ;; native-comp warning
+  (setq native-comp-async-report-warnings-errors 'silent) ;; native-comp warning
   (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
 
 
   ;; MISC OPTIMIZATIONS ----
-  ;; Emacs "updates" its ui more often than it needs to, so we slow it down
-  ;; slightly from 0.5s:
-                     ;;; optimizations (froom Doom's core.el). See that file for descriptions.
+  ;;; optimizations (froom Doom's core.el). See that file for descriptions.
   (setq idle-update-delay 1.0)
 
   ;; Disabling bidi (bidirectional editing stuff)
-  ;; Disables bi-directional editing (like if I wrote in both Hebrew and English)
   (setq-default bidi-display-reordering 'left-to-right 
                 bidi-paragraph-direction 'left-to-right)
   (setq bidi-inhibit-bpa t)  ; emacs 27 only - disables bidirectional parenthesis
@@ -93,65 +80,16 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
 
   (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
 
-  ;; ELPA and NonGNU ELPA are default in Emacs28
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/")) 
-  ;; Without this on my Mac Emacs freezes when refreshing ELPA
-  (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") 
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/")) ;; ELPA and NonGNU ELPA are default in Emacs28
 
-  ;; Package list
-  (setq package-list '(
-
-                       ;; Emacs
-                       use-package gcmh
-
-                       ;; Completion/Utilities
-                       company counsel ivy prescient company-prescient
-                       ivy-prescient
-
-                       ;; Utilities/Modes
-                       auctex projectile web-mode python-mode pyvenv
-                       auto-virtualenv
-
-                       ;; QOL (Quality-of-life) & "Utilities"
-                       saveplace super-save simpleclip centered-cursor-mode
-                       undo-fu yasnippet super-save ace-window windresize unfill
-                       rainbow-mode popper burly
-
-                       deft define-word mw-thesaurus mu4e-views restart-emacs
-                       unfill mu4e-views reveal-in-osx-finder pdf-tools
-
-                       ;; Keyboard
-                       evil which-key general smartparens hydra evil-surround
-                       evil-snipe evil-org evil-anzu evil-collection
-
-                       ;; Themes/Visuals
-                       modus-themes doom-themes kaolin-themes dashboard
-                       solaire-mode mixed-pitch visual-fill-column diminish
-                       doom-modeline hide-mode-line writeroom-mode all-the-icons
-                       all-the-icons-ivy-rich presentation
-
-                       ;; Org-related
-                       ox-reveal ox-hugo org-superstar org-super-agenda org-gcal
-                       toc-org org-ql org-appear org-ql org-tree-slide
-
-                       htmlize
-                       ))
-
+  (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") ;; w/o this Emacs freezes when refreshing ELPA
 
   (package-initialize)
   (setq package-enable-at-startup nil)
 
-  ;; Install packages that aren't installed
-  (unless package-archive-contents
-    (package-refresh-contents))
-  (dolist (package package-list)
-    (unless
-        (package-installed-p package) (package-install package)))
-
   (require 'use-package)
   (setq use-package-always-ensure t)
   (setq use-package-verbose nil)
-
 #+END_SRC
 ** Garbage Collections/Collector
 #+BEGIN_SRC emacs-lisp 
@@ -177,22 +115,21 @@ Starting in Emacs 27 the early-init.el file is run before the GUI is created, so
           
 * Files, variables, etc
 ** Setting custom variables
-I keep all of my Emacs configuration files and org files in Dropbox. To keep stuff clean and to make it easier to move stuff around in the future I set a bunch of variables up here that can be used later.
+I keep all of my Emacs configuration files and org files in Dropbox. To keep
+stuff clean and to make it easier to move stuff around in the future I set a
+bunch of variables up here that can be used later.
 #+BEGIN_SRC emacs-lisp 
-(load (expand-file-name "jib-variables.el" user-emacs-directory))
-
-;; At this point things can be local now
-(setq jib/init.org (expand-file-name "init.org" user-emacs-directory))
+  (load (expand-file-name "jib-variables.el" user-emacs-directory))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Calculated variables ;;
+  ;; Calculated variables ;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Set `jib/computer' to 'laptop or 'desktop.
-(let ((sys (system-name)))
-  (if (or (or (string= sys "MJBs-MacBook-Air.local") (string= sys "MJBs-Air.fwparker.org")) (string= sys "mjbs-air.lan"))
-      (setq jib/computer 'laptop)
-    (setq jib/computer 'desktop)))
+  ;; Set `jib/computer' to 'laptop or 'desktop.
+  (let ((sys (system-name)))
+    (if (or (or (string= sys "MJBs-MacBook-Air.local") (string= sys "MJBs-Air.fwparker.org")) (string= sys "mjbs-air.lan"))
+        (setq jib/computer 'laptop)
+      (setq jib/computer 'desktop)))
 #+END_SRC
 ** Loading custom lisp files
 #+BEGIN_SRC emacs-lisp 
@@ -206,17 +143,18 @@ I keep all of my Emacs configuration files and org files in Dropbox. To keep stu
   ;; Add every directory in that folder to the load-path.
   (let ((default-directory (directory-file-name (concat jib/emacs-stuff "/lisp"))))
     (normal-top-level-add-subdirs-to-load-path))
+
+  (require 'on) ;; on.el – utility hooks and functions from Doom Emacs
 #+END_SRC
 ** Registers
-Variables, registers, more.
 #+BEGIN_SRC emacs-lisp 
   (setq register-preview-delay 0) ;; Show registers ASAP
 
-  (set-register ?i (cons 'file (concat org-directory "/cpb.org")))
-  (set-register ?h (cons 'file (concat org-directory "/work.org")))
+  (set-register ?i (cons 'file (concat org-directory   "/cpb.org")))
+  (set-register ?h (cons 'file (concat org-directory   "/work.org")))
   (set-register ?C (cons 'file (concat jib/emacs-stuff "/jake-emacs/init.org")))
-  (set-register ?A (cons 'file (concat org-directory "/org-archive/homework-archive.org_archive")))
-  (set-register ?T (cons 'file (concat org-directory "/org-archive/todo-archive.org_archive")))
+  (set-register ?A (cons 'file (concat org-directory   "/org-archive/homework-archive.org_archive")))
+  (set-register ?T (cons 'file (concat org-directory   "/org-archive/todo-archive.org_archive")))
 #+END_SRC
 ** Path
 Pretty sure this isn't the proper way to do it and that I should be using ~exec-path-from-shell~, but it works and I don't see this changing. So it's fine.
@@ -246,7 +184,7 @@ General configurations and optimizations/better defaults. Much of this is from D
   ;; INTERACTION -----
 
   ;; When emacs asks for "yes" or "no", let "y" or "n" suffice
-  (fset 'yes-or-no-p 'y-or-n-p)
+  (setq use-short-answers t)
 
   ;; Confirm to quit
   (setq confirm-kill-emacs 'yes-or-no-p)
@@ -371,11 +309,6 @@ General configurations and optimizations/better defaults. Much of this is from D
   (setq blink-cursor-interval 0.6)
   (blink-cursor-mode 0)
 
-  ;; Show current key-sequence in minibuffer ala 'set showcmd' in vim. Any
-  ;; (setq echo-keystrokes 0.8)
-
-
-
   (setq save-interprogram-paste-before-kill t
         apropos-do-all t
         mouse-yank-at-point t)
@@ -386,6 +319,8 @@ General configurations and optimizations/better defaults. Much of this is from D
 
   ;; How thin the window should be to stop splitting vertically (I think)
   (setq split-width-threshold 80)
+
+  (setq dired-kill-when-opening-new-dired-buffer t)
 #+END_SRC
 
 * Keyboard
@@ -394,15 +329,14 @@ Use ~command~ as ~meta~ in macOS. Disable option (aka alt). Keep control ctrl. R
 
 Goes to early-init so if I have an error in my init I have keybinds I am used to.
 #+BEGIN_SRC emacs-lisp :tangle ./early-init.el
-  (setq mac-command-modifier 'meta
-        mac-option-modifier nil
-        mac-control-modifier 'control
+  (setq mac-command-modifier       'meta
+        mac-option-modifier        nil
+        mac-control-modifier       'control
         mac-right-command-modifier 'super
         mac-right-control-modifier 'hyper)
 
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 #+END_SRC
-
 ** Which-key
 #+BEGIN_SRC emacs-lisp 
   (use-package which-key
@@ -414,11 +348,11 @@ Goes to early-init so if I have an error in my init I have keybinds I am used to
     (setq which-key-idle-delay 0.3)
     (setq which-key-prefix-prefix "◉ ")
     (setq which-key-sort-order 'which-key-key-order-alpha
-          which-key-min-display-lines 2
-          which-key-max-display-columns 4))
-  #+END_SRC
-  
+          which-key-min-display-lines 6
+          which-key-max-display-columns nil))
+#+END_SRC
 ** Evil
+Example of how to override evil-collection: ~(evil-collection-define-key 'normal 'dired-mode-map (kbd "RET") 'dired-find-alternate-file)~
 #+BEGIN_SRC emacs-lisp 
   (use-package evil
     :init
@@ -432,6 +366,8 @@ Goes to early-init so if I have an error in my init I have keybinds I am used to
     (evil-set-initial-state 'debugger-mode 'motion)
     (evil-set-initial-state 'pdf-view-mode 'motion)
     (evil-set-initial-state 'bufler-list-mode 'emacs)
+    (evil-set-initial-state 'inferior-python-mode 'emacs)
+    (evil-set-initial-state 'term-mode 'emacs)
 
     ;; ----- Keybindings
     ;; I tried using evil-define-key for these. Didn't work.
@@ -449,63 +385,47 @@ Goes to early-init so if I have an error in my init I have keybinds I am used to
     (setq evil-replace-state-cursor  '("#eb998b" hbar))
     (setq evil-motion-state-cursor   '("#ad8beb" box))
 
-    ;; ;; Evil-like keybinds for custom-mode-map
-    ;; (evil-define-key nil 'custom-mode-map
-    ;;   ;; motion
-    ;;   (kbd "C-j") 'widget-forward
-    ;;   (kbd "C-k") 'widget-backward
-    ;;   "q" 'Custom-buffer-done)
-
     (evil-mode 1))
 
   (use-package evil-surround
+    :after evil
     :defer 2
     :config
     (global-evil-surround-mode 1))
-
 
   (use-package evil-collection
     :after evil
     :config
     (setq evil-collection-mode-list '(dired (custom cus-edit) (package-menu package) calc diff-mode))
-    (evil-collection-init)
-    ;; A few of my own overrides/customizations
-    (evil-collection-define-key 'normal 'dired-mode-map
-      (kbd "RET") 'dired-find-alternate-file)
+    (evil-collection-init))
 
-    )
-
-  ;; not working right now, from https://jblevins.org/log/dired-open
-  ;; (evil-define-key 'motion 'dired-mode-map "s-o" '(lambda () (interactive)
-  ;; 												  (let ((fn (dired-get-file-for-visit)))
-  ;; 													(start-process "default-app" nil "open" fn))))
-
-  (evil-define-key 'motion 'dired-mode-map "Q" 'kill-this-buffer)
-  (evil-define-key 'motion help-mode-map "q" 'kill-this-buffer)
-  (evil-define-key 'motion calendar-mode-map "q" 'kill-this-buffer)
-#+END_SRC
-
-*** evil-snipe
-#+BEGIN_SRC emacs-lisp 
   (use-package evil-snipe
     :diminish evil-snipe-mode
     :diminish evil-snipe-local-mode
     :after evil
     :config
     (evil-snipe-mode +1))
-  #+END_SRC
+
+  ;; not working right now, from https://jblevins.org/log/dired-open
+  ;; (evil-define-key 'motion 'dired-mode-map "s-o" '(lambda () (interactive)
+  ;; 												  (let ((fn (dired-get-file-for-visit)))
+  ;; 													(start-process "default-app" nil "open" fn))))
+
+  ;;  (evil-define-key 'motion 'dired-mode-map "Q" 'kill-this-buffer)
+  (evil-define-key 'motion help-mode-map "q" 'kill-this-buffer)
+  (evil-define-key 'motion calendar-mode-map "q" 'kill-this-buffer)
+#+END_SRC
 ** General.el (main keybindings set here)
 [[https://github.com/noctuid/general.el][General.el]]
 
 #+BEGIN_SRC emacs-lisp 
-  (use-package general
-    :config
+  (use-package general)
 #+END_SRC
-General.el setup continues into following blocks.
 
-Usage of general-define-key is explained  [[https://github.com/noctuid/general.el#override-keymaps-and-buffer-local-keybindings][here]]. Boils down to -- use
+Usage of general-define-key is explained [[https://github.com/noctuid/general.el#override-keymaps-and-buffer-local-keybindings][here]]. Boils down to -- use
 it along with :keymaps 'override when you need to override other stuff
 (?)
+
 *** SPC Leader Key
 **** Preamble
 #+BEGIN_SRC emacs-lisp 
@@ -517,13 +437,14 @@ it along with :keymaps 'override when you need to override other stuff
    ;; Top level functions
    "/" '(jib/rg :which-key "ripgrep")
    ";" '(spacemacs/deft :which-key "deft")
-   ":" '(projectile-find-file :which-key "p-find file")
+   ":" '(project-find-file :which-key "p-find file")
    "." '(counsel-find-file :which-key "find file")
    "," '(counsel-recentf :which-key "recent files")
    "TAB" '(switch-to-prev-buffer :which-key "previous buffer")
    "SPC" '(counsel-M-x :which-key "M-x")
    "q" '(save-buffers-kill-terminal :which-key "quit emacs")
    "r" '(jump-to-register :which-key "registers")
+   "c" 'org-capture
 #+END_SRC
 **** Application
 #+BEGIN_SRC emacs-lisp 
@@ -540,6 +461,7 @@ it along with :keymaps 'override when you need to override other stuff
   "abf" '(browse-url-firefox :which-key "firefox")
   "abc" '(browse-url-chrome :which-key "chrome")
   "abx" '(xwidget-webkit-browse-url :which-key "xwidget")
+  "abg" '(jib/er-google :which-key "google search")
 
   "ad" '(dired :which-key "dired")
 #+END_SRC
@@ -579,9 +501,9 @@ it along with :keymaps 'override when you need to override other stuff
   "jr" '(restart-emacs :which-key "restart emacs")
 
   "jh" '(nil :which-key "hydras")
-  "jht" '(jib-hydra-theme-switcher/body :which-key "themes")
-  "jhf" '(jib-hydra-variable-fonts/body :which-key "mixed-pitch face")
-  "jhw" '(jib-hydra-window/body :which-key "window control")
+  "jht" '(jb-hydra-theme-switcher/body :which-key "themes")
+  "jhf" '(jb-hydra-variable-fonts/body :which-key "mixed-pitch face")
+  "jhw" '(jb-hydra-window/body :which-key "window control")
 
   "jm" '(nil :which-key "macros/custom commands")
   "jml" '(jib/listify :which-key "Listify")
@@ -603,12 +525,17 @@ it along with :keymaps 'override when you need to override other stuff
   "hF" '(counsel-describe-face :which-key "des. face")
   "hk" '(describe-key :which-key "des. key")
 
-  "hed" '(jib/edit-init :which-key "edit dotfile")
+  "hed" '((lambda () (jump-to-register 67)) :which-key "edit dotfile")
 
   "hm" '(nil :which-key "switch mode")
   "hme" '(emacs-lisp-mode :which-key "elisp mode")
   "hmo" '(org-mode :which-key "org mode")
   "hmt" '(text-mode :which-key "text mode")
+
+  "hp" '(nil :which-key "packages")
+  "hpr" 'package-refresh-contents
+  "hpi" 'package-install
+  "hpd" 'package-delete
 #+END_SRC
 **** Text
 #+BEGIN_SRC emacs-lisp 
@@ -643,13 +570,13 @@ it along with :keymaps 'override when you need to override other stuff
   "wd" '(evil-window-delete :which-key "delete window")
   "w-" '(jib/split-window-vertically-and-switch :which-key "split below")
   "w/" '(jib/split-window-horizontally-and-switch :which-key "split right")
-  "wr" '(jib-hydra-window/body :which-key "hydra window")
+  "wr" '(jb-hydra-window/body :which-key "hydra window")
   "wl" '(evil-window-right :which-key "evil-window-right")
   "wh" '(evil-window-left :which-key "evil-window-left")
   "wj" '(evil-window-down :which-key "evil-window-down")
   "wk" '(evil-window-up :which-key "evil-window-up")
   "wz" '(text-scale-adjust :which-key "text zoom")
-  ) ;; End SPC prefix general.el block
+  ) ;; End SPC prefix block
 #+END_SRC
 *** Emacs-Lisp Mode ~,~ Bindings
 Sets up my comma leader key for elisp mode. Has functions like
@@ -669,115 +596,11 @@ evaluating areas and checking parenthesis.
     "g" '(counsel-imenu :which-key "imenu")
     "c" '(check-parens :which-key "check parens")
     "I" '(indent-region :which-key "indent-region")
-    )
-#+END_SRC
-*** Org Mode Bindings
-Functions that can be run in normal mode in Org Mode.
-#+BEGIN_SRC emacs-lisp 
-  (general-def
-    :states 'normal
-    :keymaps 'org-mode-map
-    "t" 'org-todo
-    "<return>" 'org-open-at-point-global
-    "K" 'org-shiftup
-    "J" 'org-shiftdown
-    )
 
-  (general-def
-    :states '(normal insert emacs)
-    :keymaps 'org-mode-map
-    "M-[" 'org-metaleft
-    "M-]" 'org-metaright
-    "C-M-=" 'ap/org-count-words
-    "s-r" 'org-refile
-    )
-
-  ;; Org-src - when editing an org source block
-  (general-def
-    :prefix ","
-    :states 'normal
-    :keymaps 'org-src-mode-map
     "b" '(nil :which-key "org src")
     "bc" 'org-edit-src-abort
     "bb" 'org-edit-src-exit
     )
-
-;;  (define-key org-src-mode-map (kbd "C-c C-c") #'org-edit-src-exit)
-#+END_SRC
-**** Org Mode ~,~ Bindings
-Org mode comma leader key setup. My most-used functions live here with
-just a single keypress (after the ~,~).
-#+BEGIN_SRC emacs-lisp 
-  (general-define-key
-   :prefix ","
-   :states 'motion
-   :keymaps '(org-mode-map) ;; Available in org mode, org agenda
-   "" nil
-   "A" '(org-archive-subtree-default :which-key "org-archive")
-   "a" '(org-agenda :which-key "org agenda")
-   "6" '(org-sort :which-key "sort")
-   "c" '(org-capture :which-key "org-capture")
-   "s" '(org-schedule :which-key "schedule")
-   "S" '(jib/org-schedule-tomorrow :which-key "schedule")
-   "d" '(org-deadline :which-key "deadline")
-   "g" '(counsel-org-goto :which-key "goto heading")
-   "t" '(counsel-org-tag :which-key "set tags")
-   "p" '(org-set-property :which-key "set property")
-   "r" '(jib/org-refile-this-file :which-key "refile in file")
-   "e" '(org-export-dispatch :which-key "export org")
-   "B" '(org-toggle-narrow-to-subtree :which-key "toggle narrow to subtree")
-   "V" '(jib/org-set-startup-visibility :which-key "startup visibility")
-   "H" '(org-html-convert-region-to-html :which-key "convert region to html")
-
-   ;; org-babel
-   "b" '(nil :which-key "babel")
-   "bt" '(org-babel-tangle :which-key "org-babel-tangle")
-   "bb" '(org-edit-special :which-key "org-edit-special")
-   "bc" '(org-edit-src-abort :which-key "org-edit-src-abort")
-   "bk" '(org-babel-remove-result-one-or-many :which-key "org-babel-remove-result-one-or-many")
-
-   "x" '(nil :which-key "text")
-   "xb" (spacemacs|org-emphasize jib/org-bold ?*)
-   "xb" (spacemacs|org-emphasize jib/org-bold ?*)
-   "xc" (spacemacs|org-emphasize jib/org-code ?~)
-   "xi" (spacemacs|org-emphasize jib/org-italic ?/)
-   "xs" (spacemacs|org-emphasize jib/org-strike-through ?+)
-   "xu" (spacemacs|org-emphasize jib/org-underline ?_)
-   "xv" (spacemacs|org-emphasize jib/org-verbose ?~) ;; I realized that ~~ is the same and better than == (Github won't do ==)
-
-   ;; insert
-   "i" '(nil :which-key "insert")
-
-   "it" '(nil :which-key "tables")
-   "itt" '(org-table-create :which-key "create table")
-   "itl" '(org-table-insert-hline :which-key "table hline")
-
-   "il" '(org-insert-link :which-key "link")
-
-   ;; clocking
-   "c" '(nil :which-key "clocking")
-   "ci" '(org-clock-in :which-key "clock in")
-   "co" '(org-clock-out :which-key "clock out")
-   "cj" '(org-clock-goto :which-key "jump to clock")
-   )
-
-
-  (general-define-key
-   :prefix ","
-   :states 'motion
-   :keymaps '(org-agenda-mode-map) ;; Available in org mode, org agenda
-   "" nil
-   "a" '(org-agenda :which-key "org agenda")
-   "c" '(org-capture :which-key "org-capture")
-   "s" '(org-agenda-schedule :which-key "schedule")
-   "d" '(org-agenda-deadline :which-key "deadline")
-   "t" '(org-agenda-set-tags :which-key "set tags")
-   ;; clocking
-   "c" '(nil :which-key "clocking")
-   "ci" '(org-agenda-clock-in :which-key "clock in")
-   "co" '(org-agenda-clock-out :which-key "clock out")
-   "cj" '(org-clock-goto :which-key "jump to clock")
-   )
 #+END_SRC
 *** All-mode keybindings
 Below are general keybindings for the various Evil modes.
@@ -792,7 +615,7 @@ Below are general keybindings for the various Evil modes.
     "Í" 'other-frame ;; option-shift-s
     "C-S-B" 'counsel-switch-buffer
     "∫" 'counsel-switch-buffer ;; option-b
-    "s-o" 'jib-hydra-window/body
+    "s-o" 'jb-hydra-window/body
 
     ;; Remapping normal help features to use Counsel version
     "C-h v" 'counsel-describe-variable
@@ -806,28 +629,41 @@ Below are general keybindings for the various Evil modes.
     "M-c" 'simpleclip-copy
     "M-u" 'capitalize-dwim ;; Default is upcase-dwim
     "M-U" 'upcase-dwim ;; M-S-u (switch upcase and capitalize)
-    "C-c u" 'jib/split-and-close-sentence
+    "M-z" 'undo-fu-only-undo
+    "M-S" 'undo-fu-only-redo
 
     ;; Utility ------
     "C-c c" 'org-capture
     "C-c a" 'org-agenda
-    "C-s" 'counsel-grep-or-swiper ;; Large files will use grep (faster)
+    "C-s" 'swiper ;; Large files will use grep (faster)
     "s-\"" 'ispell-word ;; that's super-shift-'
     "M-+" 'jib/calc-speaking-time
+    "C-'" 'avy-goto-char
+
+    "C-x C-b" 'bufler-list
 
     ;; super-number functions
     "s-1" 'mw-thesaurus-lookup-dwim
     "s-2" 'ispell-buffer
     "s-3" 'revert-buffer
     "s-4" '(lambda () (interactive) (counsel-file-jump nil jib/dropbox))
+    "s-5" '(lambda () (interactive) (counsel-rg nil jib/dropbox))
+    "s-6" 'org-capture
     )
-    #+END_SRC
+
+  (general-def
+   :keymaps 'emacs
+    "C-w C-q" 'kill-this-buffer
+   )
+#+END_SRC
 *** Non-insert mode keymaps
 #+BEGIN_SRC emacs-lisp 
   ;; Non-insert mode keymaps
   (general-def
     :states '(normal visual motion)
     "gc" 'comment-dwim
+    "u" 'undo-fu-only-undo
+    "U" 'undo-fu-only-redo
     "gC" 'comment-line
     "j" 'evil-next-visual-line ;; I prefer visual line navigation
     "k" 'evil-previous-visual-line ;; ""
@@ -849,22 +685,6 @@ Below are general keybindings for the various Evil modes.
     "C-p" 'evil-previous-visual-line
     )
 #+END_SRC
-
-**** Bindings for Applications/Utilities
-And here are more application/more specific keybindings.
-#+BEGIN_SRC emacs-lisp 
-  ;; Xwidget ------
-  (general-define-key :states 'normal :keymaps 'xwidget-webkit-mode-map 
-                      "j" 'xwidget-webkit-scroll-up-line
-                      "k" 'xwidget-webkit-scroll-down-line
-                      "gg" 'xwidget-webkit-scroll-top
-                      "G" 'xwidget-webkit-scroll-bottom)
-
-  ;; 'q' kills help buffers rather than just closing the window
-  ;; (general-define-key :keymaps '(help-mode-map calendar-mode-map) "q" 'kill-this-buffer)
-
-  ) ;; end general.el use-package
-#+END_SRC
 ** Hydra
 Allows those cool 'transient' states -- press a key as many times as
 you want to run a function without doing anything else.
@@ -874,20 +694,15 @@ you want to run a function without doing anything else.
 
   ;; This Hydra lets me swich between variable pitch fonts. It turns off mixed-pitch 
   ;; WIP
-  (defhydra jib-hydra-variable-fonts (:pre (mixed-pitch-mode 0)
+  (defhydra jb-hydra-variable-fonts (:pre (mixed-pitch-mode 0)
                                        :post (mixed-pitch-mode 1))
     ("t" (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160) "Times New Roman")
     ("g" (set-face-attribute 'variable-pitch nil :family "EB Garamond" :height 160 :weight 'normal) "EB Garamond")
     ;; ("r" (set-face-attribute 'variable-pitch nil :font "Roboto" :weight 'medium :height 160) "Roboto")
     ("n" (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 160 :width 'normal :foundry "nil" :family "Nunito") "Nunito")
     )
-
-  (defun jib/load-theme (theme)
-    "Enhance `load-theme' by first disabling enabled themes."
-    (mapc #'disable-theme custom-enabled-themes)
-    (load-theme theme t))
-
-  (defhydra jib-hydra-theme-switcher (:hint nil)
+  
+  (defhydra jb-hydra-theme-switcher (:hint nil)
     "
        Dark                ^Light^
   ----------------------------------------------
@@ -900,6 +715,7 @@ you want to run a function without doing anything else.
   _7_ kaolin-galaxy        ^
   _8_ peacock              ^
   _9_ jake-plain-dark      ^
+  _0_ monokai-machine      ^
   _q_ quit                 ^
   ^                        ^
   "
@@ -914,6 +730,7 @@ you want to run a function without doing anything else.
     ("7" (jib/load-theme 'kaolin-galaxy) "kaolin-galaxy")
     ("8" (jib/load-theme 'doom-peacock) "peacock")
     ("9" (jib/load-theme 'jake-doom-plain-dark) "jake-plain-dark")
+    ("0" (jib/load-theme 'doom-monokai-machine) "monokai-machine")
 
     ;; Light
     ("z" (jib/load-theme 'doom-one-light) "one-light")
@@ -924,14 +741,14 @@ you want to run a function without doing anything else.
     ("q" nil))
 
   ;; I think I need to initialize windresize to use its commands
-  (windresize)
-  (windresize-exit)
+  ;;(windresize)
+  ;;(windresize-exit)
 
   ;; All-in-one window managment. Makes use of some custom functions,
   ;; `ace-window' (for swapping), `windmove' (could probably be replaced
   ;; by evil?) and `windresize'.
   ;; inspired by https://github.com/jmercouris/configuration/blob/master/.emacs.d/hydra.el#L86
-  (defhydra jib-hydra-window (:hint nil)
+  (defhydra jb-hydra-window (:hint nil)
      "
   Movement      ^Split^            ^Switch^        ^Resize^
   ----------------------------------------------------------------
@@ -960,7 +777,7 @@ you want to run a function without doing anything else.
      ;; Switch
      ("b" counsel-switch-buffer)
      ("f" counsel-find-file)
-     ("P" projectile-find-file)
+     ("P" project-find-file)
      ("s" ace-swap-window)
      ("[" previous-buffer)
      ("]" next-buffer)
@@ -980,7 +797,7 @@ you want to run a function without doing anything else.
 ** Completion - Ivy, Counsel, Prescient, Company
 *** Company
 Company provides autosuggestion/completion in buffers (writing code, pathing to files, etc). 
-#+BEGIN_SRC emacs-lisp 
+#+BEGIN_SRC emacs-lisp
   (use-package company
     :diminish company-mode
     :general
@@ -1009,22 +826,6 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
     (setq company-idle-delay 0.35)
     :custom-face
     (company-tooltip ((t (:family "Roboto Mono")))))
-
-
-  ;; (use-package company-box
-  ;;   :hook (company-mode . company-box-mode)
-  ;;   :init
-  ;;   (setq company-box-icons-alist 'company-box-icons-all-the-icons)
-  ;;   (setq company-box-icons-elisp
-  ;;    '((fa_tag :face font-lock-function-name-face) ;; Function
-  ;;      (fa_cog :face font-lock-variable-name-face) ;; Variable
-  ;;      (fa_cube :face font-lock-constant-face) ;; Feature
-  ;;      (md_color_lens :face font-lock-doc-face))) ;; Face
-  ;;   :config
-  ;;   (require 'all-the-icons)
-  ;;   (setf (alist-get 'min-height company-box-frame-parameters) 6)
-  ;;   (setq company-box-icons-alist 'company-box-icons-all-the-icons)
-  ;;   )
 #+END_SRC
 *** Ivy
 #+BEGIN_SRC emacs-lisp 
@@ -1046,6 +847,8 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
     (general-define-key
      ;; Also put in ivy-switch-buffer-map b/c otherwise switch buffer map overrides and C-k kills buffers
      :keymaps '(ivy-minibuffer-map ivy-switch-buffer-map)
+     "S-SPC" 'nil
+     "C-SPC" 'ivy-restrict-to-matches ;; Default is S-SPC, changed this b/c sometimes I accidentally hit S-SPC
      ;; C-j and C-k to move up/down in Ivy
      "C-k" 'ivy-previous-line
      "C-j" 'ivy-next-line)
@@ -1058,7 +861,7 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
     (setq all-the-icons-ivy-rich-icon-size 1.0))
 
   (use-package ivy-rich
-    :after (ivy)
+    :after ivy
     :init
     (setq ivy-rich-path-style 'abbrev)
     (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
@@ -1161,15 +964,15 @@ Most of this configuration is from Doom Emacs' [[https://github.com/hlissner/doo
                ;; genuinely want to start a new form in the middle of a word.
                :unless '(sp-point-before-word-p sp-point-before-same-p)))
     (smartparens-global-mode t))
-
-
 #+END_SRC
 ** Spellcheck
 Enable Flyspell (spellchecking) in these modes. Requires ~aspell~ to be installed.
 #+BEGIN_SRC emacs-lisp 
+  ;; "Enable Flyspell mode, which highlights all misspelled words. "
   (use-package flyspell
     :defer t
     :config
+
     (add-to-list 'ispell-skip-region-alist '("~" "~"))
     (add-to-list 'ispell-skip-region-alist '("=" "="))
     (add-to-list 'ispell-skip-region-alist '("^#\\+BEGIN_SRC" . "^#\\+END_SRC"))
@@ -1180,9 +983,15 @@ Enable Flyspell (spellchecking) in these modes. Requires ~aspell~ to be installe
     (dolist (mode '(org-mode-hook
                     mu4e-compose-mode-hook))
       (add-hook mode (lambda () (flyspell-mode 1))))
+
+    (setq ispell-extra-args '("--sug-mode=ultra"))
+
+    (setq flyspell-issue-welcome-flag nil
+          flyspell-issue-message-flag nil)
+
     :general ;; Switches correct word from middle click to right click
     (general-define-key :keymaps 'flyspell-mouse-map
-                        "<mouse-3>" #'flyspell-correct-word
+                        "<mouse-3>" #'ispell-word
                         "<mouse-2>" nil)
     (general-define-key :keymaps 'evil-motion-state-map
                         "zz" #'ispell-word)
@@ -1204,25 +1013,19 @@ Enable Flyspell (spellchecking) in these modes. Requires ~aspell~ to be installe
   (use-package simpleclip
     :config
     (simpleclip-mode 1))
+
   ;; Allows pasting in minibuffer with M-v
   (add-hook 'minibuffer-setup-hook 'jib/paste-in-minibuffer)
-  
 
-
-  (defun jib/copy-whole-buffer-to-clipboard ()
-    "Copy entire buffer to clipboard"
-    (interactive)
-    (mark-whole-buffer)
-    (simpleclip-copy (point-min) (point-max))
-    (deactivate-mark))
+  ;; From http://blog.binchen.org/posts/the-reliable-way-to-access-system-clipboard-from-emacs.html
+  ;; Uses simpleclip
+  (defun jib/paste-in-minibuffer ()
+    (local-set-key (kbd "M-v") 'simpleclip-paste))
 #+END_SRC
 ** Undo/Redo (undofu)
 More obvious/easy to use undo and redo.
 #+BEGIN_SRC emacs-lisp 
-  (use-package undo-fu
-    :config
-    (define-key evil-normal-state-map "u" 'undo-fu-only-undo)
-    (define-key evil-normal-state-map "U" 'undo-fu-only-redo))
+  (use-package undo-fu)
 #+END_SRC
 ** Super-save
 #+BEGIN_SRC emacs-lisp 
@@ -1230,10 +1033,11 @@ More obvious/easy to use undo and redo.
     :diminish super-save-mode
     :defer 2
     :config
-    (setq super-save-auto-save-when-idle t)
-    (setq super-save-idle-duration 5) ;; after 5 seconds of not typing autosave
-    (setq super-save-triggers ;; Functions after which buffers are saved (switching window, for example)
-          '(evil-window-next evil-window-prev balance-windows other-window))
+    (setq super-save-auto-save-when-idle t
+          super-save-idle-duration 5 ;; after 5 seconds of not typing autosave
+          super-save-triggers ;; Functions after which buffers are saved (switching window, for example)
+          '(evil-window-next evil-window-prev balance-windows other-window)
+          super-save-max-buffer-size 10000000)
     (super-save-mode +1))
 
   ;; After super-save autosaves, wait __ seconds and then clear the buffer. I don't like
@@ -1291,40 +1095,13 @@ More obvious/easy to use undo and redo.
   #+END_SRC
 *** mixed-pitch
 A better version of variable-pitch mode. This keeps certain faces (defined in ~mixed-pitch-fixed-pitch-faces~) fixed-pitch.
-#+BEGIN_SRC emacs-lisp 
+#+BEGIN_SRC emacs-lisp
   (use-package mixed-pitch
     :defer t
     :config
     (setq mixed-pitch-set-height nil)
     (dolist (face '(org-date org-priority org-tag org-special-keyword)) ;; Some extra faces I like to be fixed-pitch
       (add-to-list 'mixed-pitch-fixed-pitch-faces face)))
-#+END_SRC
-** Presentation Mode
-Mode for giving presentations, filming videos, etc. Bigger font, larger spacing, smaller Ivy.
-#+BEGIN_SRC emacs-lisp 
-  (defun my-presentation-on ()
-    (setq jib-default-line-spacing 3)
-
-    (setq-default line-spacing jib-default-line-spacing)
-    (setq-local line-spacing jib-default-line-spacing)
-
-    (setq ivy-height 6))
-
-  (defun my-presentation-off ()
-    (jib/reset-var 'jib-default-line-spacing)
-    (setq-default line-spacing jib-default-line-spacing)
-    (setq-local line-spacing jib-default-line-spacing)
-    (jib/reset-var 'ivy-height))
-
-  (add-hook 'presentation-on-hook #'my-presentation-on)
-  (add-hook 'presentation-off-hook #'my-presentation-off)
-
-  (if (eq jib/computer 'laptop)
-      (setq presentation-default-text-scale 5)
-    (setq presentation-default-text-scale 5))
-
-  (use-package presentation
-    :defer t)
 #+END_SRC
 ** Modeline
 #+BEGIN_SRC emacs-lisp 
@@ -1334,12 +1111,16 @@ Mode for giving presentations, filming videos, etc. Bigger font, larger spacing,
   (line-number-mode)
   (column-number-mode)
   (display-time-mode -1)
-  (size-indication-mode -1)
+  (size-indication-mode 1)
+
+  (use-package hide-mode-line
+    :commands (hide-mode-line-mode))
 
   (use-package doom-modeline
-    :init (doom-modeline-mode)
+    :ensure nil
     :config
-    (setq doom-modeline-buffer-file-name-style 'file-name ;; Just show file name (no path)
+    (doom-modeline-mode)
+    (setq doom-modeline-buffer-file-name-style 'auto ;; Just show file name (no path)
           doom-modeline-enable-word-count t
           doom-modeline-buffer-encoding nil
           doom-modeline-icon t ;; Enable/disable all icons
@@ -1347,6 +1128,8 @@ Mode for giving presentations, filming videos, etc. Bigger font, larger spacing,
           doom-modeline-major-mode-icon t
           doom-modeline-major-mode-color-icon t
           doom-modeline-bar-width 3))
+
+  (use-package shrink-path)
 
   ;; Configure modeline text height based on the computer I'm on.
   ;; These variables are used in the Themes section to ensure the modeline
@@ -1456,38 +1239,22 @@ The way I've configured line numbers is they are on by default, and then in spec
   (set-face-attribute 'fringe nil :background nil)
   (set-face-attribute 'header-line nil :background nil :inherit 'default)
 
-  (global-display-line-numbers-mode t)
-
-  ;; Disable line numbers for some modes
-  (dolist (mode '(org-mode-hook
-                  org-agenda-mode-hook
-                  term-mode-hook
-                  shell-mode-hook
-                  xwidget-webkit-mode-hook
-                  mu4e-main-mode-hook
-                  mu4e-view-mode-hook
-                  mu4e-headers-mode-hook
-                  deft-mode-hook
-                  pdf-view-mode-hook
-                  help-mode-hook
-                  image-mode-hook
-                  eww-mode-hook
-                  eshell-mode-hook))
-    (add-hook mode (lambda () (display-line-numbers-mode 0))))
-
   (add-hook 'prog-mode-hook 'hl-line-mode)
-
-  ;; WIP
-  ;; (advice-add 'counsel-describe-face :before '(lambda () (hl-line-mode 0))) ;; This works
-  ;; (advice-add 'describe-face :after '(lambda () (hl-line-mode 1))) ;; This doesn't
+  (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 #+END_SRC
-** Dashboard
+** DISABLED Dashboard
+*Disabled [2022-05-26 Thu] --- I never use it, why have it?*
+
 Uses [[https://github.com/emacs-dashboard/emacs-dashboard]].
 #+BEGIN_SRC emacs-lisp 
+  (setq initial-buffer-choice t)
+
   (use-package dashboard
+    :disabled t
     :init
     (add-hook 'after-init-hook 'dashboard-refresh-buffer)
     (add-hook 'dashboard-mode-hook 'hide-mode-line-mode)
+    :hook (on-first-file . (lambda () (kill-buffer "*dashboard*")))
     :config
     (setq dashboard-items '(
                             ;; (bookmarks  . 5)
@@ -1538,44 +1305,41 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
     ;; (add-hook 'writeroom-mode-hook (lambda () (setq-local line-spacing 10)))
     )
 #+END_SRC
+** Presentation Mode
+Mode for giving presentations, filming videos, etc. Bigger font, larger spacing, smaller Ivy.
+#+BEGIN_SRC emacs-lisp 
+  (defun my-presentation-on ()
+    (setq jib-default-line-spacing 3)
+
+    (setq-default line-spacing jib-default-line-spacing)
+    (setq-local line-spacing jib-default-line-spacing)
+
+    (setq ivy-height 6))
+
+  (defun my-presentation-off ()
+    (jib/reset-var 'jib-default-line-spacing)
+    (setq-default line-spacing jib-default-line-spacing)
+    (setq-local line-spacing jib-default-line-spacing)
+    (jib/reset-var 'ivy-height))
+
+  (add-hook 'presentation-on-hook #'my-presentation-on)
+  (add-hook 'presentation-off-hook #'my-presentation-off)
+
+  (if (eq jib/computer 'laptop)
+      (setq presentation-default-text-scale 5)
+    (setq presentation-default-text-scale 5))
+
+  (use-package presentation
+    :defer t)
+#+END_SRC
 ** Misc
 #+BEGIN_SRC emacs-lisp 
-  (use-package centered-cursor-mode
-    :diminish centered-cursor-mode)
-
   (defun jib/pulse-area (&rest _)
     "Pulse +-5 chars of point."
     (pulse-momentary-highlight-region (- (point) 5) (+ 5 (point))))
 
   (dolist (command '(org-forward-sentence org-backward-sentence))
     (advice-add command :after #'pulse-area))
-
-  ;; WIP STUFF
-
-  ;;; Highlight Cursor Line with Pulse
-  ;; From https://karthinks.com/software/batteries-included-with-emacs/
-  ;; Replace external package with internal command
-
-  ;; (defun pulse-line (&rest _)
-  ;;   "Pulse the current line."
-  ;;   (interactive)
-  ;;   (pulse-momentary-highlight-one-line (point)))
-
-  ;; (dolist (command '(scroll-up-command scroll-down-command
-  ;;                                      recenter-top-bottom other-window select-window-by-number))
-  ;;   (advice-add command :after #'pulse-line))
-  ;; (defadvice other-window (after other-window-pulse activate) (pulse-line))
-  ;; (defadvice delete-window (after delete-window-pulse activate) (pulse-line))
-  ;; (defadvice recenter-top-bottom (after recenter-top-bottom-pulse activate))
-
-  ;; (defun pulse-line (&rest _)
-  ;;       "Pulse the current line."
-  ;;       (pulse-momentary-highlight-one-line (point)))
-  ;; (pulse-momentary-highlight
-
-  ;; (dolist (command '(scroll-up-command scroll-down-command
-  ;;                    recenter-top-bottom other-window evil-window-next))
-  ;;   (advice-add command :after #'pulse-line))
 #+END_SRC
 
 * Org-mode
@@ -1635,7 +1399,7 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
     ;; NOTE - org-gcal ids and calendar configuation is set in 'private.el' for sake of security/privacy.
     )
 #+END_SRC
-*** Org-appear
+*** DISABLED Org-appear
 #+BEGIN_SRC emacs-lisp 
   (use-package org-appear
     :commands (org-appear-mode)
@@ -1644,7 +1408,7 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
     (setq org-hide-emphasis-markers t) ;; A default setting that needs to be t for org-appear
 
     (setq org-appear-autoemphasis t)  ;; Enable org-appear on emphasis (bold, italics, etc)
-    (setq org-appear-autolinks t) ;; Enable on links
+    (setq org-appear-autolinks nil) ;; Don't enable on links
     (setq org-appear-autosubmarkers t)) ;; Enable on subscript and superscript
 
 #+END_SRC
@@ -1684,6 +1448,14 @@ Note in case I forget: I set org-ql-view to /not/ be sorted by ~prescient.el~. S
     (setq org-tree-slide-slide-in-effect nil
           org-tree-slide-skip-outline-level 3))
 #+END_SRC
+*** org-download
+#+BEGIN_SRC emacs-lisp
+  (use-package org-download
+    :defer 2
+    :config
+    (setq org-download-method 'attach)
+    (advice-add 'org-download-yank :before 'jib/system-clipboard-to-emacs-clipboard))
+#+END_SRC
 *** DISABLED org-prettify-tags
 CLOSED: [2021-10-12 Tue 08:54]
 #+BEGIN_SRC emacs-lisp 
@@ -1697,9 +1469,121 @@ CLOSED: [2021-10-12 Tue 08:54]
   ;;   (org-pretty-tags-global-mode))
 #+END_SRC
 ** Org Bindings
-For the rest of them go to [[Org Mode Bindings][here]]
 #+BEGIN_SRC emacs-lisp 
-  ;; Org-agenda specific bindings
+  (general-def
+    :states 'normal
+    :keymaps 'org-mode-map
+    "t" 'org-todo
+    "<return>" 'org-open-at-point-global
+    "K" 'org-shiftup
+    "J" 'org-shiftdown
+    )
+
+  (general-def
+    :states '(normal insert emacs)
+    :keymaps 'org-mode-map
+    "M-[" 'org-metaleft
+    "M-]" 'org-metaright
+    "C-M-=" 'ap/org-count-words
+    "s-r" 'org-refile
+    "M-k" 'org-insert-link
+    )
+
+  ;; Org-src - when editing an org source block
+  (general-def
+    :prefix ","
+    :states 'normal
+    :keymaps 'org-src-mode-map
+    "b" '(nil :which-key "org src")
+    "bc" 'org-edit-src-abort
+    "bb" 'org-edit-src-exit
+    )
+#+END_SRC
+*** Org Mode ~,~ Bindings
+Org mode comma leader key setup. My most-used functions live here with
+just a single keypress (after the ~,~).
+#+BEGIN_SRC emacs-lisp 
+  (general-define-key
+   :prefix ","
+   :states 'motion
+   :keymaps '(org-mode-map) ;; Available in org mode, org agenda
+   "" nil
+   "A" '(org-archive-subtree-default :which-key "org-archive")
+   "a" '(org-agenda :which-key "org agenda")
+   "6" '(org-sort :which-key "sort")
+   "c" '(org-capture :which-key "org-capture")
+   "s" '(org-schedule :which-key "schedule")
+   "S" '(jib/org-schedule-tomorrow :which-key "schedule")
+   "d" '(org-deadline :which-key "deadline")
+   "g" '(counsel-org-goto :which-key "goto heading")
+   "t" '(counsel-org-tag :which-key "set tags")
+   "p" '(org-set-property :which-key "set property")
+   "r" '(jib/org-refile-this-file :which-key "refile in file")
+   "e" '(org-export-dispatch :which-key "export org")
+   "B" '(org-toggle-narrow-to-subtree :which-key "toggle narrow to subtree")
+   "v" '(jib/org-set-startup-visibility :which-key "startup visibility")
+   "H" '(org-html-convert-region-to-html :which-key "convert region to html")
+
+   "1" '(org-toggle-link-display :which-key "toggle link display")
+   "2" '(org-toggle-inline-images :which-key "toggle images")
+
+   ;; org-babel
+   "b" '(nil :which-key "babel")
+   "bt" '(org-babel-tangle :which-key "org-babel-tangle")
+   "bb" '(org-edit-special :which-key "org-edit-special")
+   "bc" '(org-edit-src-abort :which-key "org-edit-src-abort")
+   "bk" '(org-babel-remove-result-one-or-many :which-key "org-babel-remove-result-one-or-many")
+
+   "x" '(nil :which-key "text")
+   "xb" (spacemacs|org-emphasize jib/org-bold ?*)
+   "xb" (spacemacs|org-emphasize jib/org-bold ?*)
+   "xc" (spacemacs|org-emphasize jib/org-code ?~)
+   "xi" (spacemacs|org-emphasize jib/org-italic ?/)
+   "xs" (spacemacs|org-emphasize jib/org-strike-through ?+)
+   "xu" (spacemacs|org-emphasize jib/org-underline ?_)
+   "xv" (spacemacs|org-emphasize jib/org-verbose ?~) ;; I realized that ~~ is the same and better than == (Github won't do ==)
+
+   ;; insert
+   "i" '(nil :which-key "insert")
+
+   "it" '(nil :which-key "tables")
+   "itt" '(org-table-create :which-key "create table")
+   "itl" '(org-table-insert-hline :which-key "table hline")
+
+   "il" '(nil :which-key "link")
+   "ill" '(org-insert-link :which-key "org-insert-link")
+   "ilh" '(counsel-org-link :which-key "counsel-org-link")
+
+   "is" '(nil :which-key "insert stamp")
+   "iss" '((lambda () (interactive) (call-interactively (org-time-stamp-inactive))) :which-key "org-time-stamp-inactive")
+   "isS" '((lambda () (interactive) (call-interactively (org-time-stamp nil))) :which-key "org-time-stamp")
+
+   ;; clocking
+   "c" '(nil :which-key "clocking")
+   "ci" '(org-clock-in :which-key "clock in")
+   "co" '(org-clock-out :which-key "clock out")
+   "cj" '(org-clock-goto :which-key "jump to clock")
+   )
+
+
+  ;; Org-agenda
+  (general-define-key
+   :prefix ","
+   :states 'motion
+   :keymaps '(org-agenda-mode-map) ;; Available in org mode, org agenda
+   "" nil
+   "a" '(org-agenda :which-key "org agenda")
+   "c" '(org-capture :which-key "org-capture")
+   "s" '(org-agenda-schedule :which-key "schedule")
+   "d" '(org-agenda-deadline :which-key "deadline")
+   "t" '(org-agenda-set-tags :which-key "set tags")
+   ;; clocking
+   "c" '(nil :which-key "clocking")
+   "ci" '(org-agenda-clock-in :which-key "clock in")
+   "co" '(org-agenda-clock-out :which-key "clock out")
+   "cj" '(org-clock-goto :which-key "jump to clock")
+   )
+
   (evil-define-key 'motion org-agenda-mode-map
     (kbd "f") 'org-agenda-later
     (kbd "b") 'org-agenda-earlier)
@@ -1735,6 +1619,8 @@ Moved to ~jib-funcs.el~. For some reason org-babel source blocks mess up some of
 
     (centered-cursor-mode)
 
+    (smartparens-mode 0)
+
     ;; (setq header-line-format "") ;; Empty header line, basically adds a blank line on top
     (setq-local line-spacing (+ jib-default-line-spacing 1))
     )
@@ -1756,16 +1642,17 @@ Moved to ~jib-funcs.el~. For some reason org-babel source blocks mess up some of
 The following is org-mode configuration.
 *** Visuals
 #+BEGIN_SRC emacs-lisp 
-  (setq org-ellipsis " ▼ ") ;; ⤵
+  (setq org-ellipsis " ⬎ ") ;; ⤵ ▼
   (setq org-src-fontify-natively t) ;; Syntax highlighting in org src blocks
   (setq org-highlight-latex-and-related '(native)) ;; Highlight inline LaTeX
   (setq org-startup-folded 'show2levels) ;; Org files start up folded by default
-  (setq org-image-actual-width nil)
+  (setq org-image-actual-width 300)
+  (setq org-fontify-whole-heading-line t)
 #+END_SRC
 *** Interaction
 #+BEGIN_SRC emacs-lisp 
   (setq org-cycle-separator-lines 1)
-  (setq org-catch-invisible-edits 'smart)
+  (setq org-catch-invisible-edits 'show-and-error) ;; 'smart
   (setq org-src-tab-acts-natively t)
 
   ;; M-Ret can split lines on items and tables but not headlines and not on anything else (unconfigured)
@@ -1790,7 +1677,12 @@ The following is org-mode configuration.
     (advice-add 'org-archive-subtree-default :after 
                 (lambda () (jib/save-and-close-this-buffer file))))
 
+  (defun jib/post-counsel-org-goto ()
+    (let ((current-prefix-arg '(4))) ;; emulate C-u
+      (call-interactively 'org-reveal))
+    (org-cycle))
 
+  (advice-add 'counsel-org-goto :after #'jib/post-counsel-org-goto)
 #+END_SRC
 *** Tags, Todos, Priorities
 **** Tags
@@ -1810,6 +1702,8 @@ The following is org-mode configuration.
                         ("ec" . "PaleGreen3") ;; Extracurricular
                         ("st" . "DimGrey") ;; Near-future (aka short term) todo
                         ))
+
+  ;; (add-to-list 'org-tag-faces '("tag" . "IndianRed2")) ;; maybe for future use
 
   ;; (setq org-tags-column -64)
   (setq org-tags-column 1)
@@ -1904,10 +1798,11 @@ My favorite part.
 
   (setq org-agenda-time-grid nil) ;; I've decided to disable the time grid. 2021-09-22.
 
-  (setq org-agenda-block-separator 8213) ;; Unicode: ―
+  (setq org-agenda-block-separator ?-)
   (setq org-agenda-current-time-string "<----------------- Now")
+
   (setq org-agenda-scheduled-leaders '("" ""))
-  ;; note: maybe some day I want to use org-agenda-deadline-leaders
+  (setq org-agenda-deadline-leaders '("Due:" "Due in %1d day: " "Due %1d d. ago: "))
 
   (setq org-agenda-prefix-format '((agenda . " %i %-1:i%?-2t% s")
                                    (todo . "   ")
@@ -2027,34 +1922,65 @@ certain events certain colors -- like "Spanish 4" is always red)using the list o
   (add-hook 'org-agenda-finalize-hook #'jib/org-agenda-time-grid-spacing)
 #+END_SRC
 *** Org-Capture
-Still working on getting this how I want it. Org-capture is very useful, but I don't make enough use of it.
+Note for when I need it: [[https://www.reddit.com/r/orgmode/comments/ur3gfh/dynamic_org_capture_options/?utm_source=share&utm_medium=ios_app&utm_name=iossmf]["Dynamic Org Capture Options" - Reddit]]
 #+BEGIN_SRC emacs-lisp 
+  ;; This isn't super needed as I mostly just use my custom refile command
+  ;; to refile to only the current buffer.
+  (setq org-refile-targets (quote (("~/Dropbox/org/work.org" :maxlevel . 2)
+                                   ("~/Dropbox/org/cpb.org"  :maxlevel . 8))))
+
+  (setq org-outline-path-complete-in-steps nil) ; Refile in a single go
+  (setq org-refile-use-outline-path t)          ; Show full paths for refiling
+
   ;; By default an org-capture/refile will save a bookmark. This
   ;; disables that and keeps my bookmark list how I want it.
   (setq org-bookmark-names-plist nil)
-
-  (setq org-refile-targets (quote (("~/Dropbox/org/work.org" :maxlevel . 2))))
-  (setq org-outline-path-complete-in-steps nil) ; Refile in a single go
-  (setq org-refile-use-outline-path t)          ; Show full paths for refilin0
 
 
   (setq org-capture-templates
         '(
           ("n" "CPB Note" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
-           "** Note: %? @ %U" :empty-lines 0)
+           "** Note: %? @ %U" :empty-lines 0 :refile-targets (("~/Dropbox/org/cpb.org" :maxlevel . 8)))
+
+          ("j" "Journal")
+
+          ;; WIP
+          ("jr" "Reflection" entry (file "~/Dropbox/org/journal.org")
+  "* %U
+  ,** What did I learn?\n%?
+  ,** How was I challenged?\n
+  ,** What do I need to let go of?\n
+  ,** What can I improve tomorrow?\n
+  ,** Did I accomplish everything I wanted to accomplish today? Why or why not?\n
+  ,** What is one important lesson that I learned today?\n
+  ,** What could I have done today to avoid making the mistakes that I made?\n
+  ,** What do I need to remind myself of?\n
+  ,** What are the best things that happened today?\n
+  ,** What do I have to look forward to?\n
+  ,** What positive concrete things can I try tomorrow?\n
+  ,** What do I have to be proud of?\n
+  ,** Two things I am grateful for lately\n
+  "
+  )
+
 
           ("w" "Work Todo Entries")
               ("we" "No Time" entry (file "~/Dropbox/org/work.org")
-               "** %^{Type|TODO|HW|READ|PROJ} %^{Todo title} %?" :prepend t :empty-lines-before 0)
+               "** %^{Type|HW|READ|TODO|PROJ} %^{Todo title} %?" :prepend t :empty-lines-before 0
+               :refile-targets (("~/Dropbox/org/work.org" :maxlevel . 2)))
 
               ("ws" "Scheduled" entry (file "~/Dropbox/org/work.org")
-               "** %^{Type|TODO|HW|READ|PROJ} %^{Todo title}\nSCHEDULED: %^t%?" :prepend t :empty-lines-before 0)
+               "** %^{Type|HW|READ|TODO|PROJ} %^{Todo title}\nSCHEDULED: %^t%?" :prepend t :empty-lines-before 0
+               :refile-targets (("~/Dropbox/org/work.org" :maxlevel . 2)))
 
               ("wd" "Deadline" entry (file "~/Dropbox/org/work.org")
-               "** %^{Type|TODO|HW|READ|PROJ} %^{Todo title}\nDEADLINE: %^t%?" :prepend t :empty-lines-before 0)
+               "** %^{Type|HW|READ|TODO|PROJ} %^{Todo title}\nDEADLINE: %^t%?" :prepend t :empty-lines-before 0
+               :refile-targets (("~/Dropbox/org/work.org" :maxlevel . 2)))
 
               ("ww" "Scheduled & deadline" entry (file "~/Dropbox/org/work.org")
-               "** %^{Type|TODO|HW|READ|PROJ} %^{Todo title}\nSCHEDULED: %^t DEADLINE: %^t %?" :prepend t :empty-lines-before 0)
+               "** %^{Type|HW|READ|TODO|PROJ} %^{Todo title}\nSCHEDULED: %^t DEADLINE: %^t %?" :prepend t :empty-lines-before 0
+               :refile-targets (("~/Dropbox/org/work.org" :maxlevel . 2)))
+
           ))
 
 #+END_SRC
@@ -2105,27 +2031,51 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
     (add-to-list 'org-latex-classes
                  '("org-plain-latex" ;; I use this in base class in all of my org exports.
                    "\\documentclass{extarticle}
-           [NO-DEFAULT-PACKAGES]
-           [PACKAGES]
-           [EXTRA]"
+  [NO-DEFAULT-PACKAGES]
+  [PACKAGES]
+  [EXTRA]"
                    ("\\section{%s}" . "\\section*{%s}")
                    ("\\subsection{%s}" . "\\subsection*{%s}")
                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
                    ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-    )
+  )
 #+END_SRC
 *** Misc Org Mode
 #+BEGIN_SRC emacs-lisp 
   (setq org-clock-mode-line-total 'current) ;; Show only timer from current clock session in modeline
 
-  (setq org-attach-id-dir ".org-attach/")
+    (setq org-attach-id-dir ".org-attach/"
+  org-attach-use-inheritance t)
 
 
   ) ;; This parenthesis ends the org use-package.
 #+END_SRC
 
 * Misc Packages
+#+BEGIN_SRC emacs-lisp
+  (use-package magit :defer t)
+  (use-package unfill :defer t)
+  (use-package burly :defer t)
+  (use-package ace-window :defer t)
+  (use-package org-real :defer t)
+  (use-package centered-cursor-mode :diminish centered-cursor-mode)
+  (use-package restart-emacs :defer t)
+  (use-package diminish)
+  (use-package reveal-in-osx-finder :commands (reveal-in-osx-finder))
+
+  (use-package bufler
+    :general
+    (:keymaps 'bufler-list-mode-map "Q" 'kill-this-buffer))
+
+  (use-package xwidget
+    :general
+    (general-define-key :states 'normal :keymaps 'xwidget-webkit-mode-map 
+                        "j" 'xwidget-webkit-scroll-up-line
+                        "k" 'xwidget-webkit-scroll-down-line
+                        "gg" 'xwidget-webkit-scroll-top
+                        "G" 'xwidget-webkit-scroll-bottom))
+#+END_SRC
 ** Deft
 #+BEGIN_SRC emacs-lisp 
   (defun jib/deft-kill ()
@@ -2159,7 +2109,7 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
                         "C-k" 'previous-line)
     )
 #+END_SRC
-** LaTeX-related
+** LaTeX
 #+BEGIN_SRC emacs-lisp 
   (use-package latex ;; This is a weird one. Package is auctex but needs to be managed like this.
     :ensure nil
@@ -2247,7 +2197,7 @@ Current issue is that I can't switch back to the source buffer. Well, actually, 
   (add-hook 'TeX-after-compilation-finished-functions #'jib-auctex-nice)
 
 #+END_SRC
-** Mail
+** DISABLED Mail
 Still a work-in-progress. Lots of issues.
 *** Mu4e
 Mu4e configuration is in ~private.el~.
@@ -2327,24 +2277,10 @@ Mu4e configuration is in ~private.el~.
     (popper-mode +1))
 #+END_SRC
 ** Programming-related
-*** Projectile
-#+BEGIN_SRC emacs-lisp 
-  (use-package projectile
-    :defer t
-    :general
-    (:keymaps 'projectile-mode-map
-              "s-f" 'projectile-find-file
-              "s-p" 'projectile-command-map
-              "C-c p" 'projectile-command-map
-              "s-c" 'projectile-commander)
-    :init
-    (projectile-mode +1))
-#+END_SRC
 *** Rainbow-mode, hl-todo
 #+BEGIN_SRC emacs-lisp 
   (use-package rainbow-mode
     :defer t)
-  
 
   (use-package hl-todo
     :defer t
@@ -2361,6 +2297,10 @@ Mu4e configuration is in ~private.el~.
   ;; A better python mode (supposedly)
   (use-package python-mode
     :defer t)
+
+  (general-define-key :states '(emacs) :keymaps 'inferior-python-mode-map
+                      "<up>" 'comint-previous-input
+                      "<down>" 'comint-next-input)
 
   ;; Using my virtual environments
   (use-package pyvenv
@@ -2401,18 +2341,4 @@ Mu4e configuration is in ~private.el~.
     "i" '(web-mode-buffer-indent :which-key "web mode indent")
     "c" '(web-mode-fold-or-unfold :which-key "web mode toggle fold")
     ))
-#+END_SRC
-** DISABLED org-roam
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package org-roam
-    :defer 2
-    :config
-    (setq org-roam-directory (expand-file-name "org-roam" jib/dropbox))
-    (org-roam-db-autosync-mode))
-
-  (use-package org-roam-ui
-    :after org-roam
-    :defer t
-    :config
-    (setq org-roam-ui-follow nil))
 #+END_SRC

@@ -76,16 +76,37 @@ If the universal prefix argument is used then will the windows too."
   (let ((newbuf (generate-new-buffer-name "*scratch*")))
     (switch-to-buffer newbuf)))
 
+;; from magnars
+(defun spacemacs/rename-current-buffer-file ()
+  "Renames current buffer and file it is visiting."
+  (interactive)
+  (let* ((name (buffer-name))
+         (filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (error "Buffer '%s' is not visiting a file!" name)
+      (let* ((dir (file-name-directory filename))
+             (new-name (read-file-name "New name: " dir)))
+        (cond ((get-buffer new-name)
+               (error "A buffer named '%s' already exists!" new-name))
+              (t
+               (let ((dir (file-name-directory new-name)))
+                 (when (and (not (file-exists-p dir)) (yes-or-no-p (format "Create directory '%s'?" dir)))
+                   (make-directory dir t)))
+               (rename-file filename new-name 1)
+               (rename-buffer new-name)
+               (set-visited-file-name new-name)
+               (set-buffer-modified-p nil)
+               (when (fboundp 'recentf-add-file)
+                 (recentf-add-file new-name)
+                 (recentf-remove-if-non-kept filename))
+               (message "File '%s' successfully renamed to '%s'" name (file-name-nondirectory new-name))))))))
+
 (defun jib/split-and-scratch-elisp ()
   "Split window and create new buffer for Emacs Lisp evaluation."
   (interactive)
   (jib/split-window-horizontally-and-switch)
   (spacemacs/new-empty-buffer)
   (emacs-lisp-mode))
-
-(defun jib/edit-init ()
-  (interactive)
-  (find-file-existing jib/init.org))
 
 (defun jib/reload-emacs-configuration ()
   (interactive)
@@ -106,15 +127,23 @@ If the universal prefix argument is used then will the windows too."
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 
+;;;;;;;;;;;;;
+;; Utility ;;
+;;;;;;;;;;;;;
+;; https://emacsredux.com/blog/2013/03/28/google/
+(defun jib/er-google ()
+  "Google the selected region if any, display a query prompt otherwise."
+  (interactive)
+  (browse-url
+   (concat
+    "http://www.google.com/search?ie=utf-8&oe=utf-8&q="
+    (url-hexify-string (if mark-active
+         (buffer-substring (region-beginning) (region-end))
+       (read-string "Google: "))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Text Editing/Text Automation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;; From http://blog.binchen.org/posts/the-reliable-way-to-access-system-clipboard-from-emacs.html
-;; Uses simpleclip
-(defun jib/paste-in-minibuffer ()
-  (local-set-key (kbd "M-v") 'simpleclip-paste))
 
 ;; Uses simpleclip
 (defun jib/copy-whole-buffer-to-clipboard ()
@@ -123,6 +152,16 @@ If the universal prefix argument is used then will the windows too."
   (mark-whole-buffer)
   (simpleclip-copy (point-min) (point-max))
   (deactivate-mark))
+
+(defun jib/emacs-clipboard-to-system-clipboard ()
+  "Set system clipboard to contents of Emacs kill ring."
+  (interactive)
+  (simpleclip-set-contents (substring-no-properties (nth 0 kill-ring))))
+
+(defun jib/system-clipboard-to-emacs-clipboard ()
+  "Set Emacs kill ring to contents of system clipboard."
+  (interactive)
+  (kill-new (simpleclip-get-contents)))
 
 (defun jib/split-and-close-sentence ()
   "Deletes current word, inserts a period, and capitalizes the next word -
@@ -189,6 +228,11 @@ splits the sentence."
   ;; When opening it you always want to filter right away
   (evil-insert-state nil))
 
+(defun jib/load-theme (theme)
+  "Enhance `load-theme' by first disabling enabled themes."
+  (mapc #'disable-theme custom-enabled-themes)
+  (load-theme theme t))
+
 
 ;;;;;;;;;;;;;
 ;; Orgmode ;;
@@ -220,6 +264,65 @@ If run with universal argument C-u, insert org options to make export very plain
 		(jib/open-buffer-file-mac) ;; Use my custom function to open the file (Mac only)
 		(kill-this-buffer)))))
 
+
+;; WIP
+(defun jib/org-temp-export-pdf (&optional arg)
+  (interactive "P")
+  (let* ((use-title (y-or-n-p "Use a title?"))
+		 (use-header (if (eq use-title t)
+						 (y-or-n-p "Use section header as title?")))
+		 (org-section-title (nth 4 (org-heading-components)))
+		 (style (completing-read "Style" '("quicksport" "basic-notes")))
+		 (inputted-title (if (and (eq use-title t) (eq use-header nil))
+							 (read-string "Title? ")))
+		 ) ;; end let* variables section
+	(if (use-region-p) 
+		(kill-ring-save (region-beginning) (region-end)) ;; If there is a region copy it and use that
+	  (org-copy-subtree)) ;; Else copy the subtree
+	(save-window-excursion
+	  ;; Maybe better to do this with with-temp-buffer. Not sure.
+	  (find-file (make-temp-file
+				  (concat "jb_" (format-time-string "%m-%d_%I%M-%S") "_") nil ".org"))
+
+	  (org-mode)
+	  (yank)
+	  (beginning-of-buffer)
+	  (beginning-of-line)
+	  (open-line 1)
+	  
+	  (yas-expand-snippet (yas-lookup-snippet "LaTeX Setupfile"))
+
+	  ;; Setting export style
+	  (cond
+	   ((equal style "quicksport") (insert "/jake-latex-quicksport.setup \n")) 
+	   ((equal style "basic-notes") (insert "/jake-latex-basic-notes.setup \n#+OPTIONS: toc:nil \n")) 
+	   (t (insert ""))
+	   )
+
+	  (insert "\n#+DATE: \\today \n")
+
+	  (if (eq use-title t)
+		  (cond
+		   ((eq use-header t)
+			(insert "#+TITLE: " org-section-title)
+			(org-next-visible-heading 1)
+			(kill-line)
+			;; (set-mark-command nil)
+			;; (re-search-forward ":END:")
+			;; (delete-region (region-beginning) (region-end))
+			) ;; if this, delete the top level heading (so the first suhead becomes the first section head)
+		   ((eq use-header nil) (insert "#+TITLE: " inputted-title))
+		   (t (insert ""))
+		   )
+		)
+
+	  (start-process "default-app" nil "open" (org-latex-export-to-pdf))
+	  (save-buffer)
+	  (kill-this-buffer)
+	  )
+	)
+  )
+
 (defun jib/org-schedule-tomorrow ()
   "Org Schedule for tomorrow (+1d)."
   (interactive)
@@ -232,7 +335,7 @@ If run with universal argument C-u, insert org options to make export very plain
 (defun jib/org-refile-this-file ()
   "Org refile to only headers in current file, 3 levels."
   (interactive)
-  (let ((org-refile-targets '((nil . (:maxlevel . 3)))))
+  (let ((org-refile-targets '((nil . (:maxlevel . 5)))))
 	(org-refile)))
 
 (defun jib/refresh-org-agenda-from-afar ()
@@ -359,16 +462,16 @@ If UNSAFE is non-nil, assume point is on headline."
   (push '(":ch:" . ?) prettify-symbols-alist)
   (push '(":es:" . "" ) prettify-symbols-alist)
   (prettify-symbols-mode))
-  
+
 
 ;;;;;;;;;;;;
 ;; Macros ;;
 ;;;;;;;;;;;;
 
-  ;; Converts org mode from current line to bottom to HTML and copies it to the system clipboard
-  ;; uses org-html-convert-region-to-html
-  (fset 'jib|Brinkley-HTML
-		(kmacro-lambda-form [?V ?G ?y ?  ?f ?n ?  ?h ?M ?O ?p ?V ?G ?, ?H ?  ?x ?C ?  ?b ?d] 0 "%d"))
+;; Converts org mode from current line to bottom to HTML and copies it to the system clipboard
+;; uses org-html-convert-region-to-html
+(fset 'jib|Brinkley-HTML
+	  (kmacro-lambda-form [?V ?G ?y ?  ?f ?n ?  ?h ?M ?O ?p ?V ?G ?, ?H ?  ?x ?C ?  ?b ?d] 0 "%d"))
 
 ;; OBSELETE
 ;; ;; Takes an org mode list and adds bullets one indent in under each item
