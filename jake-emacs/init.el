@@ -53,7 +53,7 @@
 
 ;; Set `jib/computer' to 'laptop or 'desktop.
 (let ((sys (system-name)))
-  (if (or (or (string= sys "MJBs-MacBook-Air.local") (string= sys "MJBs-Air.fwparker.org")) (string= sys "mjbs-air.lan"))
+  (if (or (string= sys "MJBs-MacBook-Air.local") (string= sys "mjbs-air.lan"))
       (setq jib/computer 'laptop)
     (setq jib/computer 'desktop)))
 
@@ -1417,13 +1417,6 @@ _q_uit          _e_qualize        _]_forward     ^
 (setq counsel-org-tags '("qp" "ec" "st")) ;; Quick-picks, extracurricular, short-term
 
 (setq org-tag-faces '(
-                      ("bv" . "dark slate blue")
-                      ("sp" . "purple3")
-                      ("ch" . "PaleTurquoise3")
-                      ("cl" . "chartreuse4")
-                      ("es" . "brown3")
-                      ("Weekly" . "SteelBlue1")
-                      ("Robo" . "IndianRed2")
                       ("Misc" . "tan1")
                       ("qp" . "RosyBrown1") ;; Quick-picks
                       ("ec" . "PaleGreen3") ;; Extracurricular
