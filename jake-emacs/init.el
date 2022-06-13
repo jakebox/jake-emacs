@@ -397,7 +397,7 @@
 "hF" '(counsel-describe-face :which-key "des. face")
 "hk" '(describe-key :which-key "des. key")
 
-"hed" '((lambda () (jump-to-register 67)) :which-key "edit dotfile")
+"hed" '((lambda () (interactive) (jump-to-register 67)) :which-key "edit dotfile")
 
 "hm" '(nil :which-key "switch mode")
 "hme" '(emacs-lisp-mode :which-key "elisp mode")
@@ -497,12 +497,13 @@
   "C-s" 'swiper ;; Large files will use grep (faster)
   "s-\"" 'ispell-word ;; that's super-shift-'
   "M-+" 'jib/calc-speaking-time
-  "C-'" 'avy-goto-char
+  "C-'" 'avy-goto-char-2
 
   "C-x C-b" 'bufler-list
 
   ;; super-number functions
   "s-1" 'mw-thesaurus-lookup-dwim
+  "s-!" 'mw-thesaurus-lookup
   "s-2" 'ispell-buffer
   "s-3" 'revert-buffer
   "s-4" '(lambda () (interactive) (counsel-file-jump nil jib/dropbox))
@@ -938,7 +939,7 @@ _q_uit          _e_qualize        _]_forward     ^
         doom-modeline-major-mode-color-icon t
         doom-modeline-bar-width 3))
 
-(use-package shrink-path)
+(use-package shrink-path) ;; dependency for doom-modeline (remove this once i fix doom modeline problems)
 
 ;; Configure modeline text height based on the computer I'm on.
 ;; These variables are used in the Themes section to ensure the modeline
@@ -948,7 +949,7 @@ _q_uit          _e_qualize        _]_forward     ^
   (setq jib-doom-modeline-text-height 140))  ;; If desktop
 
 (if (eq jib/computer 'laptop)
-    (setq doom-modeline-height 1) ;; If laptop
+    (setq doom-modeline-height 25) ;; If laptop
   (setq doom-modeline-height 1))  ;; If desktop
 
 ;; Window's initial size and a bit of border
@@ -981,6 +982,8 @@ _q_uit          _e_qualize        _]_forward     ^
   ;; Keep the modeline proper every time I use these themes.
   (mode-line ((t (:height ,jib-doom-modeline-text-height))))
   (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
+  ;; (doom-modeline ((t (:height ,jib-doom-modeline-text-height))))
+  ;; (doom-modeline-inactive ((t (:height ,jib-doom-modeline-text-height))))
   (org-scheduled-previously ((t (:background "red")))))
 
 (use-package kaolin-themes
@@ -998,13 +1001,19 @@ _q_uit          _e_qualize        _]_forward     ^
 (use-package modus-themes
   :init
   (setq modus-themes-italic-constructs t
-        modus-themes-bold-constructs nil
+        modus-themes-bold-constructs t
         modus-themes-region '(bg-only no-extend)
-        modus-themes-hl-line '(accented) 
+        modus-themes-hl-line '(intense) ;; accented or intense
         modus-themes-syntax '(yellow-comments)
-        modus-themes-mode-line '(accented borderless)) ;; Color modeline in active window, remove border
-  (setq modus-themes-headings ;; Makes org headings more colorful
-        '((t . (rainbow))))
+        modus-themes-org-blocks 'gray-background
+        modus-themes-mode-line '(moody borderless)) ;; moody or accented is what I use
+
+  ;; (setq modus-themes-headings ;; Makes org headings more colorful
+  ;;       '((t . (rainbow))))
+  (setq modus-themes-headings
+        (quote ((1 . (variable-pitch 1.1))
+                (2 . (variable-pitch))
+                (t . (monochrome)))))
   (modus-themes-load-themes)
   :custom-face
   (org-ellipsis ((t (:height 0.8 :inherit 'shadow))))
@@ -1015,7 +1024,7 @@ _q_uit          _e_qualize        _]_forward     ^
 
 ;; Loading theme based on the time.
 (let ((hour (string-to-number (substring (current-time-string) 11 13))))
-  (if (or (> hour 16) (< hour 7))
+  (if (or (> hour 19) (< hour 7))
       (load-theme 'doom-one t) ;; Night
     (load-theme 'doom-opera-light t))) ;; Day
 
@@ -1217,6 +1226,11 @@ _q_uit          _e_qualize        _]_forward     ^
   )
 
 (general-def
+  :states 'insert
+  :keymaps 'org-mode-map
+  "C-o" 'evil-org-open-above)
+
+(general-def
   :states '(normal insert emacs)
   :keymaps 'org-mode-map
   "M-[" 'org-metaleft
@@ -1268,13 +1282,13 @@ _q_uit          _e_qualize        _]_forward     ^
  "bk" '(org-babel-remove-result-one-or-many :which-key "org-babel-remove-result-one-or-many")
 
  "x" '(nil :which-key "text")
- "xb" (spacemacs|org-emphasize jib/org-bold ?*)
- "xb" (spacemacs|org-emphasize jib/org-bold ?*)
- "xc" (spacemacs|org-emphasize jib/org-code ?~)
- "xi" (spacemacs|org-emphasize jib/org-italic ?/)
- "xs" (spacemacs|org-emphasize jib/org-strike-through ?+)
- "xu" (spacemacs|org-emphasize jib/org-underline ?_)
- "xv" (spacemacs|org-emphasize jib/org-verbose ?~) ;; I realized that ~~ is the same and better than == (Github won't do ==)
+ "xb" (spacemacs|org-emphasize spacemacs|org-bold ?*)
+ "xb" (spacemacs|org-emphasize spacemacs|org-bold ?*)
+ "xc" (spacemacs|org-emphasize spacemacs|org-code ?~)
+ "xi" (spacemacs|org-emphasize spacemacs|org-italic ?/)
+ "xs" (spacemacs|org-emphasize spacemacs|org-strike-through ?+)
+ "xu" (spacemacs|org-emphasize spacemacs|org-underline ?_)
+ "xv" (spacemacs|org-emphasize spacemacs|org-verbose ?~) ;; I realized that ~~ is the same and better than == (Github won't do ==)
 
  ;; insert
  "i" '(nil :which-key "insert")

@@ -186,6 +186,19 @@ splits the sentence."
 		(next-line)
 		(setq lines (1- lines))))))
 
+(defun jib/insert-empty-lines-after-each-line ()
+  "Add a blank line after each line in a region."
+  (interactive)
+  (let ((lines (count-lines (region-beginning) (region-end)))) ;; By default grab a region
+	(save-excursion
+	  (if (use-region-p) ;; If there's a region go to the start and deactivate the region
+		  (goto-char (region-beginning)) (deactivate-mark))
+	  (while (> lines 0)
+		(end-of-line)
+		(open-line 1)
+		(next-line 2)
+		(setq lines (1- lines))))))
+
 ;;;;;;;;;;;;;;;;;;
 ;; Calculations ;;
 ;;;;;;;;;;;;;;;;;;
@@ -201,6 +214,9 @@ splits the sentence."
 								(floor(mod raw-time 60)) wpm))
 	(error "Error: select a region.")))
 
+(defun jib/return-week-number ()
+  (interactive)
+  (message "It is week %s of the year." (format-time-string "%U")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make Packages Better ;;
@@ -369,7 +385,7 @@ the todo type was if I look back through my archive files."
 (defun jib/org-archive-ql-search ()
   "Input or select a tag to search in my archive files."
   (interactive)
-  (let* ((choices '("bv" "sp" "ch" "cl" "es" "Robotics ec" "Weekly ec"))
+  (let* ((choices '("bv" "sp" "ch" "cl" "es" "Robotics ec" "Weekly ec")) ;; TODO get these with org-current-tag-alist
 		 (tag (completing-read "Tag: " choices)))
 	(org-ql-search
 	  ;; Recursively get all .org_archive files from my archive directory
@@ -390,6 +406,19 @@ the todo type was if I look back through my archive files."
 
 ;; )	
 
+;; WIP
+(defun jib/tag-search-export ()
+  (interactive)
+  (save-window-excursion
+	(let ((org-agenda-tags-column 0))
+	  (org-ql-search "~/Dropbox/org/cpb.org" '(tags "article") :super-groups '((:auto-outline-path)) :buffer "steve")
+	  (switch-to-buffer "steve")
+	  (read-only-mode 0)
+	  (goto-char (point-min))
+	  (while (search-forward ":article:" nil t) (replace-match ""))
+	  (org-agenda-write "~/Desktop/export.html" nil nil "steve")
+	  (kill-buffer "steve")))
+  )
 
 (defmacro spacemacs|org-emphasize (fname char)
   "Make function for setting the emphasis in org mode"
