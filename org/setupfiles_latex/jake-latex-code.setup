@@ -1,29 +1,35 @@
-#+LATEX_HEADER: \usepackage{listings}
+This file was automatically created at 2022-06-27 10:51:28.572899
+from a matching .sty file /Users/jake/Dropbox/files/systems/latex/jake-code.sty
 
+
+#+LATEX_HEADER: % begin jake-code.sty
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \usepackage{listings}
+#+LATEX_HEADER: 
 #+LATEX_HEADER: \definecolor{dkgreen}{rgb}{0,0.6,0}
 #+LATEX_HEADER: \definecolor{gray}{rgb}{0.5,0.5,0.5}
 #+LATEX_HEADER: \definecolor{mauve}{rgb}{0.58,0,0.82}
-
+#+LATEX_HEADER: 
 #+LATEX_HEADER: \definecolor{codegreen}{rgb}{0,0.6,0}
 #+LATEX_HEADER: \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 #+LATEX_HEADER: \definecolor{codepurple}{rgb}{0.58,0,0.82}
 #+LATEX_HEADER: \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
-
-##+LATEX_HEADER: \lstset{frame=tb,
-##+LATEX_HEADER:   language=Python,
-##+LATEX_HEADER:   aboveskip=3mm,
-##+LATEX_HEADER:   belowskip=0mm,
-##+LATEX_HEADER:   showstringspaces=false,
-##+LATEX_HEADER:   columns=flexible,
-##+LATEX_HEADER:   basicstyle={\small\ttfamily},
-##+LATEX_HEADER:   keywordstyle=\color{blue},
-##+LATEX_HEADER:   commentstyle=\color{dkgreen},
-##+LATEX_HEADER:   stringstyle=\color{mauve},
-##+LATEX_HEADER:   breaklines=true,
-##+LATEX_HEADER:   breakatwhitespace=true,
-##+LATEX_HEADER:   tabsize=4
-##+LATEX_HEADER: }
-
+#+LATEX_HEADER: 
+#+LATEX_HEADER: % \lstset{frame=tb,
+#+LATEX_HEADER: %   language=Python,
+#+LATEX_HEADER: %   aboveskip=3mm,
+#+LATEX_HEADER: %   belowskip=0mm,
+#+LATEX_HEADER: %   showstringspaces=false,
+#+LATEX_HEADER: %   columns=flexible,
+#+LATEX_HEADER: %   basicstyle={\small\ttfamily},
+#+LATEX_HEADER: %   keywordstyle=\color{blue},
+#+LATEX_HEADER: %   commentstyle=\color{dkgreen},
+#+LATEX_HEADER: %   stringstyle=\color{mauve},
+#+LATEX_HEADER: %   breaklines=true,
+#+LATEX_HEADER: %   breakatwhitespace=true,
+#+LATEX_HEADER: %   tabsize=4
+#+LATEX_HEADER: % }
+#+LATEX_HEADER: 
 #+LATEX_HEADER: \lstdefinestyle{mystyle}{
 #+LATEX_HEADER:     backgroundcolor=\color{backcolour},   
 #+LATEX_HEADER:     commentstyle=\color{codegreen},
@@ -37,16 +43,18 @@
 #+LATEX_HEADER:     captionpos=b,                    
 #+LATEX_HEADER:     keepspaces=true,                 
 #+LATEX_HEADER:     numbers=left,                    
-+LATEX_HEADER:     numbersep=5pt,                  
+#+LATEX_HEADER: % numbersep=5pt,                  
 #+LATEX_HEADER:     showspaces=false,                
 #+LATEX_HEADER:     showstringspaces=false,
 #+LATEX_HEADER:     showtabs=false,                  
 #+LATEX_HEADER:     tabsize=2
 #+LATEX_HEADER: }
-
+#+LATEX_HEADER: 
 #+LATEX_HEADER: \lstset{style=mystyle}
-
-\lstdefinestyle{opts}{
-   language={bash},
-   numbers=left
-}
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \lstdefinestyle{opts}{
+#+LATEX_HEADER:    language={bash},
+#+LATEX_HEADER:    numbers=left
+#+LATEX_HEADER: }
+#+LATEX_HEADER: 
+#+LATEX_HEADER: % end jake-code.sty

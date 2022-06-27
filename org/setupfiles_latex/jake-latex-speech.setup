@@ -1,41 +1,40 @@
-LaTeX Speech Configuration
-By Jake B.
-Large margins, large font, good spacing, title page, page numbering.
+This file was automatically created at 2022-06-27 10:51:28.572899
+from a matching .sty file /Users/jake/Dropbox/files/systems/latex/jake-speech.sty
 
-Disable TOC
-#+OPTIONS: toc:nil
-
-Redefines the title command to be the same, but with a \clearpage after,
-basically so we have a title page.
-Requires enabling (org-export-allow-bind-keywords).
-#+BIND: org-latex-title-command "\\maketitle \\clearpage"
-
+#+OPTIONS: toc:nil 
+#+LATEX_CLASS_OPTIONS: [letterpaper, 17pt, titlepage] 
+ 
 #+LATEX_CLASS: org-plain-latex
-#+LATEX_CLASS_OPTIONS: [letterpaper, 17pt]
-#+LATEX_HEADER: \usepackage{libertinus}
-#+LATEX_HEADER: \usepackage[T1]{fontenc}
-#+LATEX_HEADER: \usepackage{graphicx}
-#+LATEX_HEADER: \usepackage[table, xcdraw]{xcolor}
-#+LATEX_HEADER: \definecolor{bblue}{HTML}{0645AD}
-#+LATEX_HEADER: \usepackage[colorlinks]{hyperref}
-#+LATEX_HEADER: \hypersetup{colorlinks, linkcolor=blue, urlcolor=bblue}
-#+LATEX_HEADER: \usepackage{titling}
-#+LATEX_HEADER: \setlength{\parindent}{2em} % Indentation at beginning of paragraph
-#+LATEX_HEADER: \setlength{\parskip}{1em} % Space between paras
-#+LATEX_HEADER: \usepackage[stretch=10]{microtype} % Better looking type
+#+LATEX_HEADER: % begin jake-speech.sty
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \usepackage[letterpaper,
+#+LATEX_HEADER: top=0.8in, bottom=1.2in,
+#+LATEX_HEADER: left=1.4in, right=1.20in,  % Wide left margin for hole punch
+#+LATEX_HEADER: footskip=0.5in,
+#+LATEX_HEADER: marginparwidth=0.7in]{geometry}
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \usepackage{fontspec}
+#+LATEX_HEADER: \usepackage{libertine}      % Font
 #+LATEX_HEADER: \usepackage[none]{hyphenat} % Disable hyphenation
-#+LATEX_HEADER: \usepackage{hyperref} % Links
-#+LATEX_HEADER: \usepackage[top=1.00in, bottom=1.25in, left=1.05in, right=1.25in]{geometry}
-#+LATEX_HEADER: \renewcommand{\baselinestretch}{1.45}
-#+LATEX_HEADER: \usepackage[explicit]{titlesec}
-#+LATEX_HEADER: \titlespacing\section{0pt}{0pt}{-5pt} % left margin, space before section header, space after section header
-#+LATEX_HEADER: \titlespacing\subsection{0pt}{5pt}{-2pt} % left margin, space before subsection header, space after subsection header
-#+LATEX_HEADER: \titlespacing\subsubsection{0pt}{5pt}{-2pt} % left margin, space before subsection header, space after subsection header
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \usepackage{setspace}
+#+LATEX_HEADER: \setstretch{1.45}     % Line height
+#+LATEX_HEADER: \usepackage[skip=0.8em, indent=1.5em]{parskip} % Tab width, space between paragraphs
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \usepackage{graphicx}       % In case we need images
+#+LATEX_HEADER: \usepackage{hyperref}       % Links/PDF stuff
+#+LATEX_HEADER: \usepackage[normalem]{ulem} % Underlines
+#+LATEX_HEADER: 
 #+LATEX_HEADER: \usepackage{enumitem}
-#+LATEX_HEADER: \setlist{itemsep=-2pt} % or \setlist{noitemsep} to leave space around whole list
-
-Stuff to make speech easier
-#+LATEX_HEADER: \usepackage{marginnote} % Margin notes
-#+LATEX_HEADER: \renewcommand*\marginfont{\footnotesize}
+#+LATEX_HEADER: \setlist{itemsep=-10pt} % List spacing
+#+LATEX_HEADER: 
+#+LATEX_HEADER: % Speech-specific niceties -----------
+#+LATEX_HEADER: \usepackage{marginnote}                       % Margin notes
+#+LATEX_HEADER: \renewcommand*\marginfont{\footnotesize}      % Margin note fontsize
+#+LATEX_HEADER: \renewcommand*{\thepage}{\Large\arabic{page}} % Page number size
 #+LATEX_HEADER: \usepackage{fwlw}
-#+LATEX_HEADER: \pagestyle{NextWordFoot} % Puts first word of next page on bottom of sheet
+#+LATEX_HEADER: \pagestyle{NextWordFoot} % First word of next page on footer
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \newcommand{\jbreak}{\noindent \dotfill} % Put in a \jbreak for a nice horizontal dotted line
+#+LATEX_HEADER: 
+#+LATEX_HEADER: % end jake-speech.sty
