@@ -1,3 +1,5 @@
 .DS_Store
 bookmarks
 jake-emacs/private.el
+lisp/
+org/setupfiles_latex/jake-latex-*

@@ -12,8 +12,6 @@
 :PROPERTIES:
 :VISIBILITY: all
 :END:
-+ Update speaking time counter to use subtree like ap/count words @
-+ Update org pdf function to use ap forward to content
 
 * Meta
 This file contains my Emacs configuration. I have roughly ordered the org headings in order of importance/reliability. For example, misc packages is loaded last as I try new stuff there. Keyboard section is also important as if there's error I feel comfortable enough to go fix it.
@@ -181,7 +179,7 @@ Pretty sure this isn't the proper way to do it and that I should be using ~exec-
 #+END_SRC
 
 * General configuration
-General configurations and optimizations/better defaults. Much of this is from Doom Emacs.
+General configurations and optimizations/better defaults.
 #+BEGIN_SRC emacs-lisp 
   (server-start)
 
@@ -332,12 +330,12 @@ General configurations and optimizations/better defaults. Much of this is from D
 
 * Keyboard
 ** Mac Configuration/Compatibility
-Use ~command~ as ~meta~ in macOS. Disable option (aka alt). Keep control ctrl. Right command turns into super (s-), and right control becomes hyper (H-). Finally, make escape quit on the first press (rather than 3, as I think it would be otherwise).
+Use ~command~ (⌘) as ~meta~ in macOS. Disable option (aka alt). Keep control ctrl. Right command turns into super (s-), and right control becomes hyper (H-). Finally, make escape quit on the first press (rather than 3, as I think it would be otherwise).
 
 Goes to early-init so if I have an error in my init I have keybinds I am used to.
 #+BEGIN_SRC emacs-lisp :tangle ./early-init.el
   (setq mac-command-modifier       'meta
-        mac-option-modifier        nil
+        mac-option-modifier         nil
         mac-control-modifier       'control
         mac-right-command-modifier 'super
         mac-right-control-modifier 'hyper)
@@ -556,12 +554,12 @@ it along with :keymaps 'override when you need to override other stuff
 #+BEGIN_SRC emacs-lisp 
   ;; Toggles
   "t" '(nil :which-key "toggles")
-  "tT" '(toggle-truncate-lines :which-key "truncate lines")
+  "tt" '(toggle-truncate-lines :which-key "truncate lines")
   "tv" '(visual-line-mode :which-key "visual line mode")
   "tn" '(display-line-numbers-mode :which-key "display line numbers")
   "ta" '(mixed-pitch-mode :which-key "variable pitch mode")
   "tc" '(visual-fill-column-mode :which-key "visual fill column mode")
-  "tt" '(counsel-load-theme :which-key "load theme")
+  "ty" '(counsel-load-theme :which-key "load theme")
   "tw" '(writeroom-mode :which-key "writeroom-mode")
   "tR" '(read-only-mode :which-key "read only mode")
   "tI" '(toggle-input-method :which-key "toggle input method")
@@ -584,30 +582,6 @@ it along with :keymaps 'override when you need to override other stuff
   "wk" '(evil-window-up :which-key "evil-window-up")
   "wz" '(text-scale-adjust :which-key "text zoom")
   ) ;; End SPC prefix block
-#+END_SRC
-*** Emacs-Lisp Mode ~,~ Bindings
-Sets up my comma leader key for elisp mode. Has functions like
-evaluating areas and checking parenthesis.
-#+BEGIN_SRC emacs-lisp 
-  (general-def
-    :prefix ","
-    :states 'motion
-    :keymaps 'emacs-lisp-mode-map
-    "" nil
-    "e" '(nil :which-key "eval")
-    "es" '(eval-last-sexp :which-key "eval-sexp")
-    "er" '(eval-region :which-key "eval-region")
-    "eb" '(eval-buffer :which-key "eval-buffer")
-
-
-    "g" '(counsel-imenu :which-key "imenu")
-    "c" '(check-parens :which-key "check parens")
-    "I" '(indent-region :which-key "indent-region")
-
-    "b" '(nil :which-key "org src")
-    "bc" 'org-edit-src-abort
-    "bb" 'org-edit-src-exit
-    )
 #+END_SRC
 *** All-mode keybindings
 Below are general keybindings for the various Evil modes.
@@ -675,8 +649,8 @@ Below are general keybindings for the various Evil modes.
     "gC" 'comment-line
     "j" 'evil-next-visual-line ;; I prefer visual line navigation
     "k" 'evil-previous-visual-line ;; ""
-    "|" '(lambda () (interactive) (org-agenda nil "n")) ;; Opens my n custom org-super-agenda view
-    "C-|" '(lambda () (interactive) (org-agenda nil "m")) ;; Opens my m custom org-super-agenda view
+    "|" '(lambda () (interactive) (org-agenda nil "k")) ;; Opens my n custom org-super-agenda view
+    "C-|" '(lambda () (interactive) (org-agenda nil "j")) ;; Opens my m custom org-super-agenda view
     )
 #+END_SRC
 *** Insert mode keymaps (bringing Emacs binds to Evil)
@@ -709,7 +683,7 @@ you want to run a function without doing anything else.
     ;; ("r" (set-face-attribute 'variable-pitch nil :font "Roboto" :weight 'medium :height 160) "Roboto")
     ("n" (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 160 :width 'normal :foundry "nil" :family "Nunito") "Nunito")
     )
-  
+
   (defhydra jb-hydra-theme-switcher (:hint nil)
     "
        Dark                ^Light^
@@ -724,6 +698,7 @@ you want to run a function without doing anything else.
   _8_ peacock              ^
   _9_ jake-plain-dark      ^
   _0_ monokai-machine      ^
+  _-_ xcode                ^
   _q_ quit                 ^
   ^                        ^
   "
@@ -739,6 +714,7 @@ you want to run a function without doing anything else.
     ("8" (jib/load-theme 'doom-peacock) "peacock")
     ("9" (jib/load-theme 'jake-doom-plain-dark) "jake-plain-dark")
     ("0" (jib/load-theme 'doom-monokai-machine) "monokai-machine")
+    ("-" (jib/load-theme 'doom-xcode) "xcode")
 
     ;; Light
     ("z" (jib/load-theme 'doom-one-light) "one-light")
@@ -751,6 +727,8 @@ you want to run a function without doing anything else.
   ;; I think I need to initialize windresize to use its commands
   ;;(windresize)
   ;;(windresize-exit)
+
+  (use-package windresize)
 
   ;; All-in-one window managment. Makes use of some custom functions,
   ;; `ace-window' (for swapping), `windmove' (could probably be replaced
@@ -836,7 +814,7 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
     (company-tooltip ((t (:family "Roboto Mono")))))
 #+END_SRC
 *** Ivy
-#+BEGIN_SRC emacs-lisp 
+#+BEGIN_SRC emacs-lisp
   (use-package ivy
     :diminish ivy-mode
     :config
@@ -878,7 +856,7 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
 
 #+END_SRC
 *** Counsel
-#+BEGIN_SRC emacs-lisp 
+#+BEGIN_SRC emacs-lisp
   (use-package counsel
     :config
     (setq default-directory jib/home)
@@ -906,7 +884,7 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
     )
 #+END_SRC
 *** Prescient
-#+BEGIN_SRC emacs-lisp 
+#+BEGIN_SRC emacs-lisp
   (use-package prescient
     :config
     (setq-default history-length 1000)
@@ -1099,7 +1077,9 @@ More obvious/easy to use undo and redo.
   (set-face-attribute 'fixed-pitch nil :font "Roboto Mono" :weight 'regular :height 1.0)
 
   ;; Height of 160 seems to match perfectly with 12-point on Google Docs
-  (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160)
+  ;; (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160)
+
+  (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 160 :width 'normal :foundry "nil" :family "Nunito")
   #+END_SRC
 *** mixed-pitch
 A better version of variable-pitch mode. This keeps certain faces (defined in ~mixed-pitch-fixed-pitch-faces~) fixed-pitch.
@@ -1125,7 +1105,6 @@ A better version of variable-pitch mode. This keeps certain faces (defined in ~m
     :commands (hide-mode-line-mode))
 
   (use-package doom-modeline
-    :ensure nil
     :config
     (doom-modeline-mode)
     (setq doom-modeline-buffer-file-name-style 'auto ;; Just show file name (no path)
@@ -1134,10 +1113,8 @@ A better version of variable-pitch mode. This keeps certain faces (defined in ~m
           doom-modeline-icon t ;; Enable/disable all icons
           doom-modeline-modal-icon nil ;; Icon for Evil mode
           doom-modeline-major-mode-icon t
-          doom-modeline-major-mode-color-icon t
+          doom-modeline-major-mode-color-icon nil
           doom-modeline-bar-width 3))
-
-  (use-package shrink-path) ;; dependency for doom-modeline (remove this once i fix doom modeline problems)
 
   ;; Configure modeline text height based on the computer I'm on.
   ;; These variables are used in the Themes section to ensure the modeline
@@ -1148,7 +1125,7 @@ A better version of variable-pitch mode. This keeps certain faces (defined in ~m
 
   (if (eq jib/computer 'laptop)
       (setq doom-modeline-height 25) ;; If laptop
-    (setq doom-modeline-height 1))  ;; If desktop
+    (setq doom-modeline-height 28))  ;; If desktop
 #+END_SRC
 ** Window features
 *** Window
@@ -1185,9 +1162,9 @@ Hides scroll, toolbar. Goes to the early-init.el.
   ;; This makes the Aqua titlebar color the same as Emacs.
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 #+END_SRC
-** Theme & Icons
+** Themes & Icons
 #+BEGIN_SRC emacs-lisp 
-  (use-package all-the-icons) 
+  (use-package all-the-icons)
 
   (use-package doom-themes
     :after mixed-pitch
@@ -1217,7 +1194,7 @@ Hides scroll, toolbar. Goes to the early-init.el.
 
   (use-package modus-themes
     :init
-    (setq modus-themes-italic-constructs t
+    (setq modus-themes-italic-constructs nil
           modus-themes-bold-constructs t
           modus-themes-region '(bg-only no-extend)
           modus-themes-hl-line '(intense) ;; accented or intense
@@ -1230,7 +1207,8 @@ Hides scroll, toolbar. Goes to the early-init.el.
     (setq modus-themes-headings
           (quote ((1 . (variable-pitch 1.1))
                   (2 . (variable-pitch))
-                  (t . (monochrome)))))
+                  (3 . (variable-pitch))
+                  (4 . (variable-pitch)))))
     (modus-themes-load-themes)
     :custom-face
     (org-ellipsis ((t (:height 0.8 :inherit 'shadow))))
@@ -1571,9 +1549,8 @@ just a single keypress (after the ~,~).
    "itt" '(org-table-create :which-key "create table")
    "itl" '(org-table-insert-hline :which-key "table hline")
 
-   "il" '(nil :which-key "link")
-   "ill" '(org-insert-link :which-key "org-insert-link")
-   "ilh" '(counsel-org-link :which-key "counsel-org-link")
+   "il" '(org-insert-link :which-key "org-insert-link")
+   "iL" '(counsel-org-link :which-key "counsel-org-link")
 
    "is" '(nil :which-key "insert stamp")
    "iss" '((lambda () (interactive) (call-interactively (org-time-stamp-inactive))) :which-key "org-time-stamp-inactive")
@@ -1877,7 +1854,7 @@ My favorite part.
                                          :order 20)))
 
   (add-to-list 'org-agenda-custom-commands
-               '("n" "Super zaen view"
+               '("k" "Super zaen view"
                  ((agenda "" ((org-agenda-span 'day) (org-agenda-overriding-header "Today's Agenda:")
                               (org-super-agenda-groups '(
                                                          (:name "Schedule"
@@ -1899,7 +1876,7 @@ My favorite part.
                  ))
 
   (add-to-list 'org-agenda-custom-commands
-               '("m" "Agendaless Super zaen view"
+               '("j" "Agendaless Super zaen view"
                  ((alltodo "" ((org-agenda-overriding-header "Agendaless Todo View")
                                (org-super-agenda-groups (push '(:name "Today's Tasks" ;; jib-org-super-agenda-school-groups, with this added on
                                                                       :scheduled today
@@ -1955,6 +1932,12 @@ Note for when I need it: [[https://www.reddit.com/r/orgmode/comments/ur3gfh/dyna
         '(
           ("n" "CPB Note" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
            "** Note: %? @ %U" :empty-lines 0 :refile-targets (("~/Dropbox/org/cpb.org" :maxlevel . 8)))
+
+          ("m" "CPB Note Clipboard" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
+           "** Note: %(simpleclip-get-contents) %? @ %U" :empty-lines 0 :refile-targets (("~/Dropbox/org/cpb.org" :maxlevel . 8)))
+
+          ("l" "CPB Web Link Get Title" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
+           "** [[%(simpleclip-get-contents)][%(jib/www-get-page-title (simpleclip-get-contents))]] @ %U" :empty-lines 0 :refile-targets (("~/Dropbox/org/cpb.org" :maxlevel . 8)))
 
           ("j" "Journal")
 
@@ -2089,6 +2072,28 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
                         "k" 'xwidget-webkit-scroll-down-line
                         "gg" 'xwidget-webkit-scroll-top
                         "G" 'xwidget-webkit-scroll-bottom))
+
+  (use-package mw-thesaurus
+    :defer t
+    :config
+    (add-hook 'mw-thesaurus-mode-hook (lambda () (define-key evil-normal-state-local-map (kbd "q") 'mw-thesaurus--quit))))
+
+  (use-package ansi-term
+    :ensure nil
+    :general
+    (:keymaps 'term-mode-map
+              "<up>" 'term-previous-input
+              "<down>" 'term-next-input))
+
+  ;; https://github.com/oantolin/epithet
+  (use-package epithet
+    :ensure nil
+    :config
+    (add-hook 'Info-selection-hook #'epithet-rename-buffer)
+    (add-hook 'help-mode-hook #'epithet-rename-buffer))
+
+  ;; https://github.com/udyantw/most-used-words
+  (use-package most-used-words :ensure nil)
 #+END_SRC
 ** Deft
 #+BEGIN_SRC emacs-lisp 
@@ -2226,19 +2231,11 @@ Mu4e configuration is in ~private.el~.
     (mu4e-views-mu4e-use-view-msg-method "html") ;; select the default
     )
 #+END_SRC
-** Mw-thesaurus
-#+BEGIN_SRC emacs-lisp 
-  (use-package mw-thesaurus
-    :defer t
-    :config
-    ;; Binds q to quit in mw-thesaurus
-    (add-hook 'mw-thesaurus-mode-hook (lambda () (define-key evil-normal-state-local-map (kbd "q") 'mw-thesaurus--quit))))
-#+END_SRC
 ** Pdf-Tools
 #+BEGIN_SRC emacs-lisp 
   (use-package pdf-tools
     :defer t
-    :pin manual
+    :pin melpa 
     :mode  ("\\.pdf\\'" . pdf-view-mode)
     :config
     (pdf-loader-install)
@@ -2355,4 +2352,29 @@ Mu4e configuration is in ~private.el~.
     "i" '(web-mode-buffer-indent :which-key "web mode indent")
     "c" '(web-mode-fold-or-unfold :which-key "web mode toggle fold")
     ))
+#+END_SRC
+*** emacs-lisp-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package emacs-lisp-mode
+    :ensure nil
+    :general
+    (general-define-key
+     :prefix ","
+     :states 'motion
+     :keymaps 'emacs-lisp-mode-map
+     "" nil
+     "e" '(nil :which-key "eval")
+     "es" '(eval-last-sexp :which-key "eval-sexp")
+     "er" '(eval-region :which-key "eval-region")
+     "eb" '(eval-buffer :which-key "eval-buffer")
+
+     "g" '(counsel-imenu :which-key "imenu")
+     "c" '(check-parens :which-key "check parens")
+     "I" '(indent-region :which-key "indent-region")
+
+     "b" '(nil :which-key "org src")
+     "bc" 'org-edit-src-abort
+     "bb" 'org-edit-src-exit
+     )
+    )
 #+END_SRC

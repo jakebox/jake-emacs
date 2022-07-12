@@ -141,6 +141,17 @@ If the universal prefix argument is used then will the windows too."
          (buffer-substring (region-beginning) (region-end))
        (read-string "Google: "))))))
 
+;; https://lists.gnu.org/archive/html/help-gnu-emacs/2010-07/msg00291.html
+(defun jib/www-get-page-title (url)
+  (let ((title))
+    (with-current-buffer (url-retrieve-synchronously url)
+      (goto-char (point-min))
+      (re-search-forward "<title>\\([^<]*\\)</title>" nil t 1)
+      (setq title (match-string 1))
+      (goto-char (point-min))
+      (re-search-forward "charset=\\([-0-9a-zA-Z]*\\)" nil t 1)
+      (decode-coding-string title (intern (match-string 1))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Text Editing/Text Automation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -149,9 +160,10 @@ If the universal prefix argument is used then will the windows too."
 (defun jib/copy-whole-buffer-to-clipboard ()
   "Copy entire buffer to clipboard"
   (interactive)
-  (mark-whole-buffer)
-  (simpleclip-copy (point-min) (point-max))
-  (deactivate-mark))
+  (save-excursion
+	(mark-whole-buffer)
+	(simpleclip-copy (point-min) (point-max))
+	(deactivate-mark)))
 
 (defun jib/emacs-clipboard-to-system-clipboard ()
   "Set system clipboard to contents of Emacs kill ring."
@@ -322,12 +334,11 @@ If run with universal argument C-u, insert org options to make export very plain
 		   ((eq use-header t)
 			(insert "#+TITLE: " org-section-title)
 			(org-next-visible-heading 1)
-			(kill-line)
-			;; (set-mark-command nil)
-			;; (re-search-forward ":END:")
-			;; (delete-region (region-beginning) (region-end))
-			) ;; if this, delete the top level heading (so the first suhead becomes the first section head)
-		   ((eq use-header nil) (insert "#+TITLE: " inputted-title))
+			(set-mark-command nil)
+			(ap/org-forward-to-entry-content)
+			(delete-region (region-beginning) (region-end))
+			) ;; if this, delete the top level heading and its properties drawer (so the first suhead becomes the first section head)
+		   ((eq use-header nil) (insert "#+TITLE: " inputted-title)) ;; If you want a title that's not the section header, just use what was input
 		   (t (insert ""))
 		   )
 		)

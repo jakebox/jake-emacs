@@ -417,12 +417,12 @@
 
 ;; Toggles
 "t" '(nil :which-key "toggles")
-"tT" '(toggle-truncate-lines :which-key "truncate lines")
+"tt" '(toggle-truncate-lines :which-key "truncate lines")
 "tv" '(visual-line-mode :which-key "visual line mode")
 "tn" '(display-line-numbers-mode :which-key "display line numbers")
 "ta" '(mixed-pitch-mode :which-key "variable pitch mode")
 "tc" '(visual-fill-column-mode :which-key "visual fill column mode")
-"tt" '(counsel-load-theme :which-key "load theme")
+"ty" '(counsel-load-theme :which-key "load theme")
 "tw" '(writeroom-mode :which-key "writeroom-mode")
 "tR" '(read-only-mode :which-key "read only mode")
 "tI" '(toggle-input-method :which-key "toggle input method")
@@ -443,26 +443,6 @@
 "wk" '(evil-window-up :which-key "evil-window-up")
 "wz" '(text-scale-adjust :which-key "text zoom")
 ) ;; End SPC prefix block
-
-(general-def
-  :prefix ","
-  :states 'motion
-  :keymaps 'emacs-lisp-mode-map
-  "" nil
-  "e" '(nil :which-key "eval")
-  "es" '(eval-last-sexp :which-key "eval-sexp")
-  "er" '(eval-region :which-key "eval-region")
-  "eb" '(eval-buffer :which-key "eval-buffer")
-
-
-  "g" '(counsel-imenu :which-key "imenu")
-  "c" '(check-parens :which-key "check parens")
-  "I" '(indent-region :which-key "indent-region")
-
-  "b" '(nil :which-key "org src")
-  "bc" 'org-edit-src-abort
-  "bb" 'org-edit-src-exit
-  )
 
 ;; All-mode keymaps
 (general-def
@@ -525,8 +505,8 @@
   "gC" 'comment-line
   "j" 'evil-next-visual-line ;; I prefer visual line navigation
   "k" 'evil-previous-visual-line ;; ""
-  "|" '(lambda () (interactive) (org-agenda nil "n")) ;; Opens my n custom org-super-agenda view
-  "C-|" '(lambda () (interactive) (org-agenda nil "m")) ;; Opens my m custom org-super-agenda view
+  "|" '(lambda () (interactive) (org-agenda nil "k")) ;; Opens my n custom org-super-agenda view
+  "C-|" '(lambda () (interactive) (org-agenda nil "j")) ;; Opens my m custom org-super-agenda view
   )
 
 ;; Insert keymaps
@@ -568,6 +548,7 @@ _7_ kaolin-galaxy        ^
 _8_ peacock              ^
 _9_ jake-plain-dark      ^
 _0_ monokai-machine      ^
+_-_ xcode                ^
 _q_ quit                 ^
 ^                        ^
 "
@@ -583,6 +564,7 @@ _q_ quit                 ^
   ("8" (jib/load-theme 'doom-peacock) "peacock")
   ("9" (jib/load-theme 'jake-doom-plain-dark) "jake-plain-dark")
   ("0" (jib/load-theme 'doom-monokai-machine) "monokai-machine")
+  ("-" (jib/load-theme 'doom-xcode) "xcode")
 
   ;; Light
   ("z" (jib/load-theme 'doom-one-light) "one-light")
@@ -595,6 +577,8 @@ _q_ quit                 ^
 ;; I think I need to initialize windresize to use its commands
 ;;(windresize)
 ;;(windresize-exit)
+
+(use-package windresize)
 
 ;; All-in-one window managment. Makes use of some custom functions,
 ;; `ace-window' (for swapping), `windmove' (could probably be replaced
@@ -906,7 +890,9 @@ _q_uit          _e_qualize        _]_forward     ^
 (set-face-attribute 'fixed-pitch nil :font "Roboto Mono" :weight 'regular :height 1.0)
 
 ;; Height of 160 seems to match perfectly with 12-point on Google Docs
-(set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160)
+;; (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160)
+
+(set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 160 :width 'normal :foundry "nil" :family "Nunito")
 
 (use-package mixed-pitch
   :defer t
@@ -927,7 +913,6 @@ _q_uit          _e_qualize        _]_forward     ^
   :commands (hide-mode-line-mode))
 
 (use-package doom-modeline
-  :ensure nil
   :config
   (doom-modeline-mode)
   (setq doom-modeline-buffer-file-name-style 'auto ;; Just show file name (no path)
@@ -936,10 +921,8 @@ _q_uit          _e_qualize        _]_forward     ^
         doom-modeline-icon t ;; Enable/disable all icons
         doom-modeline-modal-icon nil ;; Icon for Evil mode
         doom-modeline-major-mode-icon t
-        doom-modeline-major-mode-color-icon t
+        doom-modeline-major-mode-color-icon nil
         doom-modeline-bar-width 3))
-
-(use-package shrink-path) ;; dependency for doom-modeline (remove this once i fix doom modeline problems)
 
 ;; Configure modeline text height based on the computer I'm on.
 ;; These variables are used in the Themes section to ensure the modeline
@@ -950,7 +933,7 @@ _q_uit          _e_qualize        _]_forward     ^
 
 (if (eq jib/computer 'laptop)
     (setq doom-modeline-height 25) ;; If laptop
-  (setq doom-modeline-height 1))  ;; If desktop
+  (setq doom-modeline-height 28))  ;; If desktop
 
 ;; Window's initial size and a bit of border
 (if (eq jib/computer 'laptop)
@@ -970,7 +953,7 @@ _q_uit          _e_qualize        _]_forward     ^
 
 ;; (frame-parameter nil 'left)
 
-(use-package all-the-icons) 
+(use-package all-the-icons)
 
 (use-package doom-themes
   :after mixed-pitch
@@ -1000,7 +983,7 @@ _q_uit          _e_qualize        _]_forward     ^
 
 (use-package modus-themes
   :init
-  (setq modus-themes-italic-constructs t
+  (setq modus-themes-italic-constructs nil
         modus-themes-bold-constructs t
         modus-themes-region '(bg-only no-extend)
         modus-themes-hl-line '(intense) ;; accented or intense
@@ -1013,7 +996,8 @@ _q_uit          _e_qualize        _]_forward     ^
   (setq modus-themes-headings
         (quote ((1 . (variable-pitch 1.1))
                 (2 . (variable-pitch))
-                (t . (monochrome)))))
+                (3 . (variable-pitch))
+                (4 . (variable-pitch)))))
   (modus-themes-load-themes)
   :custom-face
   (org-ellipsis ((t (:height 0.8 :inherit 'shadow))))
@@ -1297,9 +1281,8 @@ _q_uit          _e_qualize        _]_forward     ^
  "itt" '(org-table-create :which-key "create table")
  "itl" '(org-table-insert-hline :which-key "table hline")
 
- "il" '(nil :which-key "link")
- "ill" '(org-insert-link :which-key "org-insert-link")
- "ilh" '(counsel-org-link :which-key "counsel-org-link")
+ "il" '(org-insert-link :which-key "org-insert-link")
+ "iL" '(counsel-org-link :which-key "counsel-org-link")
 
  "is" '(nil :which-key "insert stamp")
  "iss" '((lambda () (interactive) (call-interactively (org-time-stamp-inactive))) :which-key "org-time-stamp-inactive")
@@ -1569,7 +1552,7 @@ _q_uit          _e_qualize        _]_forward     ^
                                        :order 20)))
 
 (add-to-list 'org-agenda-custom-commands
-             '("n" "Super zaen view"
+             '("k" "Super zaen view"
                ((agenda "" ((org-agenda-span 'day) (org-agenda-overriding-header "Today's Agenda:")
                             (org-super-agenda-groups '(
                                                        (:name "Schedule"
@@ -1591,7 +1574,7 @@ _q_uit          _e_qualize        _]_forward     ^
                ))
 
 (add-to-list 'org-agenda-custom-commands
-             '("m" "Agendaless Super zaen view"
+             '("j" "Agendaless Super zaen view"
                ((alltodo "" ((org-agenda-overriding-header "Agendaless Todo View")
                              (org-super-agenda-groups (push '(:name "Today's Tasks" ;; jib-org-super-agenda-school-groups, with this added on
                                                                     :scheduled today
@@ -1617,6 +1600,12 @@ _q_uit          _e_qualize        _]_forward     ^
       '(
         ("n" "CPB Note" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
          "** Note: %? @ %U" :empty-lines 0 :refile-targets (("~/Dropbox/org/cpb.org" :maxlevel . 8)))
+
+        ("m" "CPB Note Clipboard" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
+         "** Note: %(simpleclip-get-contents) %? @ %U" :empty-lines 0 :refile-targets (("~/Dropbox/org/cpb.org" :maxlevel . 8)))
+
+        ("l" "CPB Web Link Get Title" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
+         "** [[%(simpleclip-get-contents)][%(jib/www-get-page-title (simpleclip-get-contents))]] @ %U" :empty-lines 0 :refile-targets (("~/Dropbox/org/cpb.org" :maxlevel . 8)))
 
         ("j" "Journal")
 
@@ -1741,6 +1730,28 @@ org-attach-use-inheritance t)
                       "gg" 'xwidget-webkit-scroll-top
                       "G" 'xwidget-webkit-scroll-bottom))
 
+(use-package mw-thesaurus
+  :defer t
+  :config
+  (add-hook 'mw-thesaurus-mode-hook (lambda () (define-key evil-normal-state-local-map (kbd "q") 'mw-thesaurus--quit))))
+
+(use-package ansi-term
+  :ensure nil
+  :general
+  (:keymaps 'term-mode-map
+            "<up>" 'term-previous-input
+            "<down>" 'term-next-input))
+
+;; https://github.com/oantolin/epithet
+(use-package epithet
+  :ensure nil
+  :config
+  (add-hook 'Info-selection-hook #'epithet-rename-buffer)
+  (add-hook 'help-mode-hook #'epithet-rename-buffer))
+
+;; https://github.com/udyantw/most-used-words
+(use-package most-used-words :ensure nil)
+
 (defun jib/deft-kill ()
   (kill-buffer "*Deft*"))
 
@@ -1826,15 +1837,9 @@ org-attach-use-inheritance t)
   (add-to-list 'company-backends 'company-auctex)
   (company-auctex-init))
 
-(use-package mw-thesaurus
-  :defer t
-  :config
-  ;; Binds q to quit in mw-thesaurus
-  (add-hook 'mw-thesaurus-mode-hook (lambda () (define-key evil-normal-state-local-map (kbd "q") 'mw-thesaurus--quit))))
-
 (use-package pdf-tools
   :defer t
-  :pin manual
+  :pin melpa 
   :mode  ("\\.pdf\\'" . pdf-view-mode)
   :config
   (pdf-loader-install)
@@ -1942,3 +1947,26 @@ org-attach-use-inheritance t)
   "i" '(web-mode-buffer-indent :which-key "web mode indent")
   "c" '(web-mode-fold-or-unfold :which-key "web mode toggle fold")
   ))
+
+(use-package emacs-lisp-mode
+  :ensure nil
+  :general
+  (general-define-key
+   :prefix ","
+   :states 'motion
+   :keymaps 'emacs-lisp-mode-map
+   "" nil
+   "e" '(nil :which-key "eval")
+   "es" '(eval-last-sexp :which-key "eval-sexp")
+   "er" '(eval-region :which-key "eval-region")
+   "eb" '(eval-buffer :which-key "eval-buffer")
+
+   "g" '(counsel-imenu :which-key "imenu")
+   "c" '(check-parens :which-key "check parens")
+   "I" '(indent-region :which-key "indent-region")
+
+   "b" '(nil :which-key "org src")
+   "bc" 'org-edit-src-abort
+   "bb" 'org-edit-src-exit
+   )
+  )

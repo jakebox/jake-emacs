@@ -28,7 +28,7 @@
 (setq inhibit-compacting-font-caches t)
 
 (setq mac-command-modifier       'meta
-      mac-option-modifier        nil
+      mac-option-modifier         nil
       mac-control-modifier       'control
       mac-right-command-modifier 'super
       mac-right-control-modifier 'hyper)
