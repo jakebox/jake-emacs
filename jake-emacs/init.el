@@ -414,6 +414,8 @@
 "xC" '(jib/copy-whole-buffer-to-clipboard :which-key "copy whole buffer to clipboard")
 "xr" '(anzu-query-replace :which-key "find and replace")
 "xs" '(yas-insert-snippet :which-key "insert yasnippet")
+"xf" '(flush-lines :which-key "flush-lines")
+"xR" '(replace-regexp :which-key "replace-regexp")
 
 ;; Toggles
 "t" '(nil :which-key "toggles")
@@ -491,11 +493,6 @@
   "s-6" 'org-capture
   )
 
-(general-def
- :keymaps 'emacs
-  "C-w C-q" 'kill-this-buffer
- )
-
 ;; Non-insert mode keymaps
 (general-def
   :states '(normal visual motion)
@@ -507,6 +504,7 @@
   "k" 'evil-previous-visual-line ;; ""
   "|" '(lambda () (interactive) (org-agenda nil "k")) ;; Opens my n custom org-super-agenda view
   "C-|" '(lambda () (interactive) (org-agenda nil "j")) ;; Opens my m custom org-super-agenda view
+  "gf" 'xah-open-file-at-cursor
   )
 
 ;; Insert keymaps
@@ -520,6 +518,11 @@
   "C-n" 'evil-next-visual-line
   "C-p" 'evil-previous-visual-line
   )
+
+(general-def
+ :keymaps 'emacs
+  "C-w C-q" 'kill-this-buffer
+ )
 
 (use-package hydra
   :defer t)
@@ -628,34 +631,62 @@ _q_uit          _e_qualize        _]_forward     ^
 
    ("q" nil))
 
-(use-package company
-  :diminish company-mode
+(use-package corfu
   :general
-  (general-define-key :keymaps 'company-active-map
-                      "C-j" 'company-select-next
-                      "C-k" 'company-select-previous)
+  (:keymaps 'corfu-map
+            :states 'insert
+            "C-n" 'corfu-next
+            "C-p" 'corfu-previous
+            "C-j" 'corfu-next
+            "C-k" 'corfu-previous
+            "RET" 'corfu-complete
+            "<escape>" 'corfu-quit
+            )
   :init
-  ;; These configurations come from Doom Emacs:
-  (add-hook 'after-init-hook 'global-company-mode)
-  (setq company-minimum-prefix-length 2
-        company-tooltip-limit 14
-        company-tooltip-align-annotations t
-        company-require-match 'never
-        company-global-modes '(not erc-mode message-mode help-mode gud-mode)
-        company-frontends
-        '(company-pseudo-tooltip-frontend  ; always show candidates in overlay tooltip
-          company-echo-metadata-frontend)  ; show selected candidate docs in echo area
-        company-backends '(company-capf company-files company-keywords)
-        company-auto-complete nil
-        company-auto-complete-chars nil
-        company-dabbrev-other-buffers nil
-        company-dabbrev-ignore-case nil
-        company-dabbrev-downcase nil)
-
+  (global-corfu-mode)
   :config
-  (setq company-idle-delay 0.35)
-  :custom-face
-  (company-tooltip ((t (:family "Roboto Mono")))))
+  (setq corfu-auto t
+        corfu-echo-documentation t
+        corfu-scroll-margin 0
+        corfu-count 8
+        corfu-max-width 50
+        corfu-min-width corfu-max-width
+        corfu-auto-prefix 2)
+
+  ;; Make evil and corfu play nice
+  (evil-make-overriding-map corfu-map)
+  (advice-add 'corfu--setup :after 'evil-normalize-keymaps)
+  (advice-add 'corfu--teardown :after 'evil-normalize-keymaps)
+
+  (corfu-history-mode 1)
+  (savehist-mode 1)
+  (add-to-list 'savehist-additional-variables 'corfu-history)
+
+  ;; https://kristofferbalintona.me/posts/202202270056/
+  (defun corfu-enable-always-in-minibuffer ()
+    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
+    (unless (or (bound-and-true-p mct--active) ; Useful if I ever use MCT
+                (bound-and-true-p vertico--input))
+      (setq-local corfu-auto nil)       ; Ensure auto completion is disabled
+      (corfu-mode 1)))
+  (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
+
+  )
+
+(use-package cape
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-keyword))
+
+(use-package kind-icon
+  :config
+  (setq kind-icon-default-face 'corfu-default)
+  (setq kind-icon-default-style '(:padding 0 :stroke 0 :margin 0 :radius 0 :height 0.9 :scale 1))
+  (setq kind-icon-blend-frac 0.08)
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter)
+  (add-hook 'counsel-load-theme #'(lambda () (interactive) (kind-icon-reset-cache)))
+  (add-hook 'load-theme         #'(lambda () (interactive) (kind-icon-reset-cache))))
 
 (use-package ivy
   :diminish ivy-mode
@@ -664,8 +695,10 @@ _q_uit          _e_qualize        _]_forward     ^
   (setq ivy-initial-inputs-alist nil) ;; Removes the ^ in ivy searches
   (if (eq jib/computer 'laptop)
       (setq-default ivy-height 10)
-    (setq-default ivy-height 15))
+    (setq-default ivy-height 11))
   (setq ivy-fixed-height-minibuffer t)
+  (add-to-list 'ivy-height-alist '(counsel-M-x . 7)) ;; Don't need so many lines for M-x, I usually know what command I want
+
   (ivy-mode 1)
 
   ;; Shows a preview of the face in counsel-describe-face
@@ -717,6 +750,11 @@ _q_uit          _e_qualize        _]_forward     ^
                (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
 
   (setq-default counsel--fzf-dir jib/home)
+
+  ;; Use fd
+  (setq find-program "fd")
+  (setq counsel-file-jump-args (split-string "-L --type f -H")) ;; follow symlinks, files, show hidden
+
   :general
   (general-define-key :keymaps 'counsel-find-file-map
                       "C-c f" 'counsel-file-jump-from-find) ;; when in counsel-find-file, run this to search the whole directory recursively
@@ -733,15 +771,15 @@ _q_uit          _e_qualize        _]_forward     ^
   :after ivy
   :config
   ;; don't prescient sort these commands
-  (dolist (command '(org-ql-view counsel-find-file))
+  (dolist (command '(org-ql-view counsel-find-file fontaine-set-preset))
     (setq ivy-prescient-sort-commands (append ivy-prescient-sort-commands (list command))))
   (ivy-prescient-mode +1))
 
-(use-package company-prescient
-  :defer 2
-  :after company
-  :config
-  (company-prescient-mode +1))
+;; (use-package company-prescient
+;;   :defer 2
+;;   :after company
+;;   :config
+;;   (company-prescient-mode +1))
 
 (use-package smartparens
   :diminish smartparens-mode
@@ -1206,8 +1244,7 @@ _q_uit          _e_qualize        _]_forward     ^
   "t" 'org-todo
   "<return>" 'org-open-at-point-global
   "K" 'org-shiftup
-  "J" 'org-shiftdown
-  )
+  "J" 'org-shiftdown)
 
 (general-def
   :states 'insert
@@ -1215,14 +1252,13 @@ _q_uit          _e_qualize        _]_forward     ^
   "C-o" 'evil-org-open-above)
 
 (general-def
-  :states '(normal insert emacs)
   :keymaps 'org-mode-map
   "M-[" 'org-metaleft
   "M-]" 'org-metaright
   "C-M-=" 'ap/org-count-words
   "s-r" 'org-refile
   "M-k" 'org-insert-link
-  )
+  "C-c t" 'jib/org-done-keep-todo)
 
 ;; Org-src - when editing an org source block
 (general-def
@@ -1231,8 +1267,7 @@ _q_uit          _e_qualize        _]_forward     ^
   :keymaps 'org-src-mode-map
   "b" '(nil :which-key "org src")
   "bc" 'org-edit-src-abort
-  "bb" 'org-edit-src-exit
-  )
+  "bb" 'org-edit-src-exit)
 
 (general-define-key
  :prefix ","
@@ -1244,7 +1279,7 @@ _q_uit          _e_qualize        _]_forward     ^
  "6" '(org-sort :which-key "sort")
  "c" '(org-capture :which-key "org-capture")
  "s" '(org-schedule :which-key "schedule")
- "S" '(jib/org-schedule-tomorrow :which-key "schedule")
+ "S" '(jib/org-schedule-tomorrow :which-key "schedule tmrw")
  "d" '(org-deadline :which-key "deadline")
  "g" '(counsel-org-goto :which-key "goto heading")
  "t" '(counsel-org-tag :which-key "set tags")
@@ -1282,6 +1317,7 @@ _q_uit          _e_qualize        _]_forward     ^
  "itl" '(org-table-insert-hline :which-key "table hline")
 
  "il" '(org-insert-link :which-key "org-insert-link")
+ "l" '(org-insert-link :which-key "org-insert-link") ;; More convenient access
  "iL" '(counsel-org-link :which-key "counsel-org-link")
 
  "is" '(nil :which-key "insert stamp")
@@ -1599,52 +1635,35 @@ _q_uit          _e_qualize        _]_forward     ^
 (setq org-capture-templates
       '(
         ("n" "CPB Note" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
-         "** Note: %? @ %U" :empty-lines 0 :refile-targets (("~/Dropbox/org/cpb.org" :maxlevel . 8)))
+         "** NOTE: %? @ %U"        :empty-lines 0 :refile-targets (("~/Dropbox/org/cpb.org" :maxlevel . 8)))
 
-        ("m" "CPB Note Clipboard" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
-         "** Note: %(simpleclip-get-contents) %? @ %U" :empty-lines 0 :refile-targets (("~/Dropbox/org/cpb.org" :maxlevel . 8)))
+        ("i" "CPB Idea" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
+         "** IDEA: %? @ %U :idea:" :empty-lines 0 :refile-targets (("~/Dropbox/org/cpb.org" :maxlevel . 8)))
 
-        ("l" "CPB Web Link Get Title" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
+        ("m" "CPB Note Clipboard")
+
+        ("mm" "Paste clipboard" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
+         "** NOTE: %(simpleclip-get-contents) %? @ %U" :empty-lines 0 :refile-targets (("~/Dropbox/org/cpb.org" :maxlevel . 8)))
+
+        ("ml" "Create link and fetch title" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
          "** [[%(simpleclip-get-contents)][%(jib/www-get-page-title (simpleclip-get-contents))]] @ %U" :empty-lines 0 :refile-targets (("~/Dropbox/org/cpb.org" :maxlevel . 8)))
 
-        ("j" "Journal")
-
-        ;; WIP
-        ("jr" "Reflection" entry (file "~/Dropbox/org/journal.org")
-"* %U
-** What did I learn?\n%?
-** How was I challenged?\n
-** What do I need to let go of?\n
-** What can I improve tomorrow?\n
-** Did I accomplish everything I wanted to accomplish today? Why or why not?\n
-** What is one important lesson that I learned today?\n
-** What could I have done today to avoid making the mistakes that I made?\n
-** What do I need to remind myself of?\n
-** What are the best things that happened today?\n
-** What do I have to look forward to?\n
-** What positive concrete things can I try tomorrow?\n
-** What do I have to be proud of?\n
-** Two things I am grateful for lately\n
-"
-)
-
-
         ("w" "Work Todo Entries")
-            ("we" "No Time" entry (file "~/Dropbox/org/work.org")
-             "** %^{Type|HW|READ|TODO|PROJ} %^{Todo title} %?" :prepend t :empty-lines-before 0
-             :refile-targets (("~/Dropbox/org/work.org" :maxlevel . 2)))
+        ("we" "No Time" entry (file "~/Dropbox/org/work.org")
+         "** %^{Type|HW|READ|TODO|PROJ} %^{Todo title} %?" :prepend t :empty-lines-before 0
+         :refile-targets (("~/Dropbox/org/work.org" :maxlevel . 2)))
 
-            ("ws" "Scheduled" entry (file "~/Dropbox/org/work.org")
-             "** %^{Type|HW|READ|TODO|PROJ} %^{Todo title}\nSCHEDULED: %^t%?" :prepend t :empty-lines-before 0
-             :refile-targets (("~/Dropbox/org/work.org" :maxlevel . 2)))
+        ("ws" "Scheduled" entry (file "~/Dropbox/org/work.org")
+         "** %^{Type|HW|READ|TODO|PROJ} %^{Todo title}\nSCHEDULED: %^t%?" :prepend t :empty-lines-before 0
+         :refile-targets (("~/Dropbox/org/work.org" :maxlevel . 2)))
 
-            ("wd" "Deadline" entry (file "~/Dropbox/org/work.org")
-             "** %^{Type|HW|READ|TODO|PROJ} %^{Todo title}\nDEADLINE: %^t%?" :prepend t :empty-lines-before 0
-             :refile-targets (("~/Dropbox/org/work.org" :maxlevel . 2)))
+        ("wd" "Deadline" entry (file "~/Dropbox/org/work.org")
+         "** %^{Type|HW|READ|TODO|PROJ} %^{Todo title}\nDEADLINE: %^t%?" :prepend t :empty-lines-before 0
+         :refile-targets (("~/Dropbox/org/work.org" :maxlevel . 2)))
 
-            ("ww" "Scheduled & deadline" entry (file "~/Dropbox/org/work.org")
-             "** %^{Type|HW|READ|TODO|PROJ} %^{Todo title}\nSCHEDULED: %^t DEADLINE: %^t %?" :prepend t :empty-lines-before 0
-             :refile-targets (("~/Dropbox/org/work.org" :maxlevel . 2)))
+        ("ww" "Scheduled & deadline" entry (file "~/Dropbox/org/work.org")
+         "** %^{Type|HW|READ|TODO|PROJ} %^{Todo title}\nSCHEDULED: %^t DEADLINE: %^t %?" :prepend t :empty-lines-before 0
+         :refile-targets (("~/Dropbox/org/work.org" :maxlevel . 2)))
 
         ))
 
@@ -1831,15 +1850,18 @@ org-attach-use-inheritance t)
 
 (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer) ;; Standard way
 
-(use-package company-auctex
-  :after auctex
-  :init
-  (add-to-list 'company-backends 'company-auctex)
-  (company-auctex-init))
+;; (use-package company-auctex
+;;   :after auctex
+;;   :init
+;;   (add-to-list 'company-backends 'company-auctex)
+;;   (company-auctex-init))
 
 (use-package pdf-tools
   :defer t
-  :pin melpa 
+  ;; stop pdf-tools being automatically updated when I update the
+  ;; rest of my packages, since it would need the installation command and restart
+  ;; each time it updated.
+  :pin manual
   :mode  ("\\.pdf\\'" . pdf-view-mode)
   :config
   (pdf-loader-install)
@@ -1873,6 +1895,8 @@ org-attach-use-inheritance t)
                       "q" 'quit-window
                       "Q" 'kill-this-buffer
                       "g" 'revert-buffer
+
+                      "C-s" 'isearch-forward
                       )
   )
 
