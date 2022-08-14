@@ -4,7 +4,7 @@
 # --
 #+TITLE: ${1:title}
 #+AUTHOR: Jake B
-#+DATE: `(let ((x (org-insert-time-stamp nil nil t ))))`
+#+DATE: `(format-time-string "%b %d %Y")`
 :PROPERTIES:
 #+OPTIONS:
 :END:

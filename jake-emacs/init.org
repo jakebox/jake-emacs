@@ -187,35 +187,23 @@ General configurations and optimizations/better defaults.
   (winner-mode 1)
 
   ;; INTERACTION -----
-
-  ;; When emacs asks for "yes" or "no", let "y" or "n" suffice
-  (setq use-short-answers t)
-
-  ;; Confirm to quit
-  (setq confirm-kill-emacs 'yes-or-no-p)
-
-  ;; Major mode of new buffers
-  (setq initial-major-mode 'org-mode)
+  (setq use-short-answers t) ;; When emacs asks for "yes" or "no", let "y" or "n" suffice
+  (setq confirm-kill-emacs 'yes-or-no-p) ;; Confirm to quit
+  (setq initial-major-mode 'org-mode ;; Major mode of new buffers
+        initial-scratch-message ""
+        initial-buffer-choice t) ;; Blank scratch buffer
 
   ;; WINDOW -----------
-
-  ;; Don't resize the frames in steps; it looks weird, especially in tiling window
-  ;; managers, where it can leave unseemly gaps.
   (setq frame-resize-pixelwise t)
-
-  ;; When opening a file (like double click) on Mac, use an existing frame
-  (setq ns-pop-up-frames nil)
-
-  ;; But do not resize windows pixelwise, this can cause crashes in some cases
-  ;; where we resize windows too quickly.
+  (setq ns-pop-up-frames nil) ;; When opening a file (like double click) on Mac, use an existing frame
   (setq window-resize-pixelwise nil)
+  (setq split-width-threshold 80) ;; How thin the window should be to stop splitting vertically (I think)
 
   ;; LINES -----------
   (setq-default truncate-lines t)
-
   (setq-default tab-width 4)
-
   (setq-default fill-column 80)
+  (setq line-move-visual t) ;; C-p, C-n, etc uses visual lines
 
   (use-package paren
     ;; highlight matching delimiters
@@ -227,38 +215,26 @@ General configurations and optimizations/better defaults.
           show-paren-when-point-in-periphery t)
     (show-paren-mode 1))
 
-
   (setq sentence-end-double-space nil) ;; Sentences end with one space
 
   (setq bookmark-fontify nil)
 
   ;; SCROLLING ---------
-  ;; (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control) . nil)))
   (setq scroll-conservatively 101)
-
-
   (setq
-   ;; If the frame contains multiple windows, scroll the one under the cursor
-   ;; instead of the one that currently has keyboard focus.
    mouse-wheel-follow-mouse 't
-   ;; Completely disable mouse wheel acceleration to avoid speeding away.
    mouse-wheel-progressive-speed nil
    ;; The most important setting of all! Make each scroll-event move 2 lines at
    ;; a time (instead of 5 at default). Simply hold down shift to move twice as
    ;; fast, or hold down control to move 3x as fast. Perfect for trackpads.
    mouse-wheel-scroll-amount '(2 ((shift) . 4) ((control) . 6)))
-
-  ;; sane trackpad/mouse scroll settings (doom)
-  (setq mac-redisplay-dont-reset-vscroll t
+  (setq mac-redisplay-dont-reset-vscroll t ;; sane trackpad/mouse scroll settings (doom)
         mac-mouse-wheel-smooth-scroll nil)
 
+  ;; BELL/WARNING ------------
   (setq visible-bell nil) ;; Make it ring (so no visible bell) (default)
   (setq ring-bell-function 'ignore) ;; BUT ignore it, so we see and hear nothing
 
-  (setq line-move-visual t) ;; C-p, C-n, etc uses visual lines
-
-  ;; Blank scratch buffer
-  (setq initial-scratch-message "")
 
   ;; Uses system trash rather than deleting forever
   (setq trash-directory (concat jib/home ".Trash"))
@@ -294,8 +270,7 @@ General configurations and optimizations/better defaults.
     (setq ;;recentf-auto-cleanup 'never
      ;; recentf-max-menu-items 0
      recentf-max-saved-items 200)
-    ;; Show home folder path as a ~
-    (setq recentf-filename-handlers  
+    (setq recentf-filename-handlers ;; Show home folder path as a ~
           (append '(abbreviate-file-name) recentf-filename-handlers))
     (recentf-mode))
 
@@ -310,7 +285,6 @@ General configurations and optimizations/better defaults.
 
   (setq default-input-method "spanish-postfix") ;; When I need to type in Spanish (switch with C-\)
 
-
   (setq blink-cursor-interval 0.6)
   (blink-cursor-mode 0)
 
@@ -321,9 +295,6 @@ General configurations and optimizations/better defaults.
   ;; Weird thing where `list-colors-display` doesn't show all colors.
   ;; https://bug-gnu-emacs.gnu.narkive.com/Bo6OdySs/bug-5683-23-1-93-list-colors-display-doesn-t-show-all-colors
   (setq x-colors (ns-list-colors))
-
-  ;; How thin the window should be to stop splitting vertically (I think)
-  (setq split-width-threshold 80)
 
   (setq dired-kill-when-opening-new-dired-buffer t)
 #+END_SRC
@@ -376,7 +347,6 @@ Example of how to override evil-collection: ~(evil-collection-define-key 'normal
 
     ;; ----- Keybindings
     ;; I tried using evil-define-key for these. Didn't work.
-    ;; (define-key evil-motion-state-map "/" 'swiper)
     (define-key evil-window-map "\C-q" 'evil-delete-buffer) ;; Maps C-w C-q to evil-delete-buffer (The first C-w puts you into evil-window-map)
     (define-key evil-window-map "\C-w" 'kill-this-buffer)
     (define-key evil-motion-state-map "\C-b" 'evil-scroll-up) ;; Makes C-b how C-u is
@@ -612,8 +582,6 @@ Below are general keybindings for the various Evil modes.
     "M-c" 'simpleclip-copy
     "M-u" 'capitalize-dwim ;; Default is upcase-dwim
     "M-U" 'upcase-dwim ;; M-S-u (switch upcase and capitalize)
-    "M-z" 'undo-fu-only-undo
-    "M-S" 'undo-fu-only-redo
 
     ;; Utility ------
     "C-c c" 'org-capture
@@ -621,8 +589,8 @@ Below are general keybindings for the various Evil modes.
     "C-s" 'swiper ;; Large files will use grep (faster)
     "s-\"" 'ispell-word ;; that's super-shift-'
     "M-+" 'jib/calc-speaking-time
+    "M-=" 'count-words
     "C-'" 'avy-goto-char-2
-
     "C-x C-b" 'bufler-list
 
     ;; super-number functions
@@ -650,6 +618,11 @@ Below are general keybindings for the various Evil modes.
     "C-|" '(lambda () (interactive) (org-agenda nil "j")) ;; Opens my m custom org-super-agenda view
     "gf" 'xah-open-file-at-cursor
     )
+
+  (general-def
+    :states 'motion
+    :keymaps 'override
+    "s" 'swiper)
 #+END_SRC
 *** Insert mode keymaps
 #+BEGIN_SRC emacs-lisp 
@@ -821,16 +794,6 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
 *** Corfu (+ extensions)
 #+BEGIN_SRC emacs-lisp
   (use-package corfu
-    :general
-    (:keymaps 'corfu-map
-              :states 'insert
-              "C-n" 'corfu-next
-              "C-p" 'corfu-previous
-              "C-j" 'corfu-next
-              "C-k" 'corfu-previous
-              "RET" 'corfu-complete
-              "<escape>" 'corfu-quit
-              )
     :init
     (global-corfu-mode)
     :config
@@ -842,7 +805,7 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
           corfu-min-width corfu-max-width
           corfu-auto-prefix 2)
 
-    ;; Make evil and corfu play nice
+    ;; Make Evil and Corfu play nice
     (evil-make-overriding-map corfu-map)
     (advice-add 'corfu--setup :after 'evil-normalize-keymaps)
     (advice-add 'corfu--teardown :after 'evil-normalize-keymaps)
@@ -851,20 +814,24 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
     (savehist-mode 1)
     (add-to-list 'savehist-additional-variables 'corfu-history)
 
-    ;; https://kristofferbalintona.me/posts/202202270056/
     (defun corfu-enable-always-in-minibuffer ()
-      "Enable Corfu in the minibuffer if Vertico/Mct are not active."
-      (unless (or (bound-and-true-p mct--active) ; Useful if I ever use MCT
-                  (bound-and-true-p vertico--input))
-        (setq-local corfu-auto nil)       ; Ensure auto completion is disabled
-        (corfu-mode 1)))
+      (setq-local corfu-auto nil)
+      (corfu-mode 1))
     (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
 
-    )
+    :general
+    (:keymaps 'corfu-map
+              :states 'insert
+              "C-n" 'corfu-next
+              "C-p" 'corfu-previous
+              "C-j" 'corfu-next
+              "C-k" 'corfu-previous
+              "RET" 'corfu-complete
+              "<escape>" 'corfu-quit
+              ))
 
   (use-package cape
     :init
-    ;; Add `completion-at-point-functions', used by `completion-at-point'.
     (add-to-list 'completion-at-point-functions #'cape-file)
     (add-to-list 'completion-at-point-functions #'cape-keyword))
 
@@ -919,7 +886,6 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
     (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
     :config
     (ivy-rich-mode 1))
-
 #+END_SRC
 *** Counsel
 #+BEGIN_SRC emacs-lisp
@@ -1029,7 +995,6 @@ Enable Flyspell (spellchecking) in these modes. Requires ~aspell~ to be installe
   (use-package flyspell
     :defer t
     :config
-
     (add-to-list 'ispell-skip-region-alist '("~" "~"))
     (add-to-list 'ispell-skip-region-alist '("=" "="))
     (add-to-list 'ispell-skip-region-alist '("^#\\+BEGIN_SRC" . "^#\\+END_SRC"))
@@ -1067,17 +1032,12 @@ Enable Flyspell (spellchecking) in these modes. Requires ~aspell~ to be installe
 #+END_SRC
 ** Clipboard (simpleclip)
 #+BEGIN_SRC emacs-lisp 
-  (use-package simpleclip
-    :config
-    (simpleclip-mode 1))
+  (use-package simpleclip :config (simpleclip-mode 1))
 
   ;; Allows pasting in minibuffer with M-v
-  (add-hook 'minibuffer-setup-hook 'jib/paste-in-minibuffer)
-
-  ;; From http://blog.binchen.org/posts/the-reliable-way-to-access-system-clipboard-from-emacs.html
-  ;; Uses simpleclip
   (defun jib/paste-in-minibuffer ()
     (local-set-key (kbd "M-v") 'simpleclip-paste))
+  (add-hook 'minibuffer-setup-hook 'jib/paste-in-minibuffer)
 #+END_SRC
 ** Undo/Redo (undofu)
 More obvious/easy to use undo and redo.
@@ -1101,7 +1061,6 @@ More obvious/easy to use undo and redo.
   ;; the save message just sitting in the echo area.
   (defun jib-clear-echo-area-timer ()
     (run-at-time "2 sec" nil (lambda () (message " "))))
-
   (advice-add 'super-save-command :after 'jib-clear-echo-area-timer)
 #+END_SRC
 ** Saveplace
@@ -1119,9 +1078,7 @@ More obvious/easy to use undo and redo.
     (setq yas-snippet-dirs (list (expand-file-name "snippets" jib/emacs-stuff)))
     (yas-global-mode 1)) ;; or M-x yas-reload-all if you've started YASnippet already.
 
-
   ;; Silences the warning when running a snippet with backticks (runs a command in the snippet)
-  ;; I use backtick commands to get the date for org snippets
   (require 'warnings)
   (add-to-list 'warning-suppress-types '(yasnippet backquote-change)) 
 #+END_SRC
@@ -1170,7 +1127,7 @@ A better version of variable-pitch mode. This keeps certain faces (defined in ~m
   (line-number-mode)
   (column-number-mode)
   (display-time-mode -1)
-  (size-indication-mode 1)
+  (size-indication-mode 0)
 
   (use-package hide-mode-line
     :commands (hide-mode-line-mode))
@@ -1178,8 +1135,8 @@ A better version of variable-pitch mode. This keeps certain faces (defined in ~m
   (use-package doom-modeline
     :config
     (doom-modeline-mode)
-    (setq doom-modeline-buffer-file-name-style 'auto ;; Just show file name (no path)
-          doom-modeline-enable-word-count t
+    (setq doom-modeline-buffer-file-name-style 'relative-from-project ;; Just show file name (no path)
+          doom-modeline-enable-word-count nil
           doom-modeline-buffer-encoding nil
           doom-modeline-icon t ;; Enable/disable all icons
           doom-modeline-modal-icon nil ;; Icon for Evil mode
@@ -1198,15 +1155,14 @@ A better version of variable-pitch mode. This keeps certain faces (defined in ~m
       (setq doom-modeline-height 25) ;; If laptop
     (setq doom-modeline-height 28))  ;; If desktop
 #+END_SRC
-** Window features
-*** Window
+** Frame
+*** Frame
+Set a frame's initial size and a bit of border
 #+BEGIN_SRC emacs-lisp 
-  ;; Window's initial size and a bit of border
   (if (eq jib/computer 'laptop)
       (setq default-frame-alist '((left . 150)
                                   (width . 120)
                                   (fullscreen . fullheight)
-                                  ;; (vertical-scroll-bars . nil) ;; Think this isn't needed
                                   (internal-border-width . 8))))
 
   (if (eq jib/computer 'desktop)
@@ -1216,10 +1172,8 @@ A better version of variable-pitch mode. This keeps certain faces (defined in ~m
                                   (height . 53)
                                   (fullscreen . fullheight)
                                   (internal-border-width . 8))))
-
-  ;; (frame-parameter nil 'left)
 #+END_SRC
-*** Default Emacs features
+*** Default Emacs frame features
 Hides scroll, toolbar. Goes to the early-init.el.
 #+BEGIN_SRC emacs-lisp :tangle ./early-init.el
   ;; Window configuration
@@ -1275,6 +1229,7 @@ Hides scroll, toolbar. Goes to the early-init.el.
 
     ;; (setq modus-themes-headings ;; Makes org headings more colorful
     ;;       '((t . (rainbow))))
+  
     (setq modus-themes-headings
           (quote ((1 . (variable-pitch 1.1))
                   (2 . (variable-pitch))
@@ -1307,49 +1262,6 @@ The way I've configured line numbers is they are on by default, and then in spec
   (add-hook 'prog-mode-hook 'hl-line-mode)
   (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 #+END_SRC
-** DISABLED Dashboard
-*Disabled [2022-05-26 Thu] --- I never use it, why have it?*
-
-Uses [[https://github.com/emacs-dashboard/emacs-dashboard]].
-#+BEGIN_SRC emacs-lisp 
-  (setq initial-buffer-choice t)
-
-  (use-package dashboard
-    :disabled t
-    :init
-    (add-hook 'after-init-hook 'dashboard-refresh-buffer)
-    (add-hook 'dashboard-mode-hook 'hide-mode-line-mode)
-    :hook (on-first-file . (lambda () (kill-buffer "*dashboard*")))
-    :config
-    (setq dashboard-items '(
-                            ;; (bookmarks  . 5)
-                            ;; (recents . 6)
-                            (registers . 14)))
-
-    ;; Header, footer, messages
-    (setq dashboard-banner-logo-title "Welcome to Emacs!")
-    (setq dashboard-footer-messages '(""))
-    (setq dashboard-footer-icon (all-the-icons-octicon "zap"
-                                                       :height 0.00001
-                                                       :v-adjust -0.05
-                                                       :face 'font-lock-keyword-face))
-    (setq dashboard-startup-banner 'logo)
-    ;; (setq dashboard-startup-banner '"~/Dropbox/Mackup/emacs-stuff/banner.txt")
-    ;; General config
-    (setq dashboard-center-content t
-          dashboard-set-heading-icons nil
-          dashboard-set-file-icons nil
-          dashboard-week-agenda nil
-          dashboard-center-content t
-          dashboard-set-init-info nil
-          dashboard-set-navigator t
-          dashboard-items-default-length 30
-          dashboard-page-separator "\n\n")
-    (dashboard-setup-startup-hook)
-    :general
-    (general-define-key :keymaps 'dashboard-mode-map
-                        "e" nil))
-#+END_SRC
 ** Writeroom + Visual-Fill-Column
 Visual fill column centers the buffer and limits the width. Writeroom is a nicer writing enviroment. Usually I activate ~writeroom-mode~ as it activates ~visual-fill-column-mode~.
 #+BEGIN_SRC emacs-lisp 
@@ -1366,19 +1278,15 @@ Visual fill column centers the buffer and limits the width. Writeroom is a nicer
           writeroom-header-line "" ;; Makes sure we have a header line, that's blank
           writeroom-mode-line t
           writeroom-global-effects nil) ;; No need to have Writeroom do any of that silly stuff
-    (setq writeroom-width 70)
-    ;; (add-hook 'writeroom-mode-hook (lambda () (setq-local line-spacing 10)))
-    )
+    (setq writeroom-width 100))
 #+END_SRC
 ** Presentation Mode
 Mode for giving presentations, filming videos, etc. Bigger font, larger spacing, smaller Ivy.
 #+BEGIN_SRC emacs-lisp 
   (defun my-presentation-on ()
     (setq jib-default-line-spacing 3)
-
     (setq-default line-spacing jib-default-line-spacing)
     (setq-local line-spacing jib-default-line-spacing)
-
     (setq ivy-height 6))
 
   (defun my-presentation-off ()
@@ -1394,17 +1302,7 @@ Mode for giving presentations, filming videos, etc. Bigger font, larger spacing,
       (setq presentation-default-text-scale 5)
     (setq presentation-default-text-scale 5))
 
-  (use-package presentation
-    :defer t)
-#+END_SRC
-** Misc
-#+BEGIN_SRC emacs-lisp 
-  (defun jib/pulse-area (&rest _)
-    "Pulse +-5 chars of point."
-    (pulse-momentary-highlight-region (- (point) 5) (+ 5 (point))))
-
-  (dolist (command '(org-forward-sentence org-backward-sentence))
-    (advice-add command :after #'pulse-area))
+  (use-package presentation :defer t)
 #+END_SRC
 
 * Org-mode
@@ -1415,7 +1313,10 @@ Mode for giving presentations, filming videos, etc. Bigger font, larger spacing,
     :after org
     :config
     (setq org-super-agenda-header-map nil) ;; takes over 'j'
-    (setq org-super-agenda-header-prefix " ◦ ") ;; There are some unicode "THIN SPACE"s after the ◦
+    (setq org-super-agenda-header-prefix "◦ ") ;; There are some unicode "THIN SPACE"s after the ◦
+    ;; Hide the thin width char glyph. This is dramatic but lets me not be annoyed
+    (add-hook 'org-agenda-mode-hook
+              #'(lambda () (setq-local nobreak-char-display nil)))
     (org-super-agenda-mode))
 #+END_SRC
 *** Org-superstar
@@ -1456,29 +1357,24 @@ Mode for giving presentations, filming videos, etc. Bigger font, larger spacing,
   (use-package org-gcal
     :defer t
     :config
-    (setq org-gcal-down-days '20) ;; Only fetch events 20 days into the future
-    (setq org-gcal-up-days '10) ;; Only fetch events 10 days into the past
-    (setq org-gcal-recurring-events-mode 'top-level)
-    (setq org-gcal-remove-api-cancelled-events t) ;; No prompt when deleting removed events
-
+    (setq org-gcal-down-days '20					;; Only fetch events 20 days into the future
+          org-gcal-up-days '10					;; Only fetch events 10 days into the past
+          org-gcal-recurring-events-mode 'top-level
+          org-gcal-remove-api-cancelled-events t) ;; No prompt when deleting removed events
     ;; NOTE - org-gcal ids and calendar configuation is set in 'private.el' for sake of security/privacy.
     )
 #+END_SRC
-*** DISABLED Org-appear
+*** Org-appear
 #+BEGIN_SRC emacs-lisp 
   (use-package org-appear
     :commands (org-appear-mode)
     :hook (org-mode . org-appear-mode)
     :init
-    (setq org-hide-emphasis-markers t) ;; A default setting that needs to be t for org-appear
-
-    (setq org-appear-autoemphasis t)  ;; Enable org-appear on emphasis (bold, italics, etc)
-    (setq org-appear-autolinks nil) ;; Don't enable on links
-    (setq org-appear-autosubmarkers t)) ;; Enable on subscript and superscript
+    (setq org-hide-emphasis-markers t		;; A default setting that needs to be t for org-appear
+          org-appear-autoemphasis t		;; Enable org-appear on emphasis (bold, italics, etc)
+          org-appear-autolinks nil		;; Don't enable on links
+          org-appear-autosubmarkers t))	;; Enable on subscript and superscript
 #+END_SRC
-#+LATEX_HEADER: \input{/Users/jake/Dropbox/files/systems/LaTeX/jake-lab.sty}
-#+LATEX_HEADER: \let\mytitle\thetitle
-
 *** Org-reveal
 #+BEGIN_SRC emacs-lisp 
   (use-package ox-reveal
@@ -1490,19 +1386,20 @@ Mode for giving presentations, filming videos, etc. Bigger font, larger spacing,
 
   (eval-after-load 'org
     '(org-load-modules-maybe t))
-#+END_SRC
+  #+END_SRC
 *** org-ql
 Note in case I forget: I set org-ql-view to /not/ be sorted by ~prescient.el~. See [[Prescient]].
 #+BEGIN_SRC emacs-lisp 
   (use-package org-ql
+    :defer t
     :general
     (general-define-key :keymaps 'org-ql-view-map
                         "q" 'kill-buffer-and-window)
     )
 #+END_SRC
 *** org-preview-html
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package org-preview-html-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package org-preview-html
     :defer t
     :config
     (setq org-preview-html-viewer 'xwidget))
@@ -1522,18 +1419,6 @@ Note in case I forget: I set org-ql-view to /not/ be sorted by ~prescient.el~. S
     :config
     (setq org-download-method 'attach)
     (advice-add 'org-download-yank :before 'jib/system-clipboard-to-emacs-clipboard))
-#+END_SRC
-*** DISABLED org-prettify-tags
-CLOSED: [2021-10-12 Tue 08:54]
-#+BEGIN_SRC emacs-lisp 
-  ;; (use-package org-pretty-tags
-  ;;   :config
-  ;;   (setq org-pretty-tags-surrogate-strings
-  ;;         (quote
-  ;;          (("bv" . "")
-  ;;           ("sp" . "")
-  ;;           ("security" . "🔥"))))
-  ;;   (org-pretty-tags-global-mode))
 #+END_SRC
 ** Org Bindings
 #+BEGIN_SRC emacs-lisp 
@@ -1592,6 +1477,7 @@ just a single keypress (after the ~,~).
    "B" '(org-toggle-narrow-to-subtree :which-key "toggle narrow to subtree")
    "v" '(jib/org-set-startup-visibility :which-key "startup visibility")
    "H" '(org-html-convert-region-to-html :which-key "convert region to html")
+   "C" '(jib/org-copy-link-to-clipboard :which-key "copy link to clipboard")
 
    "1" '(org-toggle-link-display :which-key "toggle link display")
    "2" '(org-toggle-inline-images :which-key "toggle images")
@@ -1659,23 +1545,12 @@ just a single keypress (after the ~,~).
 #+END_SRC
 ** Org Custom Startup Functions
 *** Org Font Setup
-Titles get bigger, drawers are smaller, done checkboxes turn green. Also setting stuff to always be fixed-pitch.
 #+BEGIN_SRC emacs-lisp 
   (defun jib/org-font-setup ()
-    ;; (set-face-attribute 'org-document-title nil :height 1.1) ;; Bigger titles, smaller drawers
     (set-face-attribute 'org-checkbox-statistics-done nil :inherit 'org-done :foreground "green3") ;; Makes org done checkboxes green
-    ;; (set-face-attribute 'org-drawer nil :inherit 'fixed-pitch :inherit 'shadow :height 0.6 :foreground nil) ;; Makes org-drawer way smaller
-    ;; (set-face-attribute 'org-ellipsis nil :inherit 'shadow :height 0.8) ;; Makes org-ellipsis shadow (blends in better)
     (set-face-attribute 'org-scheduled-today nil :weight 'normal) ;; Removes bold from org-scheduled-today
     (set-face-attribute 'org-super-agenda-header nil :inherit 'org-agenda-structure :weight 'bold) ;; Bolds org-super-agenda headers
     (set-face-attribute 'org-scheduled-previously nil :background "red") ;; Bolds org-super-agenda headers
-
-    ;; Here I set things that need it to be fixed-pitch, just in case the font I am using isn't monospace.
-    ;; (dolist (face '(org-list-dt org-tag org-todo org-table org-checkbox org-priority org-date org-verbatim org-special-keyword))
-    ;;   (set-face-attribute `,face nil :inherit 'fixed-pitch))
-
-    ;; (dolist (face '(org-code org-verbatim org-meta-line))
-    ;;   (set-face-attribute `,face nil :inherit 'shadow :inherit 'fixed-pitch))
     )
 #+END_SRC
 *** Org Prettify Function
@@ -1685,14 +1560,9 @@ Moved to ~jib-funcs.el~. For some reason org-babel source blocks mess up some of
   (defun jib/org-setup ()
     (org-indent-mode) ;; Keeps org items like text under headings, lists, nicely indented
     (visual-line-mode 1) ;; Nice line wrapping
-
     (centered-cursor-mode)
-
     (smartparens-mode 0)
-
-    ;; (setq header-line-format "") ;; Empty header line, basically adds a blank line on top
-    (setq-local line-spacing (+ jib-default-line-spacing 1))
-    )
+    (setq-local line-spacing (+ jib-default-line-spacing 1)))
 #+END_SRC
 
 ** Org Mode Config
@@ -1711,7 +1581,7 @@ Moved to ~jib-funcs.el~. For some reason org-babel source blocks mess up some of
 The following is org-mode configuration.
 *** Visuals
 #+BEGIN_SRC emacs-lisp 
-  (setq org-ellipsis " ⬎ ") ;; ⤵ ▼
+  (setq org-ellipsis "  ⬎ ") ;; ⤵ ▼
   (setq org-src-fontify-natively t) ;; Syntax highlighting in org src blocks
   (setq org-highlight-latex-and-related '(native)) ;; Highlight inline LaTeX
   (setq org-startup-folded 'show2levels) ;; Org files start up folded by default
@@ -1731,8 +1601,8 @@ The following is org-mode configuration.
   ;; Opens links to other org file in same frame (rather than splitting)
   (setq org-link-frame-setup '((file . find-file)))
 
-  (setq org-log-done t)
-  (setq org-log-into-drawer t)
+  (setq org-log-done t
+        org-log-into-drawer t)
 
   ;; Automatically change bullet type when indenting
   ;; Ex: indenting a + makes the bullet a *.
@@ -1750,14 +1620,11 @@ The following is org-mode configuration.
     (let ((current-prefix-arg '(4))) ;; emulate C-u
       (call-interactively 'org-reveal))
     (org-cycle))
-
   (advice-add 'counsel-org-goto :after #'jib/post-counsel-org-goto)
 #+END_SRC
 *** Tags, Todos, Priorities
 **** Tags
 #+BEGIN_SRC emacs-lisp 
-  (setq counsel-org-tags '("qp" "ec" "st")) ;; Quick-picks, extracurricular, short-term
-
   (setq org-tag-faces '(
                         ("Misc" . "tan1")
                         ("qp" . "RosyBrown1") ;; Quick-picks
@@ -1765,9 +1632,6 @@ The following is org-mode configuration.
                         ("st" . "DimGrey") ;; Near-future (aka short term) todo
                         ))
 
-  ;; (add-to-list 'org-tag-faces '("tag" . "IndianRed2")) ;; maybe for future use
-
-  ;; (setq org-tags-column -64)
   (setq org-tags-column 1)
   #+END_SRC
 **** Todos
@@ -1784,7 +1648,6 @@ The following is org-mode configuration.
                                  ("CONTACT" nil :foreground "LightSalmon2" :inherit fixed-pitch :weight medium)
                                  ("READ" nil :foreground "MediumPurple3" :inherit fixed-pitch :weight medium)
                                  ("PROJ" nil :foreground "aquamarine3" :inherit fixed-pitch :weight medium)
-
                                  ("INPROG-TODO" nil :foreground "orange1" :inherit fixed-pitch :weight medium)
 
                                  ("DONE" nil :foreground "LawnGreen" :inherit fixed-pitch :weight medium)
@@ -1793,7 +1656,7 @@ The following is org-mode configuration.
 **** Priorities
 #+BEGIN_SRC emacs-lisp 
   (setq org-lowest-priority ?F)  ;; Gives us priorities A through F
-  (setq org-default-priority ?E) ;; If an item has no priority, it is considered [#D].
+  (setq org-default-priority ?E) ;; If an item has no priority, it is considered [#E].
 
   (setq org-priority-faces
         '((65 nil :inherit fixed-pitch :foreground "red2" :weight medium)
@@ -1814,7 +1677,7 @@ The following is org-mode configuration.
      (gnuplot . t)
      ))
 
-  (use-package gnuplot)
+  (use-package gnuplot :defer t)
 
   ;; Don't prompt before running code in org
   (setq org-confirm-babel-evaluate nil)
@@ -1825,12 +1688,12 @@ The following is org-mode configuration.
 #+END_SRC
 *** Org-Habits
 #+BEGIN_SRC emacs-lisp 
-  (setq org-habit-preceding-days 6)
-  (setq org-habit-following-days 6)
-  (setq org-habit-show-habits-only-for-today nil)
-  (setq org-habit-today-glyph ?⍟) ;;‖
-  (setq org-habit-completed-glyph ?✓)
-  (setq org-habit-graph-column 40)
+  (setq org-habit-preceding-days 6
+        org-habit-following-days 6
+        org-habit-show-habits-only-for-today nil
+        org-habit-today-glyph ?⍟ ;;‖
+        org-habit-completed-glyph ?✓
+        org-habit-graph-column 40)
 #+END_SRC
 *** Org-Agenda
 My favorite part.
@@ -1843,36 +1706,26 @@ My favorite part.
   ;; Only show upcoming deadlines for tomorrow or the day after tomorrow. By default it shows
   ;; 14 days into the future, which seems excessive.
   (setq org-deadline-warning-days 2)
-  ;; If something is done, don't show it's deadline
+  ;; If something is done, don't show its deadline
   (setq org-agenda-skip-deadline-if-done t)
   ;; If something is done, don't show when it's scheduled for
   (setq org-agenda-skip-scheduled-if-done t)
   ;; If something is scheduled, don't tell me it is due soon
   (setq org-agenda-skip-deadline-prewarning-if-scheduled t)
 
-
-  (setq org-agenda-timegrid-use-ampm 1)
-
-  ;; (setq org-agenda-time-grid '((daily today require-timed)
-  ;;                              (800 900 1000 1100 1200 1300 1400 1500 1600 1700)
-  ;;                              "        "
-  ;; 							 "----------------"))
-
-  (setq org-agenda-time-grid nil) ;; I've decided to disable the time grid. 2021-09-22.
+  (setq org-agenda-timegrid-use-ampm 1
+        org-agenda-time-grid nil)
 
   (setq org-agenda-block-separator ?-)
   (setq org-agenda-current-time-string "<----------------- Now")
 
-  (setq org-agenda-scheduled-leaders '("" ""))
-  (setq org-agenda-deadline-leaders '("Due:" "Due in %1d day: " "Due %1d d. ago: "))
+  (setq org-agenda-scheduled-leaders '("" "")
+        org-agenda-deadline-leaders '("Due:" "Due in %1d day: " "Due %1d d. ago: "))
 
   (setq org-agenda-prefix-format '((agenda . " %i %-1:i%?-2t% s")
-                                   (todo . "   ")
+                                   (todo . "  ")
                                    (tags . " %i %-12:c")
                                    (search . " %i %-12:c")))
-
-  ;; https://stackoverflow.com/questions/58820073/s-in-org-agenda-prefix-format-doesnt-display-dates-in-the-todo-view
-  ;; something to look into
 #+END_SRC
 
 **** Org Agenda Custom Views
@@ -1956,33 +1809,6 @@ My favorite part.
                )
   ;; Org-super-agenda-mode itself is activated in the use-package block
 #+END_SRC
-**** DISABLED Color blocks in Org Agenda
-This function makes 'blocks' for items/events that have a duration
-greater than 15mins. The size of the block is proportional to its
-duration. It also colors them (randomly, I want to look into coloring
-certain events certain colors -- like "Spanish 4" is always red)using the list of colors below.
-#+BEGIN_SRC emacs-lisp :tangle no
-  (defun jib/org-agenda-time-grid-spacing ()
-    "Set different line spacing w.r.t. time duration."
-    (save-excursion
-      (let ((colors (list "DarkGoldenrod2" "DarkSlateGray2" "OliveDrab3" "indian red" "SkyBlue3" "NavajoWhite2" "SteelBlue4"))
-            pos
-            duration)
-        (nconc colors colors)
-        (goto-char (point-min))
-        (while (setq pos (next-single-property-change (point) 'duration))
-          (goto-char pos)
-          (when (and (not (equal pos (point-at-eol)))
-                     (setq duration (org-get-at-bol 'duration)))
-            (let ((line-height (if (< duration 15) 1.0 (+ 0.5 (/ duration 30))))
-                  (ov (make-overlay (point-at-bol) (1+ (point-at-eol)))))
-              (overlay-put ov 'face `(:background ,(car colors) :foreground "gray10"))
-              (setq colors (cdr colors))
-              (overlay-put ov 'line-height line-height)
-              (overlay-put ov 'line-spacing (1- line-height))))))))
-
-  (add-hook 'org-agenda-finalize-hook #'jib/org-agenda-time-grid-spacing)
-#+END_SRC
 *** Org-Capture
 Note for when I need it: [[https://www.reddit.com/r/orgmode/comments/ur3gfh/dynamic_org_capture_options/?utm_source=share&utm_medium=ios_app&utm_name=iossmf]["Dynamic Org Capture Options" - Reddit]]
 #+BEGIN_SRC emacs-lisp 
@@ -2040,9 +1866,9 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
 #+BEGIN_SRC emacs-lisp 
   (setq org-export-backends '(ascii beamer html latex md odt))
 
-  (setq org-export-with-broken-links t)
-  (setq org-export-with-smart-quotes t)
-  (setq org-export-allow-bind-keywords t)
+  (setq org-export-with-broken-links t
+        org-export-with-smart-quotes t
+        org-export-allow-bind-keywords t)
 
   ;; From https://stackoverflow.com/questions/23297422/org-mode-timestamp-format-when-exported
   (defun org-export-filter-timestamp-remove-brackets (timestamp backend info)
@@ -2067,7 +1893,7 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
     :after ox
     :config
     (setq org-hugo-base-dir "~/Dropbox/Projects/cpb"))
-#+END_SRC
+        #+END_SRC
 **** LaTeX Classes
 #+BEGIN_SRC emacs-lisp 
   (setq org-latex-listings t) ;; Uses listings package for code exports
@@ -2090,14 +1916,14 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
                    ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-  )
+    )
 #+END_SRC
 *** Misc Org Mode
 #+BEGIN_SRC emacs-lisp 
   (setq org-clock-mode-line-total 'current) ;; Show only timer from current clock session in modeline
 
-    (setq org-attach-id-dir ".org-attach/"
-  org-attach-use-inheritance t)
+  (setq org-attach-id-dir ".org-attach/"
+        org-attach-use-inheritance t)
 
 
   ) ;; This parenthesis ends the org use-package.
@@ -2116,6 +1942,9 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
   (use-package reveal-in-osx-finder :commands (reveal-in-osx-finder))
 
   (use-package bufler
+    :config
+    (setq bufler-filter-buffer-modes nil ;; Don't hide so many buffers
+          bufler-filter-buffer-name-regexps nil)
     :general
     (:keymaps 'bufler-list-mode-map "Q" 'kill-this-buffer))
 
@@ -2130,7 +1959,8 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
   (use-package mw-thesaurus
     :defer t
     :config
-    (add-hook 'mw-thesaurus-mode-hook (lambda () (define-key evil-normal-state-local-map (kbd "q") 'mw-thesaurus--quit))))
+    (add-hook 'mw-thesaurus-mode-hook
+              (lambda () (define-key evil-normal-state-local-map (kbd "q") 'mw-thesaurus--quit))))
 
   (use-package ansi-term
     :ensure nil

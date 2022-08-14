@@ -268,8 +268,16 @@ splits the sentence."
 
 (defun jib/org-agenda-caller (letter)
   "Calls a specific org agenda view specified by the letter argument."
-  (interactive)
   (org-agenda nil letter))
+
+(defun jib/org-copy-link-to-clipboard ()
+  "Copy orgmode link to clipboard (simpleclip)."
+  (interactive)
+  (let ((context (org-element-context)))
+	(if (eq (org-element-type context) 'link)
+		(simpleclip-set-contents
+		 (org-element-property :raw-link context))
+	  (user-error "Not a link"))))
 
 (defun jib/org-temp-export-html (&optional arg)
   "Quick, temporary HTML export of org file.
@@ -292,6 +300,21 @@ If run with universal argument C-u, insert org options to make export very plain
 		(jib/open-buffer-file-mac) ;; Use my custom function to open the file (Mac only)
 		(kill-this-buffer)))))
 
+(defun jib/org-export-markdown-to-clipboard (&optional arg)
+  "Copy org to clipboard as markdown.
+If region is active, use region. Otherwise, use entire file."
+  (interactive "P")
+  (save-window-excursion
+	(if (not (use-region-p)) ;; If there is no region active, mark the whole buffer
+		(mark-whole-buffer))
+	(let ((old-buffer (current-buffer)) (beg (region-beginning)) (end (region-end)))
+	  (with-temp-buffer
+		(unless (equal '(4) arg) (insert "#+OPTIONS: toc:nil \n")) ;; Unless run with C-u, don't make a TOC
+		(insert-buffer-substring old-buffer beg end) ;; Insert desired text to export into temp buffer
+		(org-md-export-as-markdown) ;; Export to markdown buffer
+		(jib/copy-whole-buffer-to-clipboard)
+		(kill-this-buffer)))) ;; Kill the markdown buffer
+  (deactivate-mark))
 
 ;; WIP
 (defun jib/org-temp-export-pdf (&optional arg)
@@ -314,7 +337,7 @@ If run with universal argument C-u, insert org options to make export very plain
 
 	  (org-mode)
 	  (yank)
-	  (beginning-of-buffer)
+	  (goto-char (point-min))
 	  (beginning-of-line)
 	  (open-line 1)
 	  
@@ -356,6 +379,7 @@ If run with universal argument C-u, insert org options to make export very plain
   (org-schedule t "+1d"))
 
 (defun jib/org-set-startup-visibility ()
+  "Allows `org-set-startup-visibility' to be used interactively. (it's not an interactive function)"
   (interactive)
   (org-set-startup-visibility))
 
@@ -417,18 +441,18 @@ the todo type was if I look back through my archive files."
 ;; )	
 
 ;; WIP
-(defun jib/tag-search-export ()
-  (interactive)
-  (save-window-excursion
-	(let ((org-agenda-tags-column 0))
-	  (org-ql-search "~/Dropbox/org/cpb.org" '(tags "article") :super-groups '((:auto-outline-path)) :buffer "steve")
-	  (switch-to-buffer "steve")
-	  (read-only-mode 0)
-	  (goto-char (point-min))
-	  (while (search-forward ":article:" nil t) (replace-match ""))
-	  (org-agenda-write "~/Desktop/export.html" nil nil "steve")
-	  (kill-buffer "steve")))
-  )
+;; (defun jib/tag-search-export ()
+;;   (interactive)
+;;   (save-window-excursion
+;; 	(let ((org-agenda-tags-column 0))
+;; 	  (org-ql-search "~/Dropbox/org/cpb.org" '(tags "article") :super-groups '((:auto-outline-path)) :buffer "steve")
+;; 	  (switch-to-buffer "steve")
+;; 	  (read-only-mode 0)
+;; 	  (goto-char (point-min))
+;; 	  (while (search-forward ":article:" nil t) (replace-match ""))
+;; 	  (org-agenda-write "~/Desktop/export.html" nil nil "steve")
+;; 	  (kill-buffer "steve")))
+;;   )
 
 (defmacro spacemacs|org-emphasize (fname char)
   "Make function for setting the emphasis in org mode"

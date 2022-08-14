@@ -17,7 +17,7 @@
 	  :sort
 	  (priority)
 	  :narrow nil :super-groups
-	  ((:auto-outline-path))
+	  ((:auto-parent))
 	  :title "Columbia Todos")
 	 ("Jake Work View No Scheduled" :buffers-files
 	  ("~/Dropbox/org/work.org")
@@ -124,7 +124,7 @@
 	  (deadline)
 	  :narrow nil)))
  '(package-selected-packages
-   '(cape fontaine pdf-tools tablist doom-modeline pyvenv org-super-agenda visual-fill-column evil popper writeroom-mode windresize which-key web-mode use-package unfill undo-fu svg-lib super-save smartparens simpleclip shrink-path reveal-in-osx-finder restart-emacs rainbow-mode python-mode presentation ox-reveal ox-hugo org-tree-slide org-superstar org-real org-ql org-gcal org-download org-appear org-analyzer mw-thesaurus modus-themes mixed-pitch magit kaolin-themes ivy-prescient ivy-hydra htmlize hl-todo hide-mode-line gnuplot general gcmh flyspell-correct-ivy evil-surround evil-snipe evil-org evil-collection evil-anzu esxml elpy doom-themes diminish deft dashboard counsel centered-cursor-mode burly bufler auto-virtualenv all-the-icons-ivy-rich ace-window))
+   '(org-preview-html org-preview-html-mode cape fontaine pdf-tools tablist doom-modeline pyvenv org-super-agenda visual-fill-column evil popper writeroom-mode windresize which-key web-mode use-package unfill undo-fu svg-lib super-save smartparens simpleclip shrink-path reveal-in-osx-finder restart-emacs rainbow-mode python-mode presentation ox-reveal ox-hugo org-tree-slide org-superstar org-real org-ql org-gcal org-download org-appear org-analyzer mw-thesaurus modus-themes mixed-pitch magit kaolin-themes ivy-prescient ivy-hydra htmlize hl-todo hide-mode-line gnuplot general gcmh flyspell-correct-ivy evil-surround evil-snipe evil-org evil-collection evil-anzu esxml elpy doom-themes diminish deft dashboard counsel centered-cursor-mode burly bufler auto-virtualenv all-the-icons-ivy-rich ace-window))
  '(pdf-view-midnight-colors (cons "#bbc2cf" "#282c34"))
  '(safe-local-variable-values
    '((org-use-tag-inheritance)
