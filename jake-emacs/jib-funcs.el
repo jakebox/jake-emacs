@@ -211,6 +211,21 @@ splits the sentence."
 		(next-line 2)
 		(setq lines (1- lines))))))
 
+(defun jib/pages-from-page-range ()
+  "Select a page range formatted as: start-end (e.g. 520-614). Calculates and inserts page count."
+  (interactive)
+  (if (use-region-p)
+	  (let*
+		  ((range      (buffer-substring (region-beginning) (region-end)))
+		   (dash       (string-match "-" range))
+		   (beginning  (string-to-number (substring range 0 dash)))
+		   (end        (string-to-number (substring range (+ dash 1) nil)))
+		   (difference (- end beginning)))
+		(goto-char (region-end))
+		(deactivate-mark)
+		(insert " (" (number-to-string difference) ")"))
+	(user-error "Error: select a region")))
+
 ;;;;;;;;;;;;;;;;;;
 ;; Calculations ;;
 ;;;;;;;;;;;;;;;;;;
@@ -384,7 +399,7 @@ If region is active, use region. Otherwise, use entire file."
   (org-set-startup-visibility))
 
 (defun jib/org-refile-this-file ()
-  "Org refile to only headers in current file, 3 levels."
+  "Org refile to only headers in current file, 5 levels."
   (interactive)
   (let ((org-refile-targets '((nil . (:maxlevel . 5)))))
 	(org-refile)))
@@ -453,6 +468,13 @@ the todo type was if I look back through my archive files."
 ;; 	  (org-agenda-write "~/Desktop/export.html" nil nil "steve")
 ;; 	  (kill-buffer "steve")))
 ;;   )
+
+(defun jib/org-occur-unchecked-boxes (&optional arg)
+  "Show unchecked Org Mode checkboxes. Ignore items with a `†' at EOL unless run with C-u."
+  (interactive "P")
+  (if (equal '(4) arg)
+	  (occur "\\[ \\].*†$")
+	(occur "\\[ \\].*[^†]$")))
 
 (defmacro spacemacs|org-emphasize (fname char)
   "Make function for setting the emphasis in org mode"
@@ -570,8 +592,8 @@ Version 2020-10-17"
 (defun jib/prettify-symbols-setup ()
   ;; checkboxes
   (push '("[ ]" .  "☐") prettify-symbols-alist)
-  ;; (push '("[X]" . "☑" ) prettify-symbols-alist)
-  (push '("[X]" . "☒" ) prettify-symbols-alist)
+  (push '("[X]" . "☑" ) prettify-symbols-alist)
+  ;; (push '("[X]" . "☒" ) prettify-symbols-alist)
   (push '("[-]" . "❍" ) prettify-symbols-alist)
 
   ;; org-babel

@@ -27,6 +27,8 @@
 (setq fast-but-imprecise-scrolling t)
 (setq inhibit-compacting-font-caches t)
 
+(menu-bar-mode 0)
+
 (setq mac-command-modifier       'meta
       mac-option-modifier         nil
       mac-control-modifier       'control

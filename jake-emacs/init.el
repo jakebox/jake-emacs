@@ -137,7 +137,7 @@
  ;; The most important setting of all! Make each scroll-event move 2 lines at
  ;; a time (instead of 5 at default). Simply hold down shift to move twice as
  ;; fast, or hold down control to move 3x as fast. Perfect for trackpads.
- mouse-wheel-scroll-amount '(2 ((shift) . 4) ((control) . 6)))
+ mouse-wheel-scroll-amount '(1 ((shift) . 3) ((control) . 6)))
 (setq mac-redisplay-dont-reset-vscroll t ;; sane trackpad/mouse scroll settings (doom)
       mac-mouse-wheel-smooth-scroll nil)
 
@@ -208,6 +208,8 @@
 
 (setq dired-kill-when-opening-new-dired-buffer t)
 
+(setq reb-re-syntax 'string) ;; https://www.masteringemacs.org/article/re-builder-interactive-regexp-builder
+
 (use-package which-key
   :diminish which-key-mode
   :init
@@ -243,7 +245,7 @@
 
   ;; ----- Setting cursor colors
   (setq evil-emacs-state-cursor    '("#649bce" box))
-  (setq evil-normal-state-cursor   '("#ebcb8b" box))
+  (setq evil-normal-state-cursor   '("#d9a871" box))
   (setq evil-operator-state-cursor '("#ebcb8b" hollow))
   (setq evil-visual-state-cursor   '("#677691" box))
   (setq evil-insert-state-cursor   '("#eb998b" (bar . 2)))
@@ -264,12 +266,12 @@
   (setq evil-collection-mode-list '(dired (custom cus-edit) (package-menu package) calc diff-mode))
   (evil-collection-init))
 
-(use-package evil-snipe
-  :diminish evil-snipe-mode
-  :diminish evil-snipe-local-mode
-  :after evil
-  :config
-  (evil-snipe-mode +1))
+;; (use-package evil-snipe
+;;   :diminish evil-snipe-mode
+;;   :diminish evil-snipe-local-mode
+;;   :after evil
+;;   :config
+;;   (evil-snipe-mode +1))
 
 ;; not working right now, from https://jblevins.org/log/dired-open
 ;; (evil-define-key 'motion 'dired-mode-map "s-o" '(lambda () (interactive)
@@ -473,10 +475,13 @@
   "|" '(lambda () (interactive) (org-agenda nil "k")) ;; Opens my n custom org-super-agenda view
   "C-|" '(lambda () (interactive) (org-agenda nil "j")) ;; Opens my m custom org-super-agenda view
   "gf" 'xah-open-file-at-cursor
+  "f" 'evil-avy-goto-char-in-line
+  "/" 'jib/split-window-horizontally-and-switch
+  "-" 'jib/split-window-vertically-and-switch  
   )
 
 (general-def
-  :states 'motion
+  :states '(normal visual motion)
   :keymaps 'override
   "s" 'swiper)
 
@@ -497,16 +502,13 @@
   "C-w C-q" 'kill-this-buffer
  )
 
-(use-package hydra
-  :defer t)
+(use-package hydra :defer t)
 
-;; This Hydra lets me swich between variable pitch fonts. It turns off mixed-pitch 
-;; WIP
+;; This Hydra lets me swich between variable pitch fonts.
 (defhydra jb-hydra-variable-fonts (:pre (mixed-pitch-mode 0)
                                      :post (mixed-pitch-mode 1))
   ("t" (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160) "Times New Roman")
   ("g" (set-face-attribute 'variable-pitch nil :family "EB Garamond" :height 160 :weight 'normal) "EB Garamond")
-  ;; ("r" (set-face-attribute 'variable-pitch nil :font "Roboto" :weight 'medium :height 160) "Roboto")
   ("n" (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 160 :width 'normal :foundry "nil" :family "Nunito") "Nunito")
   )
 
@@ -530,31 +532,31 @@ _q_ quit                 ^
 "
 
   ;; Dark
-  ("1" (jib/load-theme 'doom-one) "one")
-  ("2" (jib/load-theme 'modus-vivendi) "modus-vivendi")
-  ("3" (jib/load-theme 'doom-molokai) "molokai")
-  ("4" (jib/load-theme 'doom-snazzy) "snazzy")
-  ("5" (jib/load-theme 'doom-old-hope) "old-hope")
-  ("6" (jib/load-theme 'doom-henna) "henna")
-  ("7" (jib/load-theme 'kaolin-galaxy) "kaolin-galaxy")
-  ("8" (jib/load-theme 'doom-peacock) "peacock")
-  ("9" (jib/load-theme 'jake-doom-plain-dark) "jake-plain-dark")
-  ("0" (jib/load-theme 'doom-monokai-machine) "monokai-machine")
-  ("-" (jib/load-theme 'doom-xcode) "xcode")
+  ("1" (jib/load-theme 'doom-one)				 "one")
+  ("2" (jib/load-theme 'modus-vivendi)			 "modus-vivendi")
+  ("3" (jib/load-theme 'doom-molokai)			 "molokai")
+  ("4" (jib/load-theme 'doom-snazzy)			 "snazzy")
+  ("5" (jib/load-theme 'doom-old-hope)			 "old-hope")
+  ("6" (jib/load-theme 'doom-henna)				 "henna")
+  ("7" (jib/load-theme 'kaolin-galaxy)			 "kaolin-galaxy")
+  ("8" (jib/load-theme 'doom-peacock)			 "peacock")
+  ("9" (jib/load-theme 'jake-doom-plain-dark)	 "jake-plain-dark")
+  ("0" (jib/load-theme 'doom-monokai-machine)	 "monokai-machine")
+  ("-" (jib/load-theme 'doom-xcode)				 "xcode")
 
   ;; Light
-  ("z" (jib/load-theme 'doom-one-light) "one-light")
-  ("x" (jib/load-theme 'modus-operandi) "modus-operandi")
-  ("c" (jib/load-theme 'jake-doom-plain) "jake-plain")
-  ("v" (jib/load-theme 'doom-flatwhite) "flatwhite")
-  ("b" (jib/load-theme 'doom-opera-light) "opera-light")
+  ("z" (jib/load-theme 'doom-one-light)			 "one-light")
+  ("x" (jib/load-theme 'modus-operandi)			 "modus-operandi")
+  ("c" (jib/load-theme 'jake-doom-plain)		 "jake-plain")
+  ("v" (jib/load-theme 'doom-flatwhite)			 "flatwhite")
+  ("b" (jib/load-theme 'doom-opera-light)		 "opera-light")
   ("q" nil))
 
 ;; I think I need to initialize windresize to use its commands
 ;;(windresize)
 ;;(windresize-exit)
 
-(use-package windresize)
+(require 'windresize)
 
 ;; All-in-one window managment. Makes use of some custom functions,
 ;; `ace-window' (for swapping), `windmove' (could probably be replaced
@@ -601,8 +603,37 @@ _q_uit          _e_qualize        _]_forward     ^
    ("<down>" windresize-down)
    ("<up>" windresize-up)
 
-
    ("q" nil))
+
+(defhydra jb-hydra-org-table ()
+  "
+_c_ insert col    _v_ delete col    Move col: _h_, _l_
+_r_ insert row    _d_ delete row    Move row: _j_, _k_
+_n_ create table  _i_ create hline
+_u_ undo
+_q_ quit
+
+"
+  ("n" org-table-create "create table")
+  ("c" org-table-insert-column "insert col")
+  ("r" org-table-insert-row "insert row")
+  ("v" org-table-delete-column "delete col")
+  ("d" org-table-kill-row "delete row")
+  ("i" org-table-insert-hline "hline")
+
+  ("u" undo-fu-only-undo "undo")
+
+  ("h" org-table-move-column-left "move col left")
+  ("l" org-table-move-column-right "move col right")
+  ("k" org-table-move-row-up "move row up")
+  ("j" org-table-move-row-down "move row down")
+
+  ("<left>" org-table-previous-field)
+  ("<right>" org-table-next-field)
+  ("<up>" previous-line)
+  ("<down>" org-table-next-row)
+
+  ("q" nil "quit"))
 
 (use-package corfu
   :init
@@ -716,8 +747,6 @@ _q_uit          _e_qualize        _]_forward     ^
   (add-to-list 'recentf-exclude
                (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
 
-  (setq-default counsel--fzf-dir jib/home)
-
   ;; Use fd
   (setq find-program "fd")
   (setq counsel-file-jump-args (split-string "-L --type f -H")) ;; follow symlinks, files, show hidden
@@ -827,6 +856,11 @@ _q_uit          _e_qualize        _]_forward     ^
 
 (use-package evil-anzu :defer t)
 
+(use-package avy
+  :defer t
+  :config
+  (setq avy-case-fold-search nil))
+
 (use-package simpleclip :config (simpleclip-mode 1))
 
 ;; Allows pasting in minibuffer with M-v
@@ -869,7 +903,7 @@ _q_uit          _e_qualize        _]_forward     ^
 (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
 
 (setq text-scale-mode-step 1.1) ;; How much to adjust text scale by when using `text-scale-mode'
-(setq jib-default-line-spacing 0) ;; This happens in the variables but I guess I have it here too.
+(setq jib-default-line-spacing 1) ;; This happens in the variables but I guess I have it here too.
 
 (setq-default line-spacing jib-default-line-spacing)
 
@@ -879,7 +913,7 @@ _q_uit          _e_qualize        _]_forward     ^
 (if (eq jib/computer 'desktop)
     (setq jib-text-height 150))
 
-(set-face-attribute 'default nil :family "Jetbrains Mono" :weight 'medium :height jib-text-height)
+(set-face-attribute 'default nil :family "JetBrains Mono" :weight 'regular :height jib-text-height)
 
 ;; Float height value (1.0) makes fixed-pitch take height 1.0 * height of default
 ;; This means it will scale along with default when the text is zoomed
@@ -998,8 +1032,17 @@ _q_uit          _e_qualize        _]_forward     ^
   (mode-line ((t (:height ,jib-doom-modeline-text-height))))
   (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height)))))
 
+(use-package ef-themes
+  :ensure nil
+  :init
+  (setq ef-themes-headings
+        (quote ((1 . (variable-pitch 1.1))
+                (2 . (variable-pitch))
+                (3 . (variable-pitch))
+                (4 . (variable-pitch))))))
 
-;; Loading theme based on the time.
+
+;; loading theme based on the time.
 (let ((hour (string-to-number (substring (current-time-string) 11 13))))
   (if (or (> hour 19) (< hour 7))
       (load-theme 'doom-one t) ;; Night
@@ -1018,8 +1061,11 @@ _q_uit          _e_qualize        _]_forward     ^
 (use-package visual-fill-column
   :defer t
   :config
-  (setq visual-fill-column-width 100
-        visual-fill-column-center-text t))
+  (setq visual-fill-column-center-text t)
+  (if (eq 'jib/computer 'desktop)
+      (setq visual-fill-column-width 100)
+    (setq visual-fill-column-width 80))
+  (setq visual-fill-column-center-text t))
 
 (use-package writeroom-mode
   :defer t
@@ -1027,8 +1073,10 @@ _q_uit          _e_qualize        _]_forward     ^
   (setq writeroom-maximize-window nil
         writeroom-header-line "" ;; Makes sure we have a header line, that's blank
         writeroom-mode-line t
-        writeroom-global-effects nil) ;; No need to have Writeroom do any of that silly stuff
-  (setq writeroom-width 100))
+        writeroom-global-effects nil ;; No need to have Writeroom do any of that silly stuff
+        writeroom-extra-line-spacing 4) 
+  (setq writeroom-width visual-fill-column-width)
+  )
 
 (defun my-presentation-on ()
   (setq jib-default-line-spacing 3)
@@ -1147,7 +1195,8 @@ _q_uit          _e_qualize        _]_forward     ^
   "t" 'org-todo
   "<return>" 'org-open-at-point-global
   "K" 'org-shiftup
-  "J" 'org-shiftdown)
+  "J" 'org-shiftdown
+  "<f5>" 'org-ctrl-c-ctrl-c)
 
 (general-def
   :states 'insert
@@ -1196,8 +1245,8 @@ _q_uit          _e_qualize        _]_forward     ^
 
  "1" '(org-toggle-link-display :which-key "toggle link display")
  "2" '(org-toggle-inline-images :which-key "toggle images")
+ "3" '(jib/org-occur-unchecked-boxes :which-key "occur unchecked boxes")
 
- ;; org-babel
  "b" '(nil :which-key "babel")
  "bt" '(org-babel-tangle :which-key "org-babel-tangle")
  "bb" '(org-edit-special :which-key "org-edit-special")
@@ -1216,13 +1265,11 @@ _q_uit          _e_qualize        _]_forward     ^
  ;; insert
  "i" '(nil :which-key "insert")
 
- "it" '(nil :which-key "tables")
- "itt" '(org-table-create :which-key "create table")
- "itl" '(org-table-insert-hline :which-key "table hline")
 
  "il" '(org-insert-link :which-key "org-insert-link")
  "l" '(org-insert-link :which-key "org-insert-link") ;; More convenient access
  "iL" '(counsel-org-link :which-key "counsel-org-link")
+ "it" '(jb-hydra-org-table/body :which-key "tables")
 
  "is" '(nil :which-key "insert stamp")
  "iss" '((lambda () (interactive) (call-interactively (org-time-stamp-inactive))) :which-key "org-time-stamp-inactive")
@@ -1268,9 +1315,10 @@ _q_uit          _e_qualize        _]_forward     ^
 (defun jib/org-setup ()
   (org-indent-mode) ;; Keeps org items like text under headings, lists, nicely indented
   (visual-line-mode 1) ;; Nice line wrapping
-  (centered-cursor-mode)
-  (smartparens-mode 0)
-  (setq-local line-spacing (+ jib-default-line-spacing 1)))
+  (centered-cursor-mode) ;; Enable centered cursor mode
+  (smartparens-mode 0) ;; Disable smartparents
+  (hl-prog-extra-mode) ;; Highlighting with regexps
+  (setq-local line-spacing (+ jib-default-line-spacing 1))) ;; A bit more line spacing for orgmode
 
 (use-package org
   :pin gnu
@@ -1331,21 +1379,22 @@ _q_uit          _e_qualize        _]_forward     ^
 (setq org-tags-column 1)
 
 (setq org-todo-keywords '((type
-                           "TODO(t)" "INPROG-TODO(i)" "HW(h)" "STUDY" "SOMEDAY"
-                           "READ(r)" "PROJ(p)" "CONTACT(c)"
+                           "TODO(t)" "WAITING(w)" "INPROG-TODO(i)" "HW(h)"
+                           "STUDY(s)" "SOMEDAY" "READ(r)" "PROJ(p)" "CONTACT(c)"
                            "|" "DONE(d)" "CANCELLED(C)")))
 
-(setq org-todo-keyword-faces '(("TODO" nil :foreground "orange1" :inherit fixed-pitch :weight medium)
-                               ("HW" nil :foreground "coral1" :inherit fixed-pitch :weight medium)
-                               ("STUDY" nil :foreground "plum3" :inherit fixed-pitch :weight medium)
-                               ("SOMEDAY" nil :foreground "steel blue" :inherit fixed-pitch)
-                               ("CONTACT" nil :foreground "LightSalmon2" :inherit fixed-pitch :weight medium)
-                               ("READ" nil :foreground "MediumPurple3" :inherit fixed-pitch :weight medium)
-                               ("PROJ" nil :foreground "aquamarine3" :inherit fixed-pitch :weight medium)
-                               ("INPROG-TODO" nil :foreground "orange1" :inherit fixed-pitch :weight medium)
+;; (setq org-todo-keyword-faces '(("TODO" nil :foreground "orange1" :inherit fixed-pitch :weight medium)
+;;                                ;; ("WAITING" nil :foreground "orange2" :inherit fixed-pitch :weight medium)
+;;                                ("HW" nil :foreground "coral1" :inherit fixed-pitch :weight medium)
+;;                                ("STUDY" nil :foreground "plum3" :inherit fixed-pitch :weight medium)
+;;                                ("SOMEDAY" nil :foreground "steel blue" :inherit fixed-pitch)
+;;                                ("CONTACT" nil :foreground "LightSalmon2" :inherit fixed-pitch :weight medium)
+;;                                ("READ" nil :foreground "MediumPurple3" :inherit fixed-pitch :weight medium)
+;;                                ("PROJ" nil :foreground "aquamarine3" :inherit fixed-pitch :weight medium)
+;;                                ("INPROG-TODO" nil :foreground "orange1" :inherit fixed-pitch :weight medium)
 
-                               ("DONE" nil :foreground "LawnGreen" :inherit fixed-pitch :weight medium)
-                               ("CANCELLED" nil :foreground "dark red" :inherit fixed-pitch :weight medium)))
+;;                                ("DONE" nil :foreground "LawnGreen" :inherit fixed-pitch :weight medium)
+;;                                ("CANCELLED" nil :foreground "dark red" :inherit fixed-pitch :weight medium)))
 
 (setq org-lowest-priority ?F)  ;; Gives us priorities A through F
 (setq org-default-priority ?E) ;; If an item has no priority, it is considered [#E].
@@ -1447,9 +1496,6 @@ _q_uit          _e_qualize        _]_forward     ^
                                 (:name "Projects"
                                        :todo "PROJ"
                                        :order 12)
-                                (:name "Weekly"
-                                       :tag "weekly"
-                                       :order 15)
                                 (:name "Extracurricular"
                                        :discard (:todo "SOMEDAY")
                                        :tag "ec"
@@ -1494,7 +1540,9 @@ _q_uit          _e_qualize        _]_forward     ^
 ;; This isn't super needed as I mostly just use my custom refile command
 ;; to refile to only the current buffer.
 (setq org-refile-targets (quote (("~/Dropbox/org/work.org" :maxlevel . 2)
-                                 ("~/Dropbox/org/cpb.org"  :maxlevel . 8))))
+                                 ("~/Dropbox/org/cpb.org"  :maxlevel . 8)
+                                 ("~/Dropbox/notes/columbia/columbia_inbox.org")
+                                 )))
 
 (setq org-outline-path-complete-in-steps nil) ; Refile in a single go
 (setq org-refile-use-outline-path t)          ; Show full paths for refiling
@@ -1536,6 +1584,9 @@ _q_uit          _e_qualize        _]_forward     ^
         ("ww" "Scheduled & deadline" entry (file "~/Dropbox/org/work.org")
          "** %^{Type|HW|READ|TODO|PROJ} %^{Todo title}\nSCHEDULED: %^t DEADLINE: %^t %?" :prepend t :empty-lines-before 0
          :refile-targets (("~/Dropbox/org/work.org" :maxlevel . 2)))
+
+        ("t" "Temp file entry" entry (file "~/Dropbox/.tmp.org")
+         "** %^{Heading} @ %u \n%?" :prepend t)
 
         ))
 
@@ -1615,6 +1666,16 @@ _q_uit          _e_qualize        _]_forward     ^
         bufler-filter-buffer-name-regexps nil)
   :general
   (:keymaps 'bufler-list-mode-map "Q" 'kill-this-buffer))
+
+(use-package hl-prog-extra
+  :commands (hl-prog-extra-mode)
+  :config
+  (setq hl-prog-extra-list
+    (list
+      ;; Match TKs in quotation marks (hl-prog-extra sees them as strings)
+     '("\\(TK\\)+" 0 string '(:weight bold :inherit font-lock-warning-face))
+     ;; Match TKs not in quotation marks
+     '("\\(TK\\)+" 0 nil '(:weight bold :inherit font-lock-warning-face)))))
 
 (use-package xwidget
   :general
@@ -1789,18 +1850,7 @@ _q_uit          _e_qualize        _]_forward     ^
           compilation-mode))
   (popper-mode +1))
 
-(use-package rainbow-mode
-  :defer t)
-
-(use-package hl-todo
-  :defer t
-  :hook (prog-mode . hl-todo-mode)
-  :config
-  (setq hl-todo-keyword-faces
-      '(("TODO"   . "#FF0000")
-        ("FIXME"  . "#FF4500")
-        ("DEBUG"  . "#A020F0")
-        ("WIP"   . "#1E90FF"))))
+(use-package rainbow-mode :defer t)
 
 ;; A better python mode (supposedly)
 (use-package python-mode
