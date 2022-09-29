@@ -1,4 +1,4 @@
-#!/usr/local/bin/emacs --script
+#!/opt/homebrew/bin/emacs --script
 
 ;; Script to copy files in jake-emacs remote directory to local ~/.emacs.default
 ;; Only needs to be run once on a machine

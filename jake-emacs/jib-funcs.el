@@ -163,7 +163,8 @@ If the universal prefix argument is used then will the windows too."
   (save-excursion
 	(mark-whole-buffer)
 	(simpleclip-copy (point-min) (point-max))
-	(deactivate-mark)))
+	(deactivate-mark))
+  (message "Copied entire buffer to clipboard"))
 
 (defun jib/emacs-clipboard-to-system-clipboard ()
   "Set system clipboard to contents of Emacs kill ring."
@@ -220,7 +221,7 @@ splits the sentence."
 		   (dash       (string-match "-" range))
 		   (beginning  (string-to-number (substring range 0 dash)))
 		   (end        (string-to-number (substring range (+ dash 1) nil)))
-		   (difference (- end beginning)))
+		   (difference (+ (- end beginning) 1))) ;; Inclusive (so +1)
 		(goto-char (region-end))
 		(deactivate-mark)
 		(insert " (" (number-to-string difference) ")"))
@@ -240,6 +241,13 @@ splits the sentence."
 								(format-seconds "%m" raw-time)
 								(floor(mod raw-time 60)) wpm))
 	(error "Error: select a region.")))
+
+(defun jib/time-difference ()
+  "Ask for two times/date using `org-read-date' and compute the difference."
+  (interactive)
+  (message "%s" (ts-human-format-duration ;; Multiply by -1 so first input can be the earlier time
+				 (* -1 (ts-difference (ts-parse-org (org-read-date))
+									  (ts-parse-org (org-read-date)))))))
 
 (defun jib/return-week-number ()
   (interactive)
@@ -416,8 +424,21 @@ If region is active, use region. Otherwise, use entire file."
 (defun jib/org-done-keep-todo ()
   "Mark an org todo item as done while keeping its former keyword intact, and archive.
 
-For example, * TODO This item    becomes    * DONE TODO This item. This way I can see what
-the todo type was if I look back through my archive files."
+For example, * TODO This item    becomes    * DONE TODO This item."
+  (interactive)
+  (let ((state (org-get-todo-state)) (tag (org-get-tags)) (todo (org-entry-get (point) "TODO"))
+        post-command-hook)
+    (if (not (eq state nil))
+        (progn (org-todo "DONE")
+			   (org-set-tags tag)
+			   (beginning-of-line)
+			   (forward-word)
+			   (insert (concat " " todo)))
+	  (user-error "Not a TODO."))
+    (run-hooks 'post-command-hook)))
+
+(defun jib/org-done-keep-todo-and-archive ()
+  "Same as `jib/org-done-keep-todo' but archives heading as well."
   (interactive)
   (let ((state (org-get-todo-state)) (tag (org-get-tags)) (todo (org-entry-get (point) "TODO"))
         post-command-hook)
@@ -612,7 +633,7 @@ Version 2020-10-17"
   (push '(":PROPERTIES:" . ?) prettify-symbols-alist)
 
   ;; tags
-  (push '(":Misc:" . "" ) prettify-symbols-alist)
+  ;; (push '(":Misc:" . "" ) prettify-symbols-alist)
 
   (prettify-symbols-mode))
 

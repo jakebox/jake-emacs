@@ -3,7 +3,7 @@
 # key: <t
 # --
 #+TITLE: ${1:title}
-#+AUTHOR: Jake B
+#+AUTHOR: Jacob Boxerman
 #+DATE: `(format-time-string "%b %d %Y")`
 :PROPERTIES:
 #+OPTIONS:

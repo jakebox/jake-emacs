@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: notes_header
+# key: <notes
+# --
+
+*Source info:*
++ Title: ${1:title}
++ Date: ${2:date}
++ Source: ${3:source}
++ Summary: ${4:summary}
++ Link: ${5:link}
+
+* Notes

@@ -119,7 +119,7 @@ https://jwiegley.github.io/use-package/keywords/
                                (float-time
                                 (time-subtract after-init-time before-init-time)))
                        gcs-done)))
-          #+END_SRC
+#+END_SRC
           
 * Files, variables, etc
 ** Setting custom variables
@@ -138,6 +138,12 @@ bunch of variables up here that can be used later.
     (if (or (string= sys "MJBs-MacBook-Air.local") (string= sys "mjbs-air.lan"))
         (setq jib/computer 'laptop)
       (setq jib/computer 'desktop)))
+
+  (let ((sys (system-name)))
+    (if (string= sys "KilgoreTrout.local")
+        (setq jib/computer 'laptopN)))
+
+  (setq jib/computer 'laptopN) ;; manual override 2022-09-14
 #+END_SRC
 ** Loading custom lisp files
 #+BEGIN_SRC emacs-lisp 
@@ -167,15 +173,23 @@ bunch of variables up here that can be used later.
 ** Path
 Pretty sure this isn't the proper way to do it and that I should be using ~exec-path-from-shell~, but it works and I don't see this changing. So it's fine.
 #+BEGIN_SRC emacs-lisp 
-  (setq exec-path '("/usr/local/Cellar/pyenv-virtualenv/1.1.5/shims"
-                    "/Users/jake/.pyenv/shims" "/usr/local/bin" "/bin"
-                    "/usr/bin" "/usr/sbin" "/usr/local/sbin" "/sbin"
-                    "/Users/jake/bin" "/Users/jake/doom-emacs/bin"
-                    "/Library/TeX/texbin"))
 
-  (setenv "PATH" "/usr/local/Cellar/pyenv-virtualenv/1.1.5/shims:/Users/jake/.pyenv/shims:/usr/local/bin:/bin:/usr/bin:/usr/sbin:/usr/local/sbin:/sbin:/Users/jake/bin:/Users/jake/doom-emacs/bin:/Library/TeX/texbin")
+  ;; (if (eq jib/computer 'laptopN)
+  ;;     (progn
+  ;;       (setenv "PATH" "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/jake/.pyenv/bin:/usr/local/sbin:/Users/jake/bin:/Users/jake/.doom-emacs/bin:/Library/TeX/texbin")
+  ;;       ;; (setq exec-path '("/opt/homebrew/bin" "/opt/homebrew/sbin" "/usr/local/bin" "/usr/bin" "/usr/sbin" "/bin"))
+  ;;       )
+  ;;   (progn
+  ;;     ;; (setenv "PATH" "/usr/local/Cellar/pyenv-virtualenv/1.1.5/shims:/Users/jake/.pyenv/shims:/usr/local/bin:/bin:/usr/bin:/usr/sbin:/usr/local/sbin:/sbin:/Users/jake/bin:/Users/jake/doom-emacs/bin:/Library/TeX/texbin")
+  ;;     (setq exec-path '("/usr/local/Cellar/pyenv-virtualenv/1.1.5/shims"
+  ;;                       "/Users/jake/.pyenv/shims" "/usr/local/bin" "/bin"
+  ;;                       "/usr/bin" "/usr/sbin" "/usr/local/sbin" "/sbin"
+  ;;                       "/Users/jake/bin" "/Users/jake/doom-emacs/bin"
+  ;;                       "/Library/TeX/texbin"))))
 
-  (setq insert-directory-program "/usr/local/bin/gls")
+  (if (eq jib/computer 'laptopN)
+      (setq insert-directory-program "/opt/homebrew/bin/gls")
+    (setq insert-directory-program "/usr/local/bin/gls"))
 
   (setq browse-url-firefox-program "/Applications/Firefox.app/Contents/MacOS/firefox")
   (setq browse-url-chrome-program "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
@@ -349,6 +363,7 @@ Example of how to override evil-collection: ~(evil-collection-define-key 'normal
     (evil-set-initial-state 'bufler-list-mode 'emacs)
     (evil-set-initial-state 'inferior-python-mode 'emacs)
     (evil-set-initial-state 'term-mode 'emacs)
+    (evil-set-initial-state 'calc-mode 'emacs)
 
     ;; ----- Keybindings
     ;; I tried using evil-define-key for these. Didn't work.
@@ -421,7 +436,7 @@ it along with :keymaps 'override when you need to override other stuff
    "." '(counsel-find-file :which-key "find file")
    "," '(counsel-recentf :which-key "recent files")
    "TAB" '(switch-to-prev-buffer :which-key "previous buffer")
-   "SPC" '(counsel-M-x :which-key "M-x")
+   "SPC" '(counsel-find-file :which-key "M-x")
    "q" '(save-buffers-kill-terminal :which-key "quit emacs")
    "r" '(jump-to-register :which-key "registers")
    "c" 'org-capture
@@ -619,8 +634,8 @@ Below are general keybindings for the various Evil modes.
     "gC" 'comment-line
     "j" 'evil-next-visual-line ;; I prefer visual line navigation
     "k" 'evil-previous-visual-line ;; ""
-    "|" '(lambda () (interactive) (org-agenda nil "k")) ;; Opens my n custom org-super-agenda view
-    "C-|" '(lambda () (interactive) (org-agenda nil "j")) ;; Opens my m custom org-super-agenda view
+    "|" '(lambda () (interactive) (org-agenda nil "c")) ;; Opens my n custom org-super-agenda view
+    "C-|" '(lambda () (interactive) (org-ql-view "Columbia Todo"))
     "gf" 'xah-open-file-at-cursor
     "f" 'evil-avy-goto-char-in-line
     "/" 'jib/split-window-horizontally-and-switch
@@ -657,138 +672,138 @@ Below are general keybindings for the various Evil modes.
 Allows those cool 'transient' states -- press a key as many times as
 you want to run a function without doing anything else.
 #+BEGIN_SRC emacs-lisp
-(use-package hydra :defer t)
+  (use-package hydra :defer t)
 
-;; This Hydra lets me swich between variable pitch fonts.
-(defhydra jb-hydra-variable-fonts (:pre (mixed-pitch-mode 0)
-                                     :post (mixed-pitch-mode 1))
-  ("t" (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160) "Times New Roman")
-  ("g" (set-face-attribute 'variable-pitch nil :family "EB Garamond" :height 160 :weight 'normal) "EB Garamond")
-  ("n" (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 160 :width 'normal :foundry "nil" :family "Nunito") "Nunito")
-  )
+  ;; This Hydra lets me swich between variable pitch fonts.
+  (defhydra jb-hydra-variable-fonts (:pre (mixed-pitch-mode 0)
+                                       :post (mixed-pitch-mode 1))
+    ("t" (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160) "Times New Roman")
+    ("g" (set-face-attribute 'variable-pitch nil :family "EB Garamond" :height 160 :weight 'normal) "EB Garamond")
+    ("n" (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 160 :width 'normal :foundry "nil" :family "Nunito") "Nunito")
+    )
 
-(defhydra jb-hydra-theme-switcher (:hint nil)
+  (defhydra jb-hydra-theme-switcher (:hint nil)
+    "
+       Dark                ^Light^
+  ----------------------------------------------
+  _1_ one              _z_ one-light 
+  _2_ vivendi          _x_ operandi
+  _3_ molokai          _c_ jake-plain
+  _4_ snazzy           _v_ flatwhite
+  _5_ old-hope         _b_ opera-light 
+  _6_ henna                ^
+  _7_ kaolin-galaxy        ^
+  _8_ peacock              ^
+  _9_ jake-plain-dark      ^
+  _0_ monokai-machine      ^
+  _-_ xcode                ^
+  _q_ quit                 ^
+  ^                        ^
   "
-     Dark                ^Light^
-----------------------------------------------
-_1_ one              _z_ one-light 
-_2_ vivendi          _x_ operandi
-_3_ molokai          _c_ jake-plain
-_4_ snazzy           _v_ flatwhite
-_5_ old-hope         _b_ opera-light 
-_6_ henna                ^
-_7_ kaolin-galaxy        ^
-_8_ peacock              ^
-_9_ jake-plain-dark      ^
-_0_ monokai-machine      ^
-_-_ xcode                ^
-_q_ quit                 ^
-^                        ^
-"
 
-  ;; Dark
-  ("1" (jib/load-theme 'doom-one)				 "one")
-  ("2" (jib/load-theme 'modus-vivendi)			 "modus-vivendi")
-  ("3" (jib/load-theme 'doom-molokai)			 "molokai")
-  ("4" (jib/load-theme 'doom-snazzy)			 "snazzy")
-  ("5" (jib/load-theme 'doom-old-hope)			 "old-hope")
-  ("6" (jib/load-theme 'doom-henna)				 "henna")
-  ("7" (jib/load-theme 'kaolin-galaxy)			 "kaolin-galaxy")
-  ("8" (jib/load-theme 'doom-peacock)			 "peacock")
-  ("9" (jib/load-theme 'jake-doom-plain-dark)	 "jake-plain-dark")
-  ("0" (jib/load-theme 'doom-monokai-machine)	 "monokai-machine")
-  ("-" (jib/load-theme 'doom-xcode)				 "xcode")
+    ;; Dark
+    ("1" (jib/load-theme 'doom-one)				 "one")
+    ("2" (jib/load-theme 'modus-vivendi)			 "modus-vivendi")
+    ("3" (jib/load-theme 'doom-molokai)			 "molokai")
+    ("4" (jib/load-theme 'doom-snazzy)			 "snazzy")
+    ("5" (jib/load-theme 'doom-old-hope)			 "old-hope")
+    ("6" (jib/load-theme 'doom-henna)				 "henna")
+    ("7" (jib/load-theme 'kaolin-galaxy)			 "kaolin-galaxy")
+    ("8" (jib/load-theme 'doom-peacock)			 "peacock")
+    ("9" (jib/load-theme 'jake-doom-plain-dark)	 "jake-plain-dark")
+    ("0" (jib/load-theme 'doom-monokai-machine)	 "monokai-machine")
+    ("-" (jib/load-theme 'doom-xcode)				 "xcode")
 
-  ;; Light
-  ("z" (jib/load-theme 'doom-one-light)			 "one-light")
-  ("x" (jib/load-theme 'modus-operandi)			 "modus-operandi")
-  ("c" (jib/load-theme 'jake-doom-plain)		 "jake-plain")
-  ("v" (jib/load-theme 'doom-flatwhite)			 "flatwhite")
-  ("b" (jib/load-theme 'doom-opera-light)		 "opera-light")
-  ("q" nil))
+    ;; Light
+    ("z" (jib/load-theme 'doom-one-light)			 "one-light")
+    ("x" (jib/load-theme 'modus-operandi)			 "modus-operandi")
+    ("c" (jib/load-theme 'jake-doom-plain)		 "jake-plain")
+    ("v" (jib/load-theme 'doom-flatwhite)			 "flatwhite")
+    ("b" (jib/load-theme 'doom-opera-light)		 "opera-light")
+    ("q" nil))
 
-;; I think I need to initialize windresize to use its commands
-;;(windresize)
-;;(windresize-exit)
+  ;; I think I need to initialize windresize to use its commands
+  ;;(windresize)
+  ;;(windresize-exit)
 
-(require 'windresize)
+  ;;(require 'windresize)
 
-;; All-in-one window managment. Makes use of some custom functions,
-;; `ace-window' (for swapping), `windmove' (could probably be replaced
-;; by evil?) and `windresize'.
-;; inspired by https://github.com/jmercouris/configuration/blob/master/.emacs.d/hydra.el#L86
-(defhydra jb-hydra-window (:hint nil)
-   "
-Movement      ^Split^            ^Switch^        ^Resize^
-----------------------------------------------------------------
-_M-<left>_  <   _/_ vertical      _b_uffer        _<left>_  <
-_M-<right>_ >   _-_ horizontal    _f_ind file     _<down>_  ↓
-_M-<up>_    ↑   _m_aximize        _s_wap          _<up>_    ↑
-_M-<down>_  ↓   _c_lose           _[_backward     _<right>_ >
-_q_uit          _e_qualize        _]_forward     ^
-^               ^               _K_ill         ^
-^               ^                  ^             ^
-"
-   ;; Movement
-   ("M-<left>" windmove-left)
-   ("M-<down>" windmove-down)
-   ("M-<up>" windmove-up)
-   ("M-<right>" windmove-right)
-
-   ;; Split/manage
-   ("-" jib/split-window-vertically-and-switch)
-   ("/" jib/split-window-horizontally-and-switch)
-   ("c" evil-window-delete)
-   ("d" evil-window-delete)
-   ("m" delete-other-windows)
-   ("e" balance-windows)
-
-   ;; Switch
-   ("b" counsel-switch-buffer)
-   ("f" counsel-find-file)
-   ("P" project-find-file)
-   ("s" ace-swap-window)
-   ("[" previous-buffer)
-   ("]" next-buffer)
-   ("K" kill-this-buffer)
-
-   ;; Resize
-   ("<left>" windresize-left)
-   ("<right>" windresize-right)
-   ("<down>" windresize-down)
-   ("<up>" windresize-up)
-
-   ("q" nil))
-
-(defhydra jb-hydra-org-table ()
+  ;; All-in-one window managment. Makes use of some custom functions,
+  ;; `ace-window' (for swapping), `windmove' (could probably be replaced
+  ;; by evil?) and `windresize'.
+  ;; inspired by https://github.com/jmercouris/configuration/blob/master/.emacs.d/hydra.el#L86
+  (defhydra jb-hydra-window (:hint nil)
+     "
+  Movement      ^Split^            ^Switch^        ^Resize^
+  ----------------------------------------------------------------
+  _M-<left>_  <   _/_ vertical      _b_uffer        _<left>_  <
+  _M-<right>_ >   _-_ horizontal    _f_ind file     _<down>_  ↓
+  _M-<up>_    ↑   _m_aximize        _s_wap          _<up>_    ↑
+  _M-<down>_  ↓   _c_lose           _[_backward     _<right>_ >
+  _q_uit          _e_qualize        _]_forward     ^
+  ^               ^               _K_ill         ^
+  ^               ^                  ^             ^
   "
-_c_ insert col    _v_ delete col    Move col: _h_, _l_
-_r_ insert row    _d_ delete row    Move row: _j_, _k_
-_n_ create table  _i_ create hline
-_u_ undo
-_q_ quit
+     ;; Movement
+     ("M-<left>" windmove-left)
+     ("M-<down>" windmove-down)
+     ("M-<up>" windmove-up)
+     ("M-<right>" windmove-right)
 
-"
-  ("n" org-table-create "create table")
-  ("c" org-table-insert-column "insert col")
-  ("r" org-table-insert-row "insert row")
-  ("v" org-table-delete-column "delete col")
-  ("d" org-table-kill-row "delete row")
-  ("i" org-table-insert-hline "hline")
+     ;; Split/manage
+     ("-" jib/split-window-vertically-and-switch)
+     ("/" jib/split-window-horizontally-and-switch)
+     ("c" evil-window-delete)
+     ("d" evil-window-delete)
+     ("m" delete-other-windows)
+     ("e" balance-windows)
 
-  ("u" undo-fu-only-undo "undo")
+     ;; Switch
+     ("b" counsel-switch-buffer)
+     ("f" counsel-find-file)
+     ("P" project-find-file)
+     ("s" ace-swap-window)
+     ("[" previous-buffer)
+     ("]" next-buffer)
+     ("K" kill-this-buffer)
 
-  ("h" org-table-move-column-left "move col left")
-  ("l" org-table-move-column-right "move col right")
-  ("k" org-table-move-row-up "move row up")
-  ("j" org-table-move-row-down "move row down")
+     ;; Resize
+     ("<left>" windresize-left)
+     ("<right>" windresize-right)
+     ("<down>" windresize-down)
+     ("<up>" windresize-up)
 
-  ("<left>" org-table-previous-field)
-  ("<right>" org-table-next-field)
-  ("<up>" previous-line)
-  ("<down>" org-table-next-row)
+     ("q" nil))
 
-  ("q" nil "quit"))
+  (defhydra jb-hydra-org-table ()
+    "
+  _c_ insert col    _v_ delete col    Move col: _h_, _l_
+  _r_ insert row    _d_ delete row    Move row: _j_, _k_
+  _n_ create table  _i_ create hline
+  _u_ undo
+  _q_ quit
+
+  "
+    ("n" org-table-create "create table")
+    ("c" org-table-insert-column "insert col")
+    ("r" org-table-insert-row "insert row")
+    ("v" org-table-delete-column "delete col")
+    ("d" org-table-kill-row "delete row")
+    ("i" org-table-insert-hline "hline")
+
+    ("u" undo-fu-only-undo "undo")
+
+    ("h" org-table-move-column-left "move col left")
+    ("l" org-table-move-column-right "move col right")
+    ("k" org-table-move-row-up "move row up")
+    ("j" org-table-move-row-down "move row down")
+
+    ("<left>" org-table-previous-field)
+    ("<right>" org-table-next-field)
+    ("<up>" previous-line)
+    ("<down>" org-table-next-row)
+
+    ("q" nil "quit"))
 #+END_SRC
 
 * Interaction, Editing, Files
@@ -1034,7 +1049,8 @@ Enable Flyspell (spellchecking) in these modes. Requires ~aspell~ to be installe
     (add-to-list 'ispell-skip-region-alist '("^#\\+BEGIN_EXPORT" . "^#\\+END_EXPORT"))
     (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
 
-    (dolist (mode '(org-mode-hook
+    (dolist (mode '(
+                    ;;org-mode-hook
                     mu4e-compose-mode-hook))
       (add-hook mode (lambda () (flyspell-mode 1))))
 
@@ -1057,7 +1073,7 @@ Enable Flyspell (spellchecking) in these modes. Requires ~aspell~ to be installe
 
   (use-package flyspell-correct-ivy
     :after flyspell-correct)
-#+END_SRC
+      #+END_SRC
 ** Evil-Anzu (search and replace)
 #+BEGIN_SRC emacs-lisp 
   (use-package evil-anzu :defer t)
@@ -1132,12 +1148,12 @@ More obvious/easy to use undo and redo.
   (setq-default line-spacing jib-default-line-spacing)
 
   ;; Setting text size based on the computer I am on.
-  (if (eq jib/computer 'laptop)
+  (if (eq jib/computer 'laptopN)
       (setq jib-text-height 140))
   (if (eq jib/computer 'desktop)
       (setq jib-text-height 150))
 
-  (set-face-attribute 'default nil :family "JetBrains Mono" :weight 'regular :height jib-text-height)
+  (set-face-attribute 'default nil :family "Menlo" :weight 'regular :height jib-text-height)
 
   ;; Float height value (1.0) makes fixed-pitch take height 1.0 * height of default
   ;; This means it will scale along with default when the text is zoomed
@@ -1146,8 +1162,10 @@ More obvious/easy to use undo and redo.
   ;; Height of 160 seems to match perfectly with 12-point on Google Docs
   ;; (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160)
 
-  (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 160 :width 'normal :foundry "nil" :family "Nunito")
-  #+END_SRC
+  (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 180 :width 'normal :foundry "nil" :family "Nunito Sans")
+  
+  (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 180 :width 'normal :foundry "nil" :family "Nunito Sans")
+#+END_SRC
 *** mixed-pitch
 A better version of variable-pitch mode. This keeps certain faces (defined in ~mixed-pitch-fixed-pitch-faces~) fixed-pitch.
 #+BEGIN_SRC emacs-lisp
@@ -1198,7 +1216,7 @@ A better version of variable-pitch mode. This keeps certain faces (defined in ~m
 *** Frame
 Set a frame's initial size and a bit of border
 #+BEGIN_SRC emacs-lisp 
-  (if (eq jib/computer 'laptop)
+  (if (or (eq jib/computer 'laptop) (eq jib/computer 'laptopN))
       (setq default-frame-alist '((left . 150)
                                   (width . 120)
                                   (fullscreen . fullheight)
@@ -1270,10 +1288,12 @@ Hides scroll, toolbar. Goes to the early-init.el.
     ;;       '((t . (rainbow))))
 
     (setq modus-themes-headings
-          (quote ((1 . (variable-pitch 1.1))
-                  (2 . (variable-pitch))
-                  (3 . (variable-pitch))
-                  (4 . (variable-pitch)))))
+          (quote ((1 . (variable-pitch 1.1 rainbow))
+                  (2 . (regular))
+                  (3 . (regular))
+                  (4 . (regular))
+                  (t . (rainbow))
+                  )))
     (modus-themes-load-themes)
     :custom-face
     (org-ellipsis ((t (:height 0.8 :inherit 'shadow))))
@@ -1366,7 +1386,7 @@ Mode for giving presentations, filming videos, etc. Bigger font, larger spacing,
     :after org
     :config
     (setq org-super-agenda-header-map nil) ;; takes over 'j'
-    (setq org-super-agenda-header-prefix "◦ ") ;; There are some unicode "THIN SPACE"s after the ◦
+    (setq org-super-agenda-header-prefix " ◦ ") ;; There are some unicode "THIN SPACE"s after the ◦
     ;; Hide the thin width char glyph. This is dramatic but lets me not be annoyed
     (add-hook 'org-agenda-mode-hook
               #'(lambda () (setq-local nobreak-char-display nil)))
@@ -1374,23 +1394,24 @@ Mode for giving presentations, filming videos, etc. Bigger font, larger spacing,
 #+END_SRC
 *** Org-superstar
 #+BEGIN_SRC emacs-lisp 
-  (use-package org-superstar
-    :config
-    (setq org-superstar-leading-bullet " ")
-    (setq org-superstar-special-todo-items t) ;; Makes TODO header bullets into boxes
-    (setq org-superstar-todo-bullet-alist '(("TODO" . 9744)
-                                            ("INPROG-TODO" . 9744)
-                                            ("HW" . 9744)
-                                            ("STUDY" . 9744)
-                                            ("SOMEDAY" . 9744)
-                                            ("READ" . 9744)
-                                            ("PROJ" . 9744)
-                                            ("CONTACT" . 9744)
-                                            ("DONE" . 9745)))
-    :hook (org-mode . org-superstar-mode))
+    (use-package org-superstar
+      :config
+      (setq org-superstar-leading-bullet " ")
+      (setq org-superstar-special-todo-items t) ;; Makes TODO header bullets into boxes
+      (setq org-superstar-todo-bullet-alist '(("TODO" . 9744)
+                                              ("INPROG-TODO" . 9744)
+                                              ("WORK" . 9744)
+                                              ("STUDY" . 9744)
+                                              ("SOMEDAY" . 9744)
+                                              ("READ" . 9744)
+                                              ("PROJ" . 9744)
+                                              ("CONTACT" . 9744)
+                                              ("DONE" . 9745)))
+      ;; :hook (org-mode . org-superstar-mode)
+  )
 
-  ;; Removes gap when you add a new heading
-  (setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
+    ;; Removes gap when you add a new heading
+    (setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
 #+END_SRC
 *** Evil Org
 #+BEGIN_SRC emacs-lisp 
@@ -1615,7 +1636,7 @@ Moved to ~jib-funcs.el~. For some reason org-babel source blocks mess up some of
     (centered-cursor-mode) ;; Enable centered cursor mode
     (smartparens-mode 0) ;; Disable smartparents
     (hl-prog-extra-mode) ;; Highlighting with regexps
-    (setq-local line-spacing (+ jib-default-line-spacing 1))) ;; A bit more line spacing for orgmode
+    (setq-local line-spacing (+ jib-default-line-spacing 2))) ;; A bit more line spacing for orgmode
 #+END_SRC
 
 ** Org Mode Config
@@ -1634,10 +1655,10 @@ Moved to ~jib-funcs.el~. For some reason org-babel source blocks mess up some of
 The following is org-mode configuration.
 *** Visuals
 #+BEGIN_SRC emacs-lisp 
-  (setq org-ellipsis "  ⬎ ") ;; ⤵ ▼
+  (setq org-ellipsis " ▿ ") ;; ⤵ ▼ ⬎  
   (setq org-src-fontify-natively t) ;; Syntax highlighting in org src blocks
   (setq org-highlight-latex-and-related '(native)) ;; Highlight inline LaTeX
-  (setq org-startup-folded 'show2levels) ;; Org files start up folded by default
+  (setq org-startup-folded 'showeverything)
   (setq org-image-actual-width 300)
   (setq org-fontify-whole-heading-line t)
 #+END_SRC
@@ -1678,21 +1699,29 @@ The following is org-mode configuration.
 *** Tags, Todos, Priorities
 **** Tags
 #+BEGIN_SRC emacs-lisp 
-  (setq org-tag-faces '(
-                        ("Misc" . "tan1")
-                        ("qp" . "RosyBrown1") ;; Quick-picks
-                        ("ec" . "PaleGreen3") ;; Extracurricular
-                        ("st" . "DimGrey") ;; Near-future (aka short term) todo
-                        ))
+  ;; (setq org-tag-faces '(
+  ;;                       ("Misc" . "tan1")
+  ;;                       ("qp" . "RosyBrown1") ;; Quick-picks
+  ;;                       ("ec" . "PaleGreen3") ;; Extracurricular
+  ;;                       ("st" . "DimGrey") ;; Near-future (aka short term) todo
+  ;;                       ))
 
-  (setq org-tags-column 1)
+  (setq org-tags-column -1)
   #+END_SRC
 **** Todos
 #+BEGIN_SRC emacs-lisp 
   (setq org-todo-keywords '((type
-                             "TODO(t)" "WAITING(w)" "INPROG-TODO(i)" "HW(h)"
+                             "TODO(t)" "WAITING(h)" "INPROG-TODO(i)" "WORK(w)"
                              "STUDY(s)" "SOMEDAY" "READ(r)" "PROJ(p)" "CONTACT(c)"
                              "|" "DONE(d)" "CANCELLED(C)")))
+
+  (setq org-todo-keyword-faces
+        '(("TODO"  :inherit (region fixed-pitch org-todo) :foreground "DarkOrange1"   :weight bold)
+          ("WORK"  :inherit (region fixed-pitch org-todo) :foreground "DarkOrange1"   :weight bold)
+          ("READ"  :inherit (org-todo region fixed-pitch) :foreground "MediumPurple3" :weight bold)
+          ("PROJ"  :inherit (org-todo region fixed-pitch) :foreground "#98be65"       :weight bold)
+          ("STUDY" :inherit (region fixed-pitch org-todo) :foreground "plum3"       :weight bold)
+          ("DONE" . "SeaGreen4")))
 
   ;; (setq org-todo-keyword-faces '(("TODO" nil :foreground "orange1" :inherit fixed-pitch :weight medium)
   ;;                                ;; ("WAITING" nil :foreground "orange2" :inherit fixed-pitch :weight medium)
@@ -1713,7 +1742,7 @@ The following is org-mode configuration.
   (setq org-default-priority ?E) ;; If an item has no priority, it is considered [#E].
 
   (setq org-priority-faces
-        '((65 nil :inherit fixed-pitch :foreground "red2" :weight medium)
+        '((65 . "red2")
           (66 . "Gold1")
           (67 . "Goldenrod2")
           (68 . "PaleTurquoise3")
@@ -1757,9 +1786,11 @@ My favorite part.
 
   (setq org-agenda-restore-windows-after-quit t)
 
-  ;; Only show upcoming deadlines for tomorrow or the day after tomorrow. By default it shows
+  (setq org-agenda-window-setup 'current-window)
+
+  ;; Only show upcoming deadlines for the next 5 days. By default it shows
   ;; 14 days into the future, which seems excessive.
-  (setq org-deadline-warning-days 2)
+  (setq org-deadline-warning-days 5)
   ;; If something is done, don't show its deadline
   (setq org-agenda-skip-deadline-if-done t)
   ;; If something is done, don't show when it's scheduled for
@@ -1767,19 +1798,32 @@ My favorite part.
   ;; If something is scheduled, don't tell me it is due soon
   (setq org-agenda-skip-deadline-prewarning-if-scheduled t)
 
-  (setq org-agenda-timegrid-use-ampm 1
-        org-agenda-time-grid nil)
+  (setq org-agenda-timegrid-use-ampm 1)
 
-  (setq org-agenda-block-separator ?-)
+  ;; (setq org-agenda-time-grid '((daily today require-timed)
+  ;;                              (1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000 2100 2200)
+  ;;                              "        " "----------------"))
+
+  (setq org-agenda-time-grid nil)
+
+  (setq org-agenda-span 'day)
+
+  ;; (setq org-agenda-block-separator ?-)
   (setq org-agenda-current-time-string "<----------------- Now")
 
-  (setq org-agenda-scheduled-leaders '("" "")
-        org-agenda-deadline-leaders '("Due:" "Due in %1d day: " "Due %1d d. ago: "))
+  (setq org-agenda-scheduled-leaders '("Planned | " "Sched.%2dx: ") ; ⇛
+        org-agenda-deadline-leaders '("Due: " "Due in %1d d. | " "Due %1d d. ago: "))
 
-  (setq org-agenda-prefix-format '((agenda . " %i %-1:i%?-2t% s")
+  (setq org-agenda-prefix-format '((agenda . "  %-8:T %t%s")
                                    (todo . "  ")
                                    (tags . " %i %-12:c")
                                    (search . " %i %-12:c")))
+
+  (add-hook 'org-agenda-mode-hook
+            #'(lambda () (setq-local line-spacing 4)))
+
+  ;; (add-hook 'org-agenda-mode-hook
+  ;;           #'(lambda () (text-scale-increase 4)))
 #+END_SRC
 
 **** Org Agenda Custom Views
@@ -1845,9 +1889,58 @@ My favorite part.
                                                                 :order 3)
                                                          ))))
 
-                  (alltodo "" ((org-agenda-overriding-header "All Tasks:") 
-                               (org-super-agenda-groups jib-org-super-agenda-school-groups 
-                                                        ))))
+                  (org-ql-block '(and (todo)
+                                  (parent (heading "Meta")))
+                            ((org-ql-block-header "Meta"))))
+
+                  ;; (alltodo "" ((org-agenda-overriding-header "All Tasks:") 
+                  ;;              (org-super-agenda-groups jib-org-super-agenda-school-groups 
+                  ;;                                       ))))
+                 ))
+
+  (add-to-list 'org-agenda-custom-commands
+               '("c" "Columbia"
+                 ((agenda "" ((org-agenda-span 'day) (org-agenda-overriding-header "Columbia Productivity View")
+                              (org-super-agenda-groups '(
+                                                         (:name "Today's Tasks:"
+                                                                :scheduled t
+                                                                :order 2)
+                                                         (:name "Unscheduled Tasks Due Soon:"
+                                                                :deadline t
+                                                                :order 3)
+                                                         (:name "Today's Schedule:"
+                                                                :time-grid t
+                                                                :discard (:deadline t)
+                                                                :order 1)
+                                                         ))))
+
+                  (alltodo "" ((org-agenda-overriding-header "") 
+                               (org-super-agenda-groups '(
+                                                          (:name "Extracurricular:"
+                                                                 :tag "ec"
+                                                                 :discard (:not (:tag "p")))
+                                                          (:name "Personal:"
+                                                                 :tag "p")
+                                                          (:discard (:todo t))
+
+                                                          ;; (:name "Overdue"
+                                                          ;;        :face (:background "red")
+                                                          ;;        :scheduled past
+                                                          ;;        :deadline past
+                                                          ;;        :order 2)
+                                                          ;; (:name "Important"
+                                                          ;;        :discard (:tag "habit")
+                                                          ;;        :and (:todo "TODO" :priority "A") ;; Homework doesn't count here
+                                                          ;;        :todo "CONTACT"
+                                                          ;;        :order 3)
+                                                          ;; ;; (:name "Due this work week"
+                                                          ;; ;; 	   :deadline (before ,(org-read-date nil nil "Fri"))
+                                                          ;; ;; 	   :order 4)
+
+
+                                                          )
+                                                        )))
+                  )
                  ))
 
   (add-to-list 'org-agenda-custom-commands
