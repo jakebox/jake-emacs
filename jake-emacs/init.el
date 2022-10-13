@@ -215,6 +215,8 @@
       apropos-do-all t
       mouse-yank-at-point t)
 
+(setq what-cursor-show-names t) ;; improves C-x =
+
 ;; Weird thing where `list-colors-display` doesn't show all colors.
 ;; https://bug-gnu-emacs.gnu.narkive.com/Bo6OdySs/bug-5683-23-1-93-list-colors-display-doesn-t-show-all-colors
 (setq x-colors (ns-list-colors))
@@ -892,7 +894,7 @@ _q_ quit
   (setq super-save-auto-save-when-idle t
         super-save-idle-duration 5 ;; after 5 seconds of not typing autosave
         super-save-triggers ;; Functions after which buffers are saved (switching window, for example)
-        '(evil-window-next evil-window-prev balance-windows other-window)
+        '(evil-window-next evil-window-prev balance-windows other-window next-buffer previous-buffer)
         super-save-max-buffer-size 10000000)
   (super-save-mode +1))
 
@@ -924,11 +926,13 @@ _q_ quit
 
 ;; Setting text size based on the computer I am on.
 (if (eq jib/computer 'laptopN)
-    (setq jib-text-height 140))
+	(setq jib-text-height 140))
 (if (eq jib/computer 'desktop)
-    (setq jib-text-height 150))
+	(setq jib-text-height 150))
 
-(set-face-attribute 'default nil :family "Menlo" :weight 'regular :height jib-text-height)
+(set-frame-font "SF Mono:size=14" nil t)
+
+;; (set-face-attribute 'default nil :family "Menlo" :weight 'regular :height jib-text-height)
 
 ;; Float height value (1.0) makes fixed-pitch take height 1.0 * height of default
 ;; This means it will scale along with default when the text is zoomed
@@ -1093,7 +1097,7 @@ _q_ quit
         writeroom-header-line "" ;; Makes sure we have a header line, that's blank
         writeroom-mode-line t
         writeroom-global-effects nil ;; No need to have Writeroom do any of that silly stuff
-        writeroom-extra-line-spacing 4) 
+        writeroom-extra-line-spacing 2) 
   (setq writeroom-width visual-fill-column-width)
   )
 
@@ -1146,6 +1150,15 @@ _q_ quit
 
   ;; Removes gap when you add a new heading
   (setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
+
+(use-package org-modern
+  :hook (org-mode . org-modern-mode)
+  :config
+  (setq org-modern-star '("●" "○" "✸" "✿")
+        org-modern-list '((42 . "◦") (43 . "•") (45 . "–"))
+        org-modern-tag nil
+        org-modern-priority nil
+        org-modern-todo nil))
 
 (use-package evil-org
   :diminish evil-org-mode
@@ -1338,7 +1351,8 @@ _q_ quit
   (centered-cursor-mode) ;; Enable centered cursor mode
   (smartparens-mode 0) ;; Disable smartparents
   (hl-prog-extra-mode) ;; Highlighting with regexps
-  (setq-local line-spacing (+ jib-default-line-spacing 2))) ;; A bit more line spacing for orgmode
+  (setq-local line-spacing (+ jib-default-line-spacing 2)) ;; A bit more line spacing for orgmode
+  )
 
 (use-package org
   :pin gnu
@@ -1350,7 +1364,7 @@ _q_ quit
   :diminish visual-line-mode
   :config
 
-(setq org-ellipsis " ▿ ") ;; ⤵ ▼ ⬎  
+;; (setq org-ellipsis " ▿ ") ;; ⤵ ▼ ⬎  
 (setq org-src-fontify-natively t) ;; Syntax highlighting in org src blocks
 (setq org-highlight-latex-and-related '(native)) ;; Highlight inline LaTeX
 (setq org-startup-folded 'showeverything)
@@ -1598,22 +1612,6 @@ _q_ quit
                                                         (:name "Personal:"
                                                                :tag "p")
                                                         (:discard (:todo t))
-
-                                                        ;; (:name "Overdue"
-                                                        ;;        :face (:background "red")
-                                                        ;;        :scheduled past
-                                                        ;;        :deadline past
-                                                        ;;        :order 2)
-                                                        ;; (:name "Important"
-                                                        ;;        :discard (:tag "habit")
-                                                        ;;        :and (:todo "TODO" :priority "A") ;; Homework doesn't count here
-                                                        ;;        :todo "CONTACT"
-                                                        ;;        :order 3)
-                                                        ;; ;; (:name "Due this work week"
-                                                        ;; ;; 	   :deadline (before ,(org-read-date nil nil "Fri"))
-                                                        ;; ;; 	   :order 4)
-
-
                                                         )
                                                       )))
                 )
@@ -1627,7 +1625,34 @@ _q_ quit
                                                                     :deadline today) jib-org-super-agenda-school-groups)
                                                       )))))
              )
+
+(add-to-list 'org-agenda-custom-commands
+             '("w" "Columbia"
+               ((agenda ""
+                        ((org-agenda-span 6)
+                         (org-agenda-entry-types '(:deadline :scheduled))
+                         (org-agenda-start-on-weekday nil)
+                         (org-deadline-warning-days 0)
+                            )))))
+
 ;; Org-super-agenda-mode itself is activated in the use-package block
+
+;; (defun org-next-weekend-agenda ()
+;;   "Produce an agenda view for the current or upcoming weekend from all files in variable `org-agenda-files'."
+;;   (interactive)
+;;   (let*
+;;       ((day (string-to-number (format-time-string "%w")))
+;;        (offset
+;; 		(cond ((zerop day) -1)      ; it's Sunday
+;; 			  (t (- 6 day))))       ; any other day
+;;        (offset-string
+;; 		(cond ((>= offset 0) (concat "+" (number-to-string offset)))
+;; 			  (t (number-to-string offset)))))
+;;     (org-agenda-list nil offset-string 2)))
+
+;; (org-agenda-list nil "Thursday" 6)
+
+;; (org-time-stamp-to-now "<2022-10-18>")
 
 ;; This isn't super needed as I mostly just use my custom refile command
 ;; to refile to only the current buffer.
@@ -1746,7 +1771,6 @@ _q_ quit
 (use-package unfill :defer t)
 (use-package burly :defer t)
 (use-package ace-window :defer t)
-(use-package org-real :defer t)
 (use-package centered-cursor-mode :diminish centered-cursor-mode)
 (use-package restart-emacs :defer t)
 (use-package diminish)
@@ -1943,6 +1967,12 @@ _q_ quit
   (popper-mode +1))
 
 (use-package rainbow-mode :defer t)
+
+(use-package quickrun :defer t
+  :general
+  (general-define-key :states 'normal :keymaps 'quickrun--mode-map
+                      "q" 'quit-window
+                      "s-9" 'quickrun-shell))
 
 ;; A better python mode (supposedly)
 (use-package python-mode
