@@ -117,6 +117,15 @@ If the universal prefix argument is used then will the windows too."
   (interactive)
   (shell-command (concat "open " (buffer-file-name))))
 
+(defun jib/zoxide-wrapper (&optional arg)
+  "Use zoxide to open directory in either Finder (default) or Dired (C-u)."
+  (interactive "P")
+  (when (called-interactively-p 'interactive)
+	(let ((input (completing-read "z: " nil)))
+	  (if (equal '(4) arg)
+		  (dired (shell-command (concat "z " "cs;" " pwd"))) ;; not currently working (shell-command outputs to a buffer)
+		(shell-command (concat "z " input "; open ."))))))
+
 ;; Automatically tangle our Emacs.org config file when we save it
 ;; from emacs-from-scratch
 (defun jib/org-babel-tangle-config ()
@@ -138,8 +147,8 @@ If the universal prefix argument is used then will the windows too."
    (concat
     "http://www.google.com/search?ie=utf-8&oe=utf-8&q="
     (url-hexify-string (if mark-active
-         (buffer-substring (region-beginning) (region-end))
-       (read-string "Google: "))))))
+						   (buffer-substring (region-beginning) (region-end))
+						 (read-string "Google: "))))))
 
 ;; https://lists.gnu.org/archive/html/help-gnu-emacs/2010-07/msg00291.html
 (defun jib/www-get-page-title (url)
@@ -196,7 +205,7 @@ splits the sentence."
 	  (while (> lines 0) ;; Add "+ " at the beginning of each line
 		(beginning-of-line)
 		(insert "+ ")
-		(next-line)
+		(forward-line)
 		(setq lines (1- lines))))))
 
 (defun jib/insert-empty-lines-after-each-line ()
@@ -237,9 +246,9 @@ splits the sentence."
   (if (use-region-p) (let* ((wpm 150)
 							(word-count (float (count-words-region (region-beginning) (region-end))))
 							(raw-time (* 60 (/ word-count wpm))))
-					   (message "%s minutes, %s seconds to speak at %d wpm"
+					   (message "%s minutes, %s seconds to speak at %d wpm (%d words)"
 								(format-seconds "%m" raw-time)
-								(floor(mod raw-time 60)) wpm))
+								(floor (mod raw-time 60)) wpm word-count))
 	(error "Error: select a region.")))
 
 (defun jib/time-difference ()

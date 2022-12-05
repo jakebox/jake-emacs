@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: definition
+# key: def
+# --
+*$1*  $0
