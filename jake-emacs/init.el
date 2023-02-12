@@ -239,9 +239,8 @@
 
 (use-package evil
   :init
-  ;; (setq evil-want-keybinding t)
+  (setq evil-want-keybinding nil) ;; don't load Evil keybindings in other modes
   (setq evil-want-fine-undo t)
-  (setq evil-want-keybinding nil)
   (setq evil-want-Y-yank-to-eol t)
   :config
 
@@ -258,6 +257,7 @@
   (define-key evil-window-map "\C-q" 'evil-delete-buffer) ;; Maps C-w C-q to evil-delete-buffer (The first C-w puts you into evil-window-map)
   (define-key evil-window-map "\C-w" 'kill-this-buffer)
   (define-key evil-motion-state-map "\C-b" 'evil-scroll-up) ;; Makes C-b how C-u is
+  (define-key evil-motion-state-map [?\s-\\] 'evil-execute-in-emacs-state) ;; `super-\', by default it's just `\'
 
   ;; ----- Setting cursor colors
   (setq evil-emacs-state-cursor    '("#649bce" box))
@@ -276,11 +276,11 @@
   :config
   (global-evil-surround-mode 1))
 
-(use-package evil-collection
-  :after evil
-  :config
-  (setq evil-collection-mode-list '(dired (custom cus-edit) (package-menu package) calc diff-mode))
-  (evil-collection-init))
+;; (use-package evil-collection
+;;   :after evil
+;;   :config
+;;   (setq evil-collection-mode-list '(dired (custom cus-edit) (package-menu package) calc diff-mode))
+;;   (evil-collection-init))
 
 ;; (use-package evil-snipe
 ;;   :diminish evil-snipe-mode
@@ -443,6 +443,7 @@
   "Í" 'other-frame ;; option-shift-s
   "C-S-B" 'counsel-switch-buffer
   "∫" 'counsel-switch-buffer ;; option-b
+  "s-b" 'counsel-switch-buffer ;; super-b
   "s-o" 'jb-hydra-window/body
 
   ;; Remapping normal help features to use Counsel version
@@ -478,23 +479,31 @@
   "s-6" 'org-capture
   "s-7" 'jib/open-dropbox-folder-in-finder
   "s-8" 'jib/zoxide-wrapper
+
+  "s-w" 'kill-this-buffer
   )
 
 ;; Non-insert mode keymaps
 (general-def
   :states '(normal visual motion)
   "gc" 'comment-dwim
+  "gC" 'comment-line
+
   "u" 'undo-fu-only-undo
   "U" 'undo-fu-only-redo
-  "gC" 'comment-line
+
   "j" 'evil-next-visual-line ;; I prefer visual line navigation
-  "k" 'evil-previous-visual-line ;; ""
-  "|" '(lambda () (interactive) (org-agenda nil "c")) ;; Opens my n custom org-super-agenda view
-  "C-|" '(lambda () (interactive) (org-ql-view "Columbia Todo"))
+  "k" 'evil-previous-visual-line ;; "
+
   "gf" 'xah-open-file-at-cursor
   "f" 'evil-avy-goto-char-in-line
+
   "/" 'jib/split-window-horizontally-and-switch
   "-" 'jib/split-window-vertically-and-switch  
+
+  "\\" '(lambda () (interactive) (org-agenda nil "c"))
+  "|" '(lambda () (interactive) (org-ql-view "Columbia Todo"))
+  "]\\" '(lambda () (interactive) (org-agenda nil "w"))
   )
 
 (general-def
@@ -921,30 +930,33 @@ _q_ quit
 (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
 
 (setq text-scale-mode-step 1.2) ;; How much to adjust text scale by when using `text-scale-mode'
-  (setq jib-default-line-spacing 1) ;; This happens in the variables but I guess I have it here too.
+(setq jib-default-line-spacing 1) ;; This happens in the variables but I guess I have it here too.
 
-  (setq-default line-spacing jib-default-line-spacing)
+(setq-default line-spacing jib-default-line-spacing)
 
-  ;; Setting text size based on the computer I am on.
-  (if (eq jib/computer 'laptopN)
-      (setq jib-text-height 140))
-  (if (eq jib/computer 'desktop)
-      (setq jib-text-height 150))
+;; Setting text size based on the computer I am on.
+(if (eq jib/computer 'laptopN)
+    (setq jib-text-height 140))
+(if (eq jib/computer 'desktop)
+    (setq jib-text-height 150))
 
-  (set-frame-font "SF Mono:size=14" nil t)
+;; (set-frame-font "SF Mono:size=14" nil t)
+;; (set-frame-font "Menlo:size=14" nil t)
+;; (set-frame-font "Fira Code:size=14" nil t)
+(set-frame-font "Roboto Mono:size=14" nil t)
 
-  ;; (set-face-attribute 'default nil :family "Menlo" :weight 'regular :height jib-text-height)
+;; (set-face-attribute 'default nil :family "Menlo" :weight 'regular :height jib-text-height)
 
-  ;; Float height value (1.0) makes fixed-pitch take height 1.0 * height of default
-  ;; This means it will scale along with default when the text is zoomed
+;; Float height value (1.0) makes fixed-pitch take height 1.0 * height of default
+;; This means it will scale along with default when the text is zoomed
 ;;  (set-face-attribute 'fixed-pitch nil :font "Roboto Mono" :weight 'regular :height 1.0)
 
-  ;; Height of 160 seems to match perfectly with 12-point on Google Docs
-  ;; (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160)
+;; Height of 160 seems to match perfectly with 12-point on Google Docs
+;; (set-face-attribute 'variable-pitch nil :family "Times New Roman" :height 160)
 
-  ;; (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 180 :width 'normal :foundry "nil" :family "Nunito Sans")
+;; (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 180 :width 'normal :foundry "nil" :family "Nunito Sans")
 
-  ;; (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 180 :width 'normal :foundry "nil" :family "Nunito Sans")
+;; (set-face-attribute 'variable-pitch nil :slant 'normal :weight 'normal :height 180 :width 'normal :foundry "nil" :family "Nunito Sans")
 
 (use-package mixed-pitch
   :defer t
@@ -991,7 +1003,7 @@ _q_ quit
     (setq default-frame-alist '((left . 150)
                                 (width . 120)
                                 (fullscreen . fullheight)
-                                (internal-border-width . 8))))
+                                (internal-border-width . 12))))
 
 (if (eq jib/computer 'desktop)
     (setq default-frame-alist '((left . 170)
@@ -1125,7 +1137,7 @@ _q_ quit
   :after org
   :config
   (setq org-super-agenda-header-map nil) ;; takes over 'j'
-  (setq org-super-agenda-header-prefix " ◦ ") ;; There are some unicode "THIN SPACE"s after the ◦
+  ;; (setq org-super-agenda-header-prefix " ◦ ") ;; There are some unicode "THIN SPACE"s after the ◦
   ;; Hide the thin width char glyph. This is dramatic but lets me not be annoyed
   (add-hook 'org-agenda-mode-hook
             #'(lambda () (setq-local nobreak-char-display nil)))
@@ -1153,11 +1165,14 @@ _q_ quit
 (use-package org-modern
   :hook (org-mode . org-modern-mode)
   :config
-  (setq org-modern-star '("●" "○" "✸" "✿")
-        org-modern-list '((42 . "◦") (43 . "•") (45 . "–"))
-        org-modern-tag nil
-        org-modern-priority nil
-        org-modern-todo nil))
+  (setq
+   ;; org-modern-star '("●" "○" "✸" "✿")
+   org-modern-star '( "⌾" "✸" "◈" "◇")
+   org-modern-list '((42 . "◦") (43 . "•") (45 . "–"))
+   org-modern-tag nil
+   org-modern-priority nil
+   org-modern-todo nil
+   org-modern-table nil))
 
 (use-package evil-org
   :diminish evil-org-mode
@@ -1209,6 +1224,13 @@ _q_ quit
   :config
   (setq org-preview-html-viewer 'xwidget))
 
+(use-package org-fragtog
+  :hook (org-mode . org-fragtog-mode)
+  :config
+  (setq org-latex-create-formula-image-program 'dvisvgm) ;; sharper
+  (plist-put org-format-latex-options :scale 1.5) ;; bigger
+  )
+
 (use-package org-tree-slide
   :defer t
   :config
@@ -1220,6 +1242,10 @@ _q_ quit
   :config
   (setq org-download-method 'attach)
   (advice-add 'org-download-yank :before 'jib/system-clipboard-to-emacs-clipboard))
+
+(use-package valign :defer t)
+
+(setq org-special-ctrl-a/e t)
 
 (general-def
   :states 'normal
@@ -1233,7 +1259,9 @@ _q_ quit
 (general-def
   :states 'insert
   :keymaps 'org-mode-map
-  "C-o" 'evil-org-open-above)
+  "C-o" 'evil-org-open-above
+  "S-<left>" 'org-shiftleft
+  "S-<right>" 'org-shiftright)
 
 (general-def
   :keymaps 'org-mode-map
@@ -1256,7 +1284,7 @@ _q_ quit
 (general-define-key
  :prefix ","
  :states 'motion
- :keymaps '(org-mode-map) ;; Available in org mode, org agenda
+ :keymaps '(org-mode-map)
  "" nil
  "A" '(org-archive-subtree-default :which-key "org-archive")
  "a" '(org-agenda :which-key "org agenda")
@@ -1270,10 +1298,11 @@ _q_ quit
  "p" '(org-set-property :which-key "set property")
  "r" '(jib/org-refile-this-file :which-key "refile in file")
  "e" '(org-export-dispatch :which-key "export org")
- "B" '(org-toggle-narrow-to-subtree :which-key "toggle narrow to subtree")
  "," '(jib/org-set-startup-visibility :which-key "startup visibility")
+ "." '(org-toggle-narrow-to-subtree :which-key "toggle narrow to subtree")
  "H" '(org-html-convert-region-to-html :which-key "convert region to html")
  "C" '(jib/org-copy-link-to-clipboard :which-key "copy link to clipboard")
+ "=" '(ap/org-count-words :which-key "ap/org-count-words")
 
  "1" '(org-toggle-link-display :which-key "toggle link display")
  "2" '(org-toggle-inline-images :which-key "toggle images")
@@ -1297,7 +1326,6 @@ _q_ quit
  ;; insert
  "i" '(nil :which-key "insert")
 
-
  "il" '(org-insert-link :which-key "org-insert-link")
  "l" '(org-insert-link :which-key "org-insert-link") ;; More convenient access
  "iL" '(counsel-org-link :which-key "counsel-org-link")
@@ -1319,11 +1347,12 @@ _q_ quit
 (general-define-key
  :prefix ","
  :states 'motion
- :keymaps '(org-agenda-mode-map) ;; Available in org mode, org agenda
+ :keymaps '(org-agenda-mode-map)
  "" nil
  "a" '(org-agenda :which-key "org agenda")
  "c" '(org-capture :which-key "org-capture")
  "s" '(org-agenda-schedule :which-key "schedule")
+ "," '(org-agenda-schedule :which-key "schedule") ;; quick access
  "d" '(org-agenda-deadline :which-key "deadline")
  "t" '(org-agenda-set-tags :which-key "set tags")
  ;; clocking
@@ -1344,10 +1373,11 @@ _q_ quit
   (smartparens-mode 0) ;; Disable smartparents
   (hl-prog-extra-mode) ;; Highlighting with regexps
   (setq-local line-spacing (+ jib-default-line-spacing 2)) ;; A bit more line spacing for orgmode
+  (valign-mode)
   )
 
 (use-package org
-  :pin gnu
+  ;; :pin elpa
   :hook (org-mode . jib/org-setup)
   :hook (org-mode . jib/prettify-symbols-setup)
   :hook (org-capture-mode . evil-insert-state) ;; Start org-capture in Insert state by default
@@ -1355,7 +1385,8 @@ _q_ quit
   :diminish visual-line-mode
   :config
 
-;; (setq org-ellipsis "…") ;; ⤵ ▼ ⬎  
+(setq org-ellipsis "…")
+;; ⤵ ▼ ⬎  
 (setq org-src-fontify-natively t) ;; Syntax highlighting in org src blocks
 (setq org-highlight-latex-and-related '(native)) ;; Highlight inline LaTeX
 (setq org-startup-folded 'showeverything)
@@ -1395,6 +1426,7 @@ _q_ quit
 
 (advice-add 'counsel-org-goto :after #'jib/post-org-goto)
 (advice-add 'org-agenda-goto :after #'jib/post-org-goto)
+(advice-add 'org-agenda-switch-to :after #'jib/post-org-goto)
 
 ;; (setq org-tag-faces '(
 ;;                       ("Misc" . "tan1")
@@ -1408,28 +1440,18 @@ _q_ quit
 (setq org-todo-keywords '((type
                            "TODO(t)" "WAITING(h)" "INPROG-TODO(i)" "WORK(w)"
                            "STUDY(s)" "SOMEDAY" "READ(r)" "PROJ(p)" "CONTACT(c)"
-                           "|" "DONE(d)" "CANCELLED(C)")))
+                           "AUDIO(a)" "VIDEO(v)"
+                           "|" "DONE(d)" "CANCELLED(C@)")))
 
 (setq org-todo-keyword-faces
       '(("TODO"  :inherit (region org-todo) :foreground "DarkOrange1"   :weight bold)
         ("WORK"  :inherit (org-todo region) :foreground "DarkOrange1"   :weight bold)
-        ("READ"  :inherit (org-todo region) :foreground "MediumPurple3" :weight bold)
+        ("READ"  :inherit (org-todo region) :foreground "MediumPurple2" :weight bold)
+        ("VIDEO"  :inherit (org-todo region) :foreground "MediumPurple2" :weight bold)
+        ("AUDIO"  :inherit (org-todo region) :foreground "MediumPurple2" :weight bold)
         ("PROJ"  :inherit (org-todo region) :foreground "orange3"     :weight bold)
         ("STUDY" :inherit (region org-todo) :foreground "plum3"       :weight bold)
         ("DONE" . "SeaGreen4")))
-
-;; (setq org-todo-keyword-faces '(("TODO" nil :foreground "orange1" :inherit fixed-pitch :weight medium)
-;;                                ;; ("WAITING" nil :foreground "orange2" :inherit fixed-pitch :weight medium)
-;;                                ("HW" nil :foreground "coral1" :inherit fixed-pitch :weight medium)
-;;                                ("STUDY" nil :foreground "plum3" :inherit fixed-pitch :weight medium)
-;;                                ("SOMEDAY" nil :foreground "steel blue" :inherit fixed-pitch)
-;;                                ("CONTACT" nil :foreground "LightSalmon2" :inherit fixed-pitch :weight medium)
-;;                                ("READ" nil :foreground "MediumPurple3" :inherit fixed-pitch :weight medium)
-;;                                ("PROJ" nil :foreground "aquamarine3" :inherit fixed-pitch :weight medium)
-;;                                ("INPROG-TODO" nil :foreground "orange1" :inherit fixed-pitch :weight medium)
-
-;;                                ("DONE" nil :foreground "LawnGreen" :inherit fixed-pitch :weight medium)
-;;                                ("CANCELLED" nil :foreground "dark red" :inherit fixed-pitch :weight medium)))
 
 (setq org-lowest-priority ?F)  ;; Gives us priorities A through F
 (setq org-default-priority ?E) ;; If an item has no priority, it is considered [#E].
@@ -1475,9 +1497,9 @@ _q_ quit
 
 (setq org-agenda-window-setup 'current-window)
 
-;; Only show upcoming deadlines for the next 5 days. By default it shows
+;; Only show upcoming deadlines for the next X days. By default it shows
 ;; 14 days into the future, which seems excessive.
-(setq org-deadline-warning-days 5)
+(setq org-deadline-warning-days 3)
 ;; If something is done, don't show its deadline
 (setq org-agenda-skip-deadline-if-done t)
 ;; If something is done, don't show when it's scheduled for
@@ -1502,49 +1524,83 @@ _q_ quit
 ;; (setq org-agenda-block-separator ?-)
 (setq org-agenda-current-time-string "<----------------- Now")
 
+(setq org-agenda-block-separator nil)
+
 (setq org-agenda-scheduled-leaders '("Plan | " "Sched.%2dx: ") ; ⇛
       org-agenda-deadline-leaders '("Due: " "Due in %1d d. | " "Due %1d d. ago: "))
 
 (setq org-agenda-prefix-format '((agenda . "  %-6:T %t%s")
-                                 (todo . "  ")
+                                 (todo . "  %-6:T %t%s")
                                  (tags . " %i %-12:c")
                                  (search . " %i %-12:c")))
 
 (add-hook 'org-agenda-mode-hook
-          #'(lambda () (setq-local line-spacing 4)))
+          #'(lambda () (setq-local line-spacing 6)))
 
-;; (add-hook 'org-agenda-mode-hook
-;;           #'(lambda () (text-scale-increase 4)))
+(add-hook 'org-agenda-mode-hook
+          #'(lambda () (hide-mode-line-mode)))
 
 (setq org-agenda-custom-commands nil)
-(add-to-list 'org-agenda-custom-commands
-             '("c" "Columbia Day View"
-               ((agenda "" ((org-agenda-span 'day) (org-agenda-overriding-header "Columbia Productivity View")
-                            (org-super-agenda-groups '(
-                                                       (:name "Today's Tasks:"
-                                                              :scheduled t
-                                                              :order 2)
-                                                       (:name "Unscheduled Tasks Due Soon:"
-                                                              :deadline t
-                                                              :order 3)
-                                                       (:name "Today's Schedule:"
-                                                              :time-grid t
-                                                              :discard (:deadline t)
-                                                              :order 1)))))
+(add-to-list '
+ org-agenda-custom-commands
+ '("c" "Columbia Day View"
+   ((agenda "" ((org-agenda-overriding-header "Columbia Productivity View")
+                (org-agenda-span 'day)
+                (org-super-agenda-groups '(
+                                           (:name "Today's Tasks:"
+                                                  :scheduled t
+                                                  :order 2)
+                                           (:name "Unscheduled Tasks Due Soon:"
+                                                  :deadline t
+                                                  :order 3)
+                                           (:name "Today's Schedule:"
+                                                  :time-grid t
+                                                  :discard (:deadline t)
+                                                  :order 1)))))
 
-                (org-ql-block '(or (todo "PROJ" "STUDY") (and (todo) (or (tags "ec" "lt") (tags "p"))))
-                              ((org-ql-block-header "")
-                               (org-super-agenda-groups '(
-                                                          (:name "Extracurricular:"
-                                                                 :tag "ec"
-                                                                 :order 10)
-                                                          (:name "Personal:"
-                                                                 :tag "p"
-                                                                 :order 5)
-                                                          (:name "Long-Term:"
-                                                                 :todo ("STUDY" "PROJ")
-                                                                 :tag "lt")
-                                                          (:discard (:todo t)))))))))
+    ;; (org-ql-block '(and (not (tags "defer")) (or (todo "PROJ" "STUDY") (and (todo) (or (tags "ec" "lt") (tags "p")))))
+    ;;               ((org-ql-block-header "")
+    ;;                (org-super-agenda-groups '(
+    ;;                                           (:name "Extracurricular:"
+    ;;                                                  :tag "ec"
+    ;;                                                  :order 5)
+    ;;                                           (:name "Personal:"
+    ;;                                                  :tag "p"
+    ;;                                                  :order 10)
+    ;;                                           (:name "Long-Term:"
+    ;;                                                  :todo ("STUDY" "PROJ")
+    ;;                                                  :tag "lt")
+    ;;                                           (:discard (:todo t))))))
+
+    ;; (todo "TODO"
+    ;; 		(
+    ;; 		 ;;(org-agenda-prefix-format "[ ] %T: ")
+    ;; 		 (org-agenda-sorting-strategy '(tag-up priority-down))
+    ;; 		 ;; (org-agenda-todo-keyword-format "")
+    ;; 		 (org-agenda-overriding-header "\n Todos: ")))
+    ;; (todo "PROJ"
+    ;; 		((org-agenda-overriding-header "")))
+
+    (alltodo "" ((org-agenda-overriding-header "")
+             ;; (org-agenda-prefix-format "  %-6:T   ")
+                 ;; (org-agenda-sorting-strategy '(tag-up priority-down))
+                 (org-super-agenda-groups
+                  '(
+                    (:discard (:tag "defer"))
+                    (:name "Extracurricular:"
+                           :tag "ec"
+                           :order 5)
+                    (:name "Personal:"
+                           :tag "p"
+                           :order 10)
+                    (:name "Study:"
+                           :todo "STUDY")
+                    (:name "Projects:"
+                           :todo "PROJ")
+                    (:discard (:todo t))
+                    ))))
+
+    )))
 
 (add-to-list 'org-agenda-custom-commands
              '("v" "Columbia Day View No Agenda"
@@ -1552,6 +1608,7 @@ _q_ quit
                               ((org-super-agenda-groups '((:name "Today's Tasks"
                                                                  :scheduled today
                                                                  :deadline today)
+                                                          (:discard (:tag "defer"))
                                                           (:name "Extracurricular:"
                                                                  :tag "ec"
                                                                  :order 10)
@@ -1569,17 +1626,39 @@ _q_ quit
                         ((org-agenda-span 6)
                          (org-agenda-entry-types '(:deadline :scheduled))
                          (org-agenda-start-on-weekday nil)
-                         (org-deadline-warning-days 0))))))
+                         (org-deadline-warning-days 0)))
+                ;; (todo "PROJ"
+                ;; 	  (
+                ;; 	   ;; (org-agenda-skip-function
+                ;; 	   ;; 	'(org-agenda-skip-entry-if 'deadline))
+                ;; 	   (org-agenda-prefix-format "%s ")
+                ;; 	   (org-agenda-overriding-header "\Long-term:")))
+                (org-ql-block '(and (not (tags "defer")) (or (todo "PROJ" "STUDY") (and (todo) (or (tags "ec" "lt") (tags "p")))))
+                              ((org-ql-block-header "")
+                               (org-super-agenda-groups '(
+                                                          (:name "Extracurricular:"
+                                                                 :tag "ec"
+                                                                 :order 5)
+                                                          (:name "Personal:"
+                                                                 :tag "p"
+                                                                 :order 10)
+                                                          (:name "Long-Term:"
+                                                                 :todo ("STUDY" "PROJ")
+                                                                 :tag "lt")
+                                                          (:discard (:todo t))))))
+
+
+                )))
 
 ;; This isn't super needed as I mostly just use my custom refile command
 ;; to refile to only the current buffer.
-(setq org-refile-targets (quote (("~/Dropbox/org/work.org" :maxlevel . 2)
-                                 ("~/Dropbox/org/cpb.org"  :maxlevel . 8)
-                                 ;; ("~/Dropbox/notes/columbia/columbia_inbox.org")
-                                 )))
+;; (setq org-refile-targets (quote (("~/Dropbox/org/work.org" :maxlevel . 2)
+;;                                  ("~/Dropbox/org/cpb.org"  :maxlevel . 8)
+;;                                  ;; ("~/Dropbox/notes/columbia/columbia_inbox.org")
+;;                                  )))
 
-(setq org-outline-path-complete-in-steps nil) ; Refile in a single go
-(setq org-refile-use-outline-path t)          ; Show full paths for refiling
+;; (setq org-outline-path-complete-in-steps nil) ; Refile in a single go
+;; (setq org-refile-use-outline-path t)          ; Show full paths for refiling
 
 ;; By default an org-capture/refile will save a bookmark. This
 ;; disables that and keeps my bookmark list how I want it.

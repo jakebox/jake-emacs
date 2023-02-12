@@ -413,7 +413,8 @@ If region is active, use region. Otherwise, use entire file."
 (defun jib/org-set-startup-visibility ()
   "Allows `org-set-startup-visibility' to be used interactively. (it's not an interactive function)"
   (interactive)
-  (org-set-startup-visibility))
+  (org-set-startup-visibility)
+  (goto-char (point-min)))
 
 (defun jib/org-refile-this-file ()
   "Org refile to only headers in current file, 5 levels."
