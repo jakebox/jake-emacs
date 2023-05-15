@@ -74,11 +74,11 @@
 	  :super-groups
 	  ((:name "Personal:" :tag "p" :order 10)
 	   (:name "LitHum:" :tag "lit")
-	   (:name "Education Foundations" :tag "edu")
+	   (:name "Education Foundations:" :tag "edu")
 	   (:name "Calculus:" :tag "calc3")
 	   (:name "FroSci:" :tag "sci")
 	   (:name "Data Structures:" :tag "ds")
-	   (:name "Extracurricular" :tag "ec"))
+	   (:name "Extracurricular:" :tag "ec"))
 	  :narrow nil)
 	 ("Unscheduled TODOs" :buffers-files
 	  ("~/Dropbox/org/work.org")
@@ -99,7 +99,7 @@
 	   (:name "Extracurricular" :tag "ec"))
 	  :narrow nil)))
  '(package-selected-packages
-   '(org-fragtog valign nano-theme org-pomodoro markdown-mode auctex default-text-scale ef-themes shell-here quickrun org-modern org-hyperscheduler yasnippet avy flyspell-correct prescient ivy kind-icon corfu hydra aio org-vcard hl-prog-extra org-preview-html org-preview-html-mode cape fontaine pdf-tools tablist doom-modeline pyvenv org-super-agenda visual-fill-column evil popper writeroom-mode which-key web-mode use-package unfill undo-fu svg-lib super-save smartparens simpleclip shrink-path reveal-in-osx-finder restart-emacs rainbow-mode python-mode presentation ox-reveal ox-hugo org-tree-slide org-superstar org-ql org-gcal org-download org-appear org-analyzer mw-thesaurus modus-themes mixed-pitch magit kaolin-themes ivy-prescient ivy-hydra htmlize hl-todo hide-mode-line gnuplot general gcmh flyspell-correct-ivy evil-surround evil-snipe evil-org evil-collection evil-anzu esxml elpy doom-themes diminish deft dashboard counsel centered-cursor-mode burly bufler auto-virtualenv all-the-icons-ivy-rich ace-window))
+   '(jinx ox-moderncv writegood-mode org-fragtog valign nano-theme org-pomodoro markdown-mode auctex default-text-scale ef-themes shell-here quickrun org-modern org-hyperscheduler yasnippet avy flyspell-correct prescient ivy kind-icon corfu hydra aio org-vcard hl-prog-extra org-preview-html org-preview-html-mode cape fontaine pdf-tools tablist doom-modeline pyvenv org-super-agenda visual-fill-column evil popper writeroom-mode which-key web-mode use-package unfill undo-fu svg-lib super-save smartparens simpleclip shrink-path reveal-in-osx-finder restart-emacs rainbow-mode python-mode presentation ox-reveal ox-hugo org-tree-slide org-superstar org-ql org-gcal org-download org-appear org-analyzer mw-thesaurus modus-themes mixed-pitch magit kaolin-themes ivy-prescient ivy-hydra htmlize hl-todo hide-mode-line gnuplot general gcmh flyspell-correct-ivy evil-surround evil-snipe evil-org evil-collection evil-anzu esxml elpy doom-themes diminish deft dashboard counsel centered-cursor-mode burly bufler auto-virtualenv all-the-icons-ivy-rich ace-window))
  '(pdf-view-midnight-colors (cons "#bbc2cf" "#282c34"))
  '(safe-local-variable-values
    '((eval flyspell-mode-off)
@@ -120,8 +120,6 @@
  ;; If there is more than one, they won't work right.
  '(mode-line ((t (:height 135))))
  '(mode-line-inactive ((t (:height 135))))
- ;; '(org-agenda-date ((t (:height 1.1))))
- ;; '(org-agenda-date-today ((t (:height 1.1))))
  '(org-deadline ((t (:foreground nil :inherit org-scheduled-today))))
  '(org-drawer ((t (:height 0.6 :inherit shadow))))
  '(org-ellipsis ((t (:foreground unspecified :inherit 'shadow))))
@@ -130,9 +128,9 @@
  '(org-level-4 ((t (:inherit outline-4 :weight regular))))
  '(org-level-5 ((t (:inherit outline-5 :weight regular))))
  '(org-link ((t (:inherit link :weight regular))))
- '(org-scheduled-previously ((t (:background "red"))))
- '(org-scheduled-today ((t (:foreground nil :inherit outline-2))))
- '(org-upcoming-deadline ((t (:foreground nil :inherit org-scheduled-today))))
- '(org-upcoming-distant-deadline ((t (:foreground nil :inherit org-upcoming-deadline))))
+ '(org-scheduled-previously ((t (:foreground nil :weight bold :foreground "red1" :inherit org-scheduled))))
+ '(org-scheduled-today ((t (:foreground nil :weight bold :inherit org-scheduled))))
+ '(org-upcoming-deadline ((t (:foreground nil :inherit org-warning))))
+ '(org-upcoming-distant-deadline ((t (:foreground nil :weight normal :inherit org-warning))))
  '(org-warning ((t (:underline nil))))
  '(variable-pitch ((t (:height 1.0 :family "Nunito Sans")))))

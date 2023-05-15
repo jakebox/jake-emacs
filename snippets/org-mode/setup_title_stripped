@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: Insert Title and Date Stripped
+# key: <ts
+# --
+
+#+TITLE: $0
+#+AUTHOR: Jacob Boxerman
+#+DATE: `(format-time-string "%b %d %Y")`
+

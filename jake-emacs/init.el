@@ -140,7 +140,7 @@
 
 (setq sentence-end-double-space nil) ;; Sentences end with one space
 
-(setq bookmark-fontify nil)
+(setq bookmark-set-fringe-mark nil)
 
 ;; SCROLLING ---------
 (setq scroll-conservatively 101)
@@ -423,6 +423,7 @@
 "wm" '(jib/toggle-maximize-buffer :which-key "maximize buffer")
 "wN" '(make-frame :which-key "make frame")
 "wd" '(evil-window-delete :which-key "delete window")
+"wc" '(evil-window-delete :which-key "delete window")
 "w-" '(jib/split-window-vertically-and-switch :which-key "split below")
 "w/" '(jib/split-window-horizontally-and-switch :which-key "split right")
 "wr" '(jb-hydra-window/body :which-key "hydra window")
@@ -509,7 +510,8 @@
 (general-def
   :states '(normal visual motion)
   :keymaps 'override
-  "s" 'swiper)
+  "s" 'swiper
+  "?" 'evil-search-forward)
 
 ;; Insert keymaps
 ;; Many of these are emulating standard Emacs bindings in Evil insert mode, such as C-a, or C-e.
@@ -701,7 +703,15 @@ _q_ quit
 (use-package cape
   :init
   (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-keyword))
+  (add-to-list 'completion-at-point-functions #'cape-keyword)
+  ;; kinda confusing re length, WIP/TODO
+  ;; :hook (org-mode . (lambda () (add-to-list 'completion-at-point-functions #'cape-dabbrev)))
+  ;; :config
+  ;; (setq dabbrev-check-other-buffers nil
+  ;;       dabbrev-check-all-buffers nil
+  ;;       cape-dabbrev-min-length 6)
+  )
+
 
 (use-package kind-icon
   :config
@@ -861,8 +871,6 @@ _q_ quit
                   mu4e-compose-mode-hook))
     (add-hook mode (lambda () (flyspell-mode 1))))
 
-  (setq ispell-extra-args '("--sug-mode=ultra"))
-
   (setq flyspell-issue-welcome-flag nil
         flyspell-issue-message-flag nil)
 
@@ -874,12 +882,12 @@ _q_ quit
                       "zz" #'ispell-word)
   )
 
-(use-package flyspell-correct
-  :after flyspell
-  :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+;; (use-package flyspell-correct
+;;   :after flyspell
+;;   :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
 
-(use-package flyspell-correct-ivy
-  :after flyspell-correct)
+;; (use-package flyspell-correct-ivy
+;;   :after flyspell-correct)
 
 (use-package evil-anzu :defer t)
 
@@ -986,6 +994,7 @@ _q_ quit
         doom-modeline-modal-icon nil ;; Icon for Evil mode
         doom-modeline-major-mode-icon t
         doom-modeline-major-mode-color-icon nil
+        doom-modeline-buffer-state-icon nil
         doom-modeline-bar-width 3))
 
 ;; Configure modeline text height based on the computer I'm on.
@@ -1003,7 +1012,7 @@ _q_ quit
     (setq default-frame-alist '((left . 150)
                                 (width . 120)
                                 (fullscreen . fullheight)
-                                (internal-border-width . 12))))
+                                (internal-border-width . 3))))
 
 (if (eq jib/computer 'desktop)
     (setq default-frame-alist '((left . 170)
@@ -1074,7 +1083,9 @@ _q_ quit
         (quote ((1 . (variable-pitch 1.1))
                 (2 . (regular))
                 (3 . (regular))
-                (4 . (regular))))))
+                (4 . (regular)))))
+  :custom-face
+  (org-scheduled-today ((t (:inherit org-level-3)))))
 
 
 ;; loading theme based on the time.
@@ -1144,23 +1155,23 @@ _q_ quit
   (org-super-agenda-mode))
 
 (use-package org-superstar
-    :config
-    (setq org-superstar-leading-bullet " ")
-    (setq org-superstar-special-todo-items t) ;; Makes TODO header bullets into boxes
-    (setq org-superstar-todo-bullet-alist '(("TODO" . 9744)
-                                            ("INPROG-TODO" . 9744)
-                                            ("WORK" . 9744)
-                                            ("STUDY" . 9744)
-                                            ("SOMEDAY" . 9744)
-                                            ("READ" . 9744)
-                                            ("PROJ" . 9744)
-                                            ("CONTACT" . 9744)
-                                            ("DONE" . 9745)))
-    ;; :hook (org-mode . org-superstar-mode)
-)
+  :config
+  (setq org-superstar-leading-bullet " ")
+  (setq org-superstar-special-todo-items t) ;; Makes TODO header bullets into boxes
+  (setq org-superstar-todo-bullet-alist '(("TODO" . 9744)
+                                          ("INPROG-TODO" . 9744)
+                                          ("WORK" . 9744)
+                                          ("STUDY" . 9744)
+                                          ("SOMEDAY" . 9744)
+                                          ("READ" . 9744)
+                                          ("PROJ" . 9744)
+                                          ("CONTACT" . 9744)
+                                          ("DONE" . 9745)))
+  ;; :hook (org-mode . org-superstar-mode)
+  )
 
-  ;; Removes gap when you add a new heading
-  (setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
+;; Removes gap when you add a new heading
+(setq org-blank-before-new-entry '((heading . nil) (plain-list-item . nil)))
 
 (use-package org-modern
   :hook (org-mode . org-modern-mode)
@@ -1229,6 +1240,7 @@ _q_ quit
   :config
   (setq org-latex-create-formula-image-program 'dvisvgm) ;; sharper
   (plist-put org-format-latex-options :scale 1.5) ;; bigger
+  (setq org-latex-preview-ltxpng-directory (concat (temporary-file-directory) "ltxpng/"))
   )
 
 (use-package org-tree-slide
@@ -1366,6 +1378,17 @@ _q_ quit
   (kbd "f") 'org-agenda-later
   (kbd "b") 'org-agenda-earlier)
 
+(defface jib-read
+  '((t (:foreground "MediumPurple2")))
+  "Custom face for highlighting read."
+  :group 'jib)
+
+;; (defun jib/org-highlight-setup ()
+;;   (highlight-regexp "\\<\\(TODO\\|NEXT\\) \\(Read\\)\\>" 'jib-read 2))
+
+;; (add-hook 'org-agenda-finalize-hook 'jib/org-highlight-setup)
+;; (add-hook 'org-mode-hook 'jib/org-highlight-setup)
+
 (defun jib/org-setup ()
   (org-indent-mode) ;; Keeps org items like text under headings, lists, nicely indented
   (visual-line-mode 1) ;; Nice line wrapping
@@ -1392,6 +1415,7 @@ _q_ quit
 (setq org-startup-folded 'showeverything)
 (setq org-image-actual-width 300)
 (setq org-fontify-whole-heading-line t)
+(setq org-pretty-entities t)
 
 (setq org-cycle-separator-lines 1)
 (setq org-catch-invisible-edits 'show-and-error) ;; 'smart
@@ -1440,15 +1464,12 @@ _q_ quit
 (setq org-todo-keywords '((type
                            "TODO(t)" "WAITING(h)" "INPROG-TODO(i)" "WORK(w)"
                            "STUDY(s)" "SOMEDAY" "READ(r)" "PROJ(p)" "CONTACT(c)"
-                           "AUDIO(a)" "VIDEO(v)"
                            "|" "DONE(d)" "CANCELLED(C@)")))
 
 (setq org-todo-keyword-faces
       '(("TODO"  :inherit (region org-todo) :foreground "DarkOrange1"   :weight bold)
         ("WORK"  :inherit (org-todo region) :foreground "DarkOrange1"   :weight bold)
         ("READ"  :inherit (org-todo region) :foreground "MediumPurple2" :weight bold)
-        ("VIDEO"  :inherit (org-todo region) :foreground "MediumPurple2" :weight bold)
-        ("AUDIO"  :inherit (org-todo region) :foreground "MediumPurple2" :weight bold)
         ("PROJ"  :inherit (org-todo region) :foreground "orange3"     :weight bold)
         ("STUDY" :inherit (region org-todo) :foreground "plum3"       :weight bold)
         ("DONE" . "SeaGreen4")))
@@ -1508,10 +1529,10 @@ _q_ quit
 (setq org-agenda-skip-deadline-prewarning-if-scheduled t)
 
 ;; use AM-PM and not 24-hour time
-(setq org-agenda-timegrid-use-ampm 1)
+(setq org-agenda-timegrid-use-ampm t)
 
 ;; A new day is 3am (I work late into the night)
-(setq org-extend-today-until 3)
+;; (setq org-extend-today-until 3)
 
 ;; (setq org-agenda-time-grid '((daily today require-timed)
 ;;                              (1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000 2100 2200)
@@ -1519,136 +1540,121 @@ _q_ quit
 
 (setq org-agenda-time-grid nil)
 
-(setq org-agenda-span 'day)
+;; (setq org-agenda-span 'day)
 
-;; (setq org-agenda-block-separator ?-)
-(setq org-agenda-current-time-string "<----------------- Now")
+(setq org-agenda-block-separator ?-)
+;; (setq org-agenda-current-time-string "<----------------- Now")
 
-(setq org-agenda-block-separator nil)
+;; ;; (setq org-agenda-block-separator nil)
 
-(setq org-agenda-scheduled-leaders '("Plan | " "Sched.%2dx: ") ; ⇛
-      org-agenda-deadline-leaders '("Due: " "Due in %1d d. | " "Due %1d d. ago: "))
+;; (setq org-agenda-scheduled-leaders '("Plan | " "Sched.%2dx: ") ; ⇛
+;;       org-agenda-deadline-leaders '("Due: " "(in %1d d.) " "Due %1d d. ago: "))
 
-(setq org-agenda-prefix-format '((agenda . "  %-6:T %t%s")
-                                 (todo . "  %-6:T %t%s")
+;; (setq org-agenda-prefix-format '((agenda . "  %-6:T %t%s")
+;;                                  (todo . "  %-6:T %t%s")
+;;                                  (tags . " %i %-12:c")
+;;                                  (search . " %i %-12:c")))
+
+;;;;; more true to defaults
+
+(setq org-agenda-prefix-format '((agenda . " %-12:T%?-12t% s")
+                                 (todo . " %i %-12:c")
                                  (tags . " %i %-12:c")
                                  (search . " %i %-12:c")))
 
+(setq org-agenda-deadline-leaders '("Deadline:  " "In %2d d.: " "%2d d. ago: "))
+
 (add-hook 'org-agenda-mode-hook
-          #'(lambda () (setq-local line-spacing 6)))
+          #'(lambda () (setq-local line-spacing 3)))
 
 (add-hook 'org-agenda-mode-hook
           #'(lambda () (hide-mode-line-mode)))
 
 (setq org-agenda-custom-commands nil)
-(add-to-list '
- org-agenda-custom-commands
- '("c" "Columbia Day View"
-   ((agenda "" ((org-agenda-overriding-header "Columbia Productivity View")
-                (org-agenda-span 'day)
-                (org-super-agenda-groups '(
-                                           (:name "Today's Tasks:"
-                                                  :scheduled t
-                                                  :order 2)
-                                           (:name "Unscheduled Tasks Due Soon:"
-                                                  :deadline t
-                                                  :order 3)
-                                           (:name "Today's Schedule:"
-                                                  :time-grid t
-                                                  :discard (:deadline t)
-                                                  :order 1)))))
 
-    ;; (org-ql-block '(and (not (tags "defer")) (or (todo "PROJ" "STUDY") (and (todo) (or (tags "ec" "lt") (tags "p")))))
-    ;;               ((org-ql-block-header "")
-    ;;                (org-super-agenda-groups '(
-    ;;                                           (:name "Extracurricular:"
-    ;;                                                  :tag "ec"
-    ;;                                                  :order 5)
-    ;;                                           (:name "Personal:"
-    ;;                                                  :tag "p"
-    ;;                                                  :order 10)
-    ;;                                           (:name "Long-Term:"
-    ;;                                                  :todo ("STUDY" "PROJ")
-    ;;                                                  :tag "lt")
-    ;;                                           (:discard (:todo t))))))
+(setq org-agenda-hide-tags-regexp "\\(ec\\|lit\\|sci\\|edu\\|ds\\|calc3\\)")
 
-    ;; (todo "TODO"
-    ;; 		(
-    ;; 		 ;;(org-agenda-prefix-format "[ ] %T: ")
-    ;; 		 (org-agenda-sorting-strategy '(tag-up priority-down))
-    ;; 		 ;; (org-agenda-todo-keyword-format "")
-    ;; 		 (org-agenda-overriding-header "\n Todos: ")))
-    ;; (todo "PROJ"
-    ;; 		((org-agenda-overriding-header "")))
+(defvar jib-org-agenda-columbia-productivity-super-groups
+  '((:name "Personal Items" :tag "p" :order 10)
+    (:name "Extracurricular" :tag "ec" :order 5)
+    (:name "Todo" :todo ("TODO") :order 3)
+    (:name "Heads Up!"
+           :todo ("PROJ" "WORK" "STUDY") :tag "lt" :order 4)
+    (:discard (:todo t))))
 
-    (alltodo "" ((org-agenda-overriding-header "")
-             ;; (org-agenda-prefix-format "  %-6:T   ")
-                 ;; (org-agenda-sorting-strategy '(tag-up priority-down))
-                 (org-super-agenda-groups
-                  '(
-                    (:discard (:tag "defer"))
-                    (:name "Extracurricular:"
-                           :tag "ec"
-                           :order 5)
-                    (:name "Personal:"
-                           :tag "p"
-                           :order 10)
-                    (:name "Study:"
-                           :todo "STUDY")
-                    (:name "Projects:"
-                           :todo "PROJ")
-                    (:discard (:todo t))
-                    ))))
+(defvar jib-org-columbia-productivity-ql-query
+  '(and (not (tags "defer"))
+        (not (scheduled)) ;; rationale --- if it's scheduled I don't need the heads-up
+        (or (effort 1)
+            (todo "TODO" "PROJ" "STUDY")
+            (and (todo)
+                 (tags "p" "ec" "lt")))))
 
-    )))
+;; Day View
+(add-to-list 'org-agenda-custom-commands
+             '("c" "Columbia Day View"
+               ((agenda "" ((org-agenda-overriding-header "Columbia Productivity View")
+                            (org-agenda-span 'day)
+                            (org-agenda-sorting-strategy '(scheduled-up deadline-up priority-down))
+                            (org-super-agenda-groups '(
+                                                       (:name "Today:"
+                                                              :scheduled t
+                                                              :order 2)
+                                                       (:name "Deadlines:"
+                                                              :deadline t
+                                                              :order 3)
+                                                       (:name "Today's Schedule:"
+                                                              :time-grid t
+                                                              :discard (:deadline t)
+                                                              :order 1)))))
 
+                (org-ql-block jib-org-columbia-productivity-ql-query
+                              ((org-ql-block-header "Productivity Overview:")
+                               (org-super-agenda-groups jib-org-agenda-columbia-productivity-super-groups))))))
+
+;; Day View No Agenda
 (add-to-list 'org-agenda-custom-commands
              '("v" "Columbia Day View No Agenda"
                ((org-ql-block '(todo)
-                              ((org-super-agenda-groups '((:name "Today's Tasks"
-                                                                 :scheduled today
-                                                                 :deadline today)
-                                                          (:discard (:tag "defer"))
-                                                          (:name "Extracurricular:"
-                                                                 :tag "ec"
-                                                                 :order 10)
-                                                          (:name "Personal:"
-                                                                 :tag "p"
-                                                                 :order 5)
-                                                          (:name "Projects"
-                                                                 :todo ("STUDY" "PROJ")
-                                                                 :tag "lt")
-                                                          (:discard (:todo t)))))))))
+                              ((org-super-agenda-groups (push '(:name "Today's Tasks" ;; jib-org-super-agenda-school-groups, with this added on
+                                                                      :scheduled today
+                                                                      :deadline today) jib-org-agenda-columbia-productivity-super-groups)
 
+                                                        ;; '((:name "Today's Tasks"
+                                                        ;;                                  :scheduled today
+                                                        ;;                                  :deadline today)
+                                                        ;;                           (:discard (:tag "defer"))
+                                                        ;;                           (:name "Extracurricular:"
+                                                        ;;                                  :tag "ec"
+                                                        ;;                                  :order 10)
+                                                        ;;                           (:name "Personal:"
+                                                        ;;                                  :tag "p"
+                                                        ;;                                  :order 5)
+                                                        ;;                           (:name "Projects"
+                                                        ;;                                  :todo ("STUDY" "PROJ")
+                                                        ;;                                  :tag "lt")
+                                                        ;;                           (:discard (:todo t)))
+                                                        ))))))
+
+;; Three-day view
 (add-to-list 'org-agenda-custom-commands
-             '("w" "Columbia Six-Day View"
-               ((agenda ""
-                        ((org-agenda-span 6)
-                         (org-agenda-entry-types '(:deadline :scheduled))
-                         (org-agenda-start-on-weekday nil)
-                         (org-deadline-warning-days 0)))
-                ;; (todo "PROJ"
-                ;; 	  (
-                ;; 	   ;; (org-agenda-skip-function
-                ;; 	   ;; 	'(org-agenda-skip-entry-if 'deadline))
-                ;; 	   (org-agenda-prefix-format "%s ")
-                ;; 	   (org-agenda-overriding-header "\Long-term:")))
-                (org-ql-block '(and (not (tags "defer")) (or (todo "PROJ" "STUDY") (and (todo) (or (tags "ec" "lt") (tags "p")))))
-                              ((org-ql-block-header "")
-                               (org-super-agenda-groups '(
-                                                          (:name "Extracurricular:"
-                                                                 :tag "ec"
-                                                                 :order 5)
-                                                          (:name "Personal:"
-                                                                 :tag "p"
-                                                                 :order 10)
-                                                          (:name "Long-Term:"
-                                                                 :todo ("STUDY" "PROJ")
-                                                                 :tag "lt")
-                                                          (:discard (:todo t))))))
+             '("w" "Columbia Four-Day View"
+               ((agenda "" ((org-agenda-span 4)
+                            (org-agenda-entry-types '(:deadline :scheduled))
+                            (org-agenda-start-on-weekday nil)
+                            (org-deadline-warning-days 0)))
 
+                (org-ql-block jib-org-columbia-productivity-ql-query
+                              ((org-ql-block-header "Productivity Overview:")
+                               (org-super-agenda-groups jib-org-agenda-columbia-productivity-super-groups))))))
 
-                )))
+;; Six-day view
+(add-to-list 'org-agenda-custom-commands
+             '("q" "Columbia Ten-Day View"
+               ((agenda "" ((org-agenda-span 10)
+                            (org-agenda-entry-types '(:deadline :scheduled))
+                            (org-agenda-start-on-weekday nil)
+                            (org-deadline-warning-days 0))))))
 
 ;; This isn't super needed as I mostly just use my custom refile command
 ;; to refile to only the current buffer.
@@ -1657,7 +1663,7 @@ _q_ quit
 ;;                                  ;; ("~/Dropbox/notes/columbia/columbia_inbox.org")
 ;;                                  )))
 
-;; (setq org-outline-path-complete-in-steps nil) ; Refile in a single go
+;; (setq org-outline-path-complete-in-steps t) ; Refile in a single go
 ;; (setq org-refile-use-outline-path t)          ; Show full paths for refiling
 
 ;; By default an org-capture/refile will save a bookmark. This
@@ -1703,7 +1709,7 @@ _q_ quit
 
         ))
 
-(setq org-export-backends '(ascii beamer html latex md odt))
+;; (setq org-export-backends '(ascii beamer html latex md odt))
 
 (setq org-export-with-broken-links t
       org-export-with-smart-quotes t
@@ -1733,6 +1739,10 @@ _q_ quit
   :config
   (setq org-hugo-base-dir "~/Dropbox/Projects/cpb"))
 
+(use-package ox-moderncv
+  :ensure nil
+  :init (require 'ox-moderncv))
+
 (setq org-latex-listings t) ;; Uses listings package for code exports
 (setq org-latex-compiler "xelatex") ;; XeLaTex rather than pdflatex
 
@@ -1756,6 +1766,7 @@ _q_ quit
   )
 
 (setq org-clock-mode-line-total 'current) ;; Show only timer from current clock session in modeline
+(setq org-clock-clocked-in-display 'both)
 
 (setq org-attach-id-dir ".org-attach/"
       org-attach-use-inheritance t)

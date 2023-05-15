@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: drawRect
+# key: re
+# --
+panel.drawRect( $1, $2, $3, $0, panel.RED, true);

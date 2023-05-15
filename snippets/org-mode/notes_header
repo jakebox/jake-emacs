@@ -4,10 +4,9 @@
 # --
 
 *Source info:*
-+ Title: ${1:title}
-+ Date: ${2:date}
-+ Source: ${3:source}
-+ Summary: ${4:summary}
-+ Link: ${5:link}
++ Title: ${1:}
++ Date: ${2:}
++ Author: ${3:}
++ Source: ${4:}
 
 * Notes
