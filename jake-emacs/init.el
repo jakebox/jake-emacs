@@ -125,6 +125,7 @@
 ;; LINES -----------
 (setq-default truncate-lines t)
 (setq-default tab-width 4)
+(setq-default c-basic-offset 4)
 (setq-default fill-column 80)
 (setq line-move-visual t) ;; C-p, C-n, etc uses visual lines
 
@@ -222,8 +223,11 @@
 (setq x-colors (ns-list-colors))
 
 (setq dired-kill-when-opening-new-dired-buffer t)
+(add-hook 'dired-mode-hook #'(lambda () (dired-hide-details-mode 1)))
 
 (setq reb-re-syntax 'string) ;; https://www.masteringemacs.org/article/re-builder-interactive-regexp-builder
+
+(setq xref-search-program 'ripgrep)
 
 (use-package which-key
   :diminish which-key-mode
@@ -276,11 +280,13 @@
   :config
   (global-evil-surround-mode 1))
 
-;; (use-package evil-collection
-;;   :after evil
-;;   :config
-;;   (setq evil-collection-mode-list '(dired (custom cus-edit) (package-menu package) calc diff-mode))
-;;   (evil-collection-init))
+(use-package evil-collection
+  :after evil
+  :config
+  ;; (setq evil-collection-mode-list '(dired (custom cus-edit) (package-menu package) calc diff-mode))
+  ;; (setq evil-collection-mode-list '(dired))
+  ;; (evil-collection-init '(dired))
+  )
 
 ;; (use-package evil-snipe
 ;;   :diminish evil-snipe-mode
@@ -337,6 +343,7 @@
 ;; Buffers
 "b" '(nil :which-key "buffer")
 "bb" '(counsel-switch-buffer :which-key "switch buffers")
+"bB" '(ido-switch-buffer :which-key "switch buffers")
 "bd" '(evil-delete-buffer :which-key "delete buffer")
 "bs" '(jib/switch-to-scratch-buffer :which-key "scratch buffer")
 "bm" '(jib/kill-other-buffers :which-key "kill other buffers")
@@ -676,9 +683,9 @@ _q_ quit
         corfu-auto-prefix 2)
 
   ;; Make Evil and Corfu play nice
-  (evil-make-overriding-map corfu-map)
-  (advice-add 'corfu--setup :after 'evil-normalize-keymaps)
-  (advice-add 'corfu--teardown :after 'evil-normalize-keymaps)
+  ;; (evil-make-overriding-map corfu-map)
+  ;; (advice-add 'corfu--setup :after 'evil-normalize-keymaps)
+  ;; (advice-add 'corfu--teardown :after 'evil-normalize-keymaps)
 
   (corfu-history-mode 1)
   (savehist-mode 1)
@@ -782,6 +789,8 @@ _q_ quit
 
   (add-to-list 'recentf-exclude
                (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
+  ;; (add-to-list 'recentf-exclude
+  ;;              '("*sshx:*"))
 
   ;; Use fd
   (setq find-program "fd")
@@ -951,9 +960,12 @@ _q_ quit
 ;; (set-frame-font "SF Mono:size=14" nil t)
 ;; (set-frame-font "Menlo:size=14" nil t)
 ;; (set-frame-font "Fira Code:size=14" nil t)
-(set-frame-font "Roboto Mono:size=14" nil t)
+;; (set-frame-font "Roboto Mono:size=14" nil t)
+;; (set-frame-font "Cascadia Code:size=14" nil t)
+(set-frame-font "JetBrains Mono:size=15" nil t)
 
 ;; (set-face-attribute 'default nil :family "Menlo" :weight 'regular :height jib-text-height)
+;; (set-face-attribute 'default nil :family "Cascadia Code" :weight 'regular :height jib-text-height)
 
 ;; Float height value (1.0) makes fixed-pitch take height 1.0 * height of default
 ;; This means it will scale along with default when the text is zoomed
@@ -984,18 +996,19 @@ _q_ quit
 (use-package hide-mode-line
   :commands (hide-mode-line-mode))
 
-(use-package doom-modeline
-  :config
-  (doom-modeline-mode)
-  (setq doom-modeline-buffer-file-name-style 'relative-from-project ;; Just show file name (no path)
-        doom-modeline-enable-word-count nil
-        doom-modeline-buffer-encoding nil
-        doom-modeline-icon t ;; Enable/disable all icons
-        doom-modeline-modal-icon nil ;; Icon for Evil mode
-        doom-modeline-major-mode-icon t
-        doom-modeline-major-mode-color-icon nil
-        doom-modeline-buffer-state-icon nil
-        doom-modeline-bar-width 3))
+;; (use-package doom-modeline
+;;   :ensure nil ;; doom-modeline switched to nerd-font, not a fan so I'm just holding my own version locally.
+;;   :config
+;;   (doom-modeline-mode)
+;;   (setq doom-modeline-buffer-file-name-style 'relative-from-project ;; Just show file name (no path)
+;;         doom-modeline-enable-word-count nil
+;;         doom-modeline-buffer-encoding nil
+;;         doom-modeline-icon t ;; Enable/disable all icons
+;;         doom-modeline-modal-icon nil ;; Icon for Evil mode
+;;         doom-modeline-major-mode-icon t
+;;         doom-modeline-major-mode-color-icon nil
+;;         doom-modeline-buffer-state-icon nil
+;;         doom-modeline-bar-width 3))
 
 ;; Configure modeline text height based on the computer I'm on.
 ;; These variables are used in the Themes section to ensure the modeline
@@ -1008,11 +1021,17 @@ _q_ quit
     (setq doom-modeline-height 25) ;; If laptop
   (setq doom-modeline-height 28))  ;; If desktop
 
+(use-package diminish
+  :init
+  (diminish 'auto-revert-mode)
+  (diminish 'valign-mode)
+  (diminish 'org-indent-mode))
+
 (if (or (eq jib/computer 'laptop) (eq jib/computer 'laptopN))
     (setq default-frame-alist '((left . 150)
                                 (width . 120)
                                 (fullscreen . fullheight)
-                                (internal-border-width . 3))))
+                                (internal-border-width . 10))))
 
 (if (eq jib/computer 'desktop)
     (setq default-frame-alist '((left . 170)
@@ -1070,22 +1089,22 @@ _q_ quit
                 (4 . (regular))
                 (t . (rainbow))
                 )))
-  (modus-themes-load-themes)
+  ;; (modus-themes-load-themes)
   :custom-face
   (org-ellipsis ((t (:height 0.8 :inherit 'shadow))))
   ;; Keep the modeline proper every time I use these themes.
   (mode-line ((t (:height ,jib-doom-modeline-text-height))))
   (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height)))))
 
-(use-package ef-themes
-  :init
-  (setq ef-themes-headings
-        (quote ((1 . (variable-pitch 1.1))
-                (2 . (regular))
-                (3 . (regular))
-                (4 . (regular)))))
-  :custom-face
-  (org-scheduled-today ((t (:inherit org-level-3)))))
+;; (use-package ef-themes
+;;   :init
+;;   (setq ef-themes-headings
+;;         (quote ((1 . (variable-pitch 1.1))
+;;                 (2 . (regular))
+;;                 (3 . (regular))
+;;                 (4 . (regular)))))
+;;   :custom-face
+;;   (org-scheduled-today ((t (:inherit org-level-3)))))
 
 
 ;; loading theme based on the time.
@@ -1177,11 +1196,13 @@ _q_ quit
   :hook (org-mode . org-modern-mode)
   :config
   (setq
-   ;; org-modern-star '("●" "○" "✸" "✿")
-   org-modern-star '( "⌾" "✸" "◈" "◇")
+   org-modern-star '("●" "○" "✸" "✿")
+   ;; org-modern-star '( "⌾" "✸" "◈" "◇")
+   ;; org-modern-star nil
    org-modern-list '((42 . "◦") (43 . "•") (45 . "–"))
    org-modern-tag nil
    org-modern-priority nil
+   org-modern-timestamp nil
    org-modern-todo nil
    org-modern-table nil))
 
@@ -1236,10 +1257,10 @@ _q_ quit
   (setq org-preview-html-viewer 'xwidget))
 
 (use-package org-fragtog
-  :hook (org-mode . org-fragtog-mode)
+  ;;:hook (org-mode . org-fragtog-mode)
   :config
   (setq org-latex-create-formula-image-program 'dvisvgm) ;; sharper
-  (plist-put org-format-latex-options :scale 1.5) ;; bigger
+  (plist-put org-format-latex-options :scale 2.6) ;; bigger
   (setq org-latex-preview-ltxpng-directory (concat (temporary-file-directory) "ltxpng/"))
   )
 
@@ -1395,7 +1416,7 @@ _q_ quit
   (centered-cursor-mode) ;; Enable centered cursor mode
   (smartparens-mode 0) ;; Disable smartparents
   (hl-prog-extra-mode) ;; Highlighting with regexps
-  (setq-local line-spacing (+ jib-default-line-spacing 2)) ;; A bit more line spacing for orgmode
+  (setq-local line-spacing (+ jib-default-line-spacing 0)) ;; A bit more line spacing for orgmode
   (valign-mode)
   )
 
@@ -1459,7 +1480,7 @@ _q_ quit
 ;;                       ("st" . "DimGrey") ;; Near-future (aka short term) todo
 ;;                       ))
 
-(setq org-tags-column -1)
+(setq org-tags-column -40)
 
 (setq org-todo-keywords '((type
                            "TODO(t)" "WAITING(h)" "INPROG-TODO(i)" "WORK(w)"
@@ -1572,15 +1593,16 @@ _q_ quit
 
 (setq org-agenda-custom-commands nil)
 
-(setq org-agenda-hide-tags-regexp "\\(ec\\|lit\\|sci\\|edu\\|ds\\|calc3\\)")
+(setq org-agenda-hide-tags-regexp "\\(ec\\|cc\\|cst\\|ai\\|lp\\|ut\\|lt\\|irt\\)")
 
 (defvar jib-org-agenda-columbia-productivity-super-groups
   '((:name "Personal Items" :tag "p" :order 10)
     (:name "Extracurricular" :tag "ec" :order 5)
     (:name "Todo" :todo ("TODO") :order 3)
     (:name "Heads Up!"
-           :todo ("PROJ" "WORK" "STUDY") :tag "lt" :order 4)
+           :todo ("PROJ" "STUDY") :tag "lt" :order 4)
     (:discard (:todo t))))
+
 
 (defvar jib-org-columbia-productivity-ql-query
   '(and (not (tags "defer"))
@@ -1595,7 +1617,7 @@ _q_ quit
              '("c" "Columbia Day View"
                ((agenda "" ((org-agenda-overriding-header "Columbia Productivity View")
                             (org-agenda-span 'day)
-                            (org-agenda-sorting-strategy '(scheduled-up deadline-up priority-down))
+                            (org-agenda-sorting-strategy '(scheduled-up priority-down deadline-up))
                             (org-super-agenda-groups '(
                                                        (:name "Today:"
                                                               :scheduled t
@@ -1638,8 +1660,8 @@ _q_ quit
 
 ;; Three-day view
 (add-to-list 'org-agenda-custom-commands
-             '("w" "Columbia Four-Day View"
-               ((agenda "" ((org-agenda-span 4)
+             '("w" "Columbia Five-Day View"
+               ((agenda "" ((org-agenda-span 5)
                             (org-agenda-entry-types '(:deadline :scheduled))
                             (org-agenda-start-on-weekday nil)
                             (org-deadline-warning-days 0)))
@@ -1780,7 +1802,6 @@ _q_ quit
 (use-package ace-window :defer t)
 (use-package centered-cursor-mode :diminish centered-cursor-mode)
 (use-package restart-emacs :defer t)
-(use-package diminish)
 (use-package reveal-in-osx-finder :commands (reveal-in-osx-finder))
 
 (use-package bufler
@@ -1872,7 +1893,38 @@ _q_ quit
   (add-hook 'help-mode-hook #'epithet-rename-buffer))
 
 ;; https://github.com/udyantw/most-used-words
-(use-package most-used-words :ensure nil)
+;; (use-package most-used-words :ensure nil)
+
+;; TRAMP config
+
+
+(require 'tramp)
+
+(setq tramp-default-method "ssh")
+
+;; ;; Define a custom method for SSH with your username and password
+;; (add-to-list 'tramp-methods
+;;              '("ssh"
+;;                (tramp-login-program "sshx")
+;;                (tramp-login-args (("-l" "jib2137") ("%h")))
+;;                (tramp-remote-shell "/bin/bash")
+;;                (tramp-remote-shell-args ("-c"))))
+
+;; (defun jib/clac ()
+;;   (interactive)
+;;   (find-file "/sshx:jib2137@clac.cs.columbia.edu:/mnt/disks/students239/jib2137/"))
+
+;; (add-to-list 'tramp-connection-properties
+;;              (list (regexp-quote "/sshx:user@host:")
+;;                    "remote-shell" "/usr/bin/sh"))
+
+;; speed up TRAMP
+(setq remote-file-name-inhibit-cache nil)
+(setq vc-ignore-dir-regexp
+      (format "%s\\|%s"
+                    vc-ignore-dir-regexp
+                    tramp-file-name-regexp))
+(setq tramp-verbose 1)
 
 (defun jib/deft-kill ()
   (kill-buffer "*Deft*"))
@@ -1959,52 +2011,8 @@ _q_ quit
 ;;   (add-to-list 'company-backends 'company-auctex)
 ;;   (company-auctex-init))
 
-(use-package pdf-tools
-  :defer t
-  ;; stop pdf-tools being automatically updated when I update the
-  ;; rest of my packages, since it would need the installation command and restart
-  ;; each time it updated.
-  :pin manual
-  :mode  ("\\.pdf\\'" . pdf-view-mode)
-  :config
-  (pdf-loader-install)
-  (setq-default pdf-view-display-size 'fit-height)
-  (setq pdf-view-continuous nil) ;; Makes it so scrolling down to the bottom/top of a page doesn't switch to the next page
-  (setq pdf-view-midnight-colors '("#ffffff" . "#121212" )) ;; I use midnight mode as dark mode, dark mode doesn't seem to work
-  :general
-  (general-define-key :states 'motion :keymaps 'pdf-view-mode-map
-                      "j" 'pdf-view-next-page
-                      "k" 'pdf-view-previous-page
-
-                      "C-j" 'pdf-view-next-line-or-next-page
-                      "C-k" 'pdf-view-previous-line-or-previous-page
-
-                      ;; Arrows for movement as well
-                      (kbd "<down>") 'pdf-view-next-line-or-next-page
-                      (kbd "<up>") 'pdf-view-previous-line-or-previous-page
-
-                      (kbd "<down>") 'pdf-view-next-line-or-next-page
-                      (kbd "<up>") 'pdf-view-previous-line-or-previous-page
-
-                      (kbd "<left>") 'image-backward-hscroll
-                      (kbd "<right>") 'image-forward-hscroll
-
-                      "H" 'pdf-view-fit-height-to-window
-                      "0" 'pdf-view-fit-height-to-window
-                      "W" 'pdf-view-fit-width-to-window
-                      "=" 'pdf-view-enlarge
-                      "-" 'pdf-view-shrink
-
-                      "q" 'quit-window
-                      "Q" 'kill-this-buffer
-                      "g" 'revert-buffer
-
-                      "C-s" 'isearch-forward
-                      )
-  )
-
 (use-package popper
-  :bind (("C-`"   . popper-toggle-latest)
+  :bind (("C-`"   . popper-toggle)
          ("M-`"   . popper-cycle)
          ("C-M-`" . popper-toggle-type))
   :init
@@ -2017,12 +2025,6 @@ _q_ quit
   (popper-mode +1))
 
 (use-package rainbow-mode :defer t)
-
-(use-package quickrun :defer t
-  :general
-  (general-define-key :states 'normal :keymaps 'quickrun--mode-map
-                      "q" 'quit-window
-                      "s-9" 'quickrun-shell))
 
 ;; A better python mode (supposedly)
 (use-package python-mode
