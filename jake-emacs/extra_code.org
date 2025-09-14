@@ -1,0 +1,112 @@
+* Tramp configuration
+#+BEGIN_SRC emacs-lisp
+  ;; ;; Define a custom method for SSH with your username and password
+  ;; (add-to-list 'tramp-methods
+  ;;              '("ssh"
+  ;;                (tramp-login-program "sshx")
+  ;;                (tramp-login-args (("-l" "jib2137") ("%h")))
+  ;;                (tramp-remote-shell "/bin/bash")
+  ;;                (tramp-remote-shell-args ("-c"))))
+
+  ;; (defun jib/clac ()
+  ;;   (interactive)
+  ;;   (find-file "/sshx:jib2137@clac.cs.columbia.edu:/mnt/disks/students239/jib2137/"))
+
+  ;; (add-to-list 'tramp-connection-properties
+  ;;              (list (regexp-quote "/sshx:user@host:")
+  ;;                    "remote-shell" "/usr/bin/sh"))
+
+#+END_SRC
+* Experiments to auto refresh AND switch back to source buffer (not working rn)
+Current issue is that I can't switch back to the source buffer. Well, actually, I can with this code and the advice-add but it gives an error. So we'll leave it off for now.
+#+BEGIN_SRC emacs-lisp :tangle no
+  (defun jib-auctex-nice (&optional file) ;; File is passed in from TeX-after-compilation-finished-functions so this accomadates that
+    (let (cb (current-buffer)
+
+             (jakefake
+              (with-current-buffer TeX-command-buffer ;; Emulating how TeX-revert-document-buffer's trail does it.
+                (expand-file-name
+                 (TeX-active-master (TeX-output-extension))))
+              ))
+      (TeX-revert-document-buffer jakefake)
+      (message jakefake)
+      (pop-to-buffer TeX-command-buffer)
+      )
+    (print (current-buffer))
+    (pop-to-buffer TeX-command-buffer)
+    )
+
+  (defun jib-auctex-switch-back (&optional steve)
+    (ignore-errors (pop-to-buffer TeX-command-buffer))
+    (print steve)
+    )
+
+  (advice-add 'jib-auctex-nice :after 'jib-auctex-switch-back)
+
+  (setq TeX-after-compilation-finished-functions nil)
+  ;; autorefresh pdfview when auctex compiles
+  ;; (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer) ;; Standard way without switch back
+  (add-hook 'TeX-after-compilation-finished-functions #'jib-auctex-nice)
+
+#+END_SRC
+* DISABLED Mail
+Still a work-in-progress. Lots of issues.
+** Mu4e
+Mu4e configuration is in ~private.el~.
+** Mu4e-Views
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package mu4e-views
+    :after mu4e
+    :defer t
+    :config
+    (setq mu4e-views-completion-method 'ivy) ;; use ivy for completion
+    (setq mu4e-views-default-view-method "html") ;; make xwidgets default
+    (mu4e-views-mu4e-use-view-msg-method "html") ;; select the default
+    )
+#+END_SRC
+* Pdf-Tools
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package pdf-tools
+    :defer t
+    ;; stop pdf-tools being automatically updated when I update the
+    ;; rest of my packages, since it would need the installation command and restart
+    ;; each time it updated.
+    :pin manual
+    :mode  ("\\.pdf\\'" . pdf-view-mode)
+    :config
+    (pdf-loader-install)
+    (setq-default pdf-view-display-size 'fit-height)
+    (setq pdf-view-continuous nil) ;; Makes it so scrolling down to the bottom/top of a page doesn't switch to the next page
+    (setq pdf-view-midnight-colors '("#ffffff" . "#121212" )) ;; I use midnight mode as dark mode, dark mode doesn't seem to work
+    :general
+    (general-define-key :states 'motion :keymaps 'pdf-view-mode-map
+                        "j" 'pdf-view-next-page
+                        "k" 'pdf-view-previous-page
+
+                        "C-j" 'pdf-view-next-line-or-next-page
+                        "C-k" 'pdf-view-previous-line-or-previous-page
+
+                        ;; Arrows for movement as well
+                        (kbd "<down>") 'pdf-view-next-line-or-next-page
+                        (kbd "<up>") 'pdf-view-previous-line-or-previous-page
+
+                        (kbd "<down>") 'pdf-view-next-line-or-next-page
+                        (kbd "<up>") 'pdf-view-previous-line-or-previous-page
+
+                        (kbd "<left>") 'image-backward-hscroll
+                        (kbd "<right>") 'image-forward-hscroll
+
+                        "H" 'pdf-view-fit-height-to-window
+                        "0" 'pdf-view-fit-height-to-window
+                        "W" 'pdf-view-fit-width-to-window
+                        "=" 'pdf-view-enlarge
+                        "-" 'pdf-view-shrink
+
+                        "q" 'quit-window
+                        "Q" 'kill-this-buffer
+                        "g" 'revert-buffer
+
+                        "C-s" 'isearch-forward
+                        )
+    )
+#+END_SRC

@@ -7,13 +7,6 @@
 #+SEQ_TODO: TODO(t) | DISABLED(d)
 :END:
 
-
-* Things to do
-:PROPERTIES:
-:VISIBILITY: all
-:END:
-+ https://github.com/minad/jinx
-
 * Meta
 This file contains my Emacs configuration. I have roughly ordered the org headings in order of importance/reliability. For example, misc packages is loaded last as I try new stuff there. Keyboard section is also important as if there's error I feel comfortable enough to go fix it.
 
@@ -173,20 +166,6 @@ bunch of variables up here that can be used later.
 ** Path
 Pretty sure this isn't the proper way to do it and that I should be using ~exec-path-from-shell~, but it works and I don't see this changing. So it's fine.
 #+BEGIN_SRC emacs-lisp 
-
-  ;; (if (eq jib/computer 'laptopN)
-  ;;     (progn
-  ;;       (setenv "PATH" "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/jake/.pyenv/bin:/usr/local/sbin:/Users/jake/bin:/Users/jake/.doom-emacs/bin:/Library/TeX/texbin")
-  ;;       ;; (setq exec-path '("/opt/homebrew/bin" "/opt/homebrew/sbin" "/usr/local/bin" "/usr/bin" "/usr/sbin" "/bin"))
-  ;;       )
-  ;;   (progn
-  ;;     ;; (setenv "PATH" "/usr/local/Cellar/pyenv-virtualenv/1.1.5/shims:/Users/jake/.pyenv/shims:/usr/local/bin:/bin:/usr/bin:/usr/sbin:/usr/local/sbin:/sbin:/Users/jake/bin:/Users/jake/doom-emacs/bin:/Library/TeX/texbin")
-  ;;     (setq exec-path '("/usr/local/Cellar/pyenv-virtualenv/1.1.5/shims"
-  ;;                       "/Users/jake/.pyenv/shims" "/usr/local/bin" "/bin"
-  ;;                       "/usr/bin" "/usr/sbin" "/usr/local/sbin" "/sbin"
-  ;;                       "/Users/jake/bin" "/Users/jake/doom-emacs/bin"
-  ;;                       "/Library/TeX/texbin"))))
-
   (if (eq jib/computer 'laptopN)
       (setq insert-directory-program "/opt/homebrew/bin/gls")
     (setq insert-directory-program "/usr/local/bin/gls"))
@@ -395,26 +374,7 @@ Example of how to override evil-collection: ~(evil-collection-define-key 'normal
     (global-evil-surround-mode 1))
 
   (use-package evil-collection
-    :after evil
-    :config
-    ;; (setq evil-collection-mode-list '(dired (custom cus-edit) (package-menu package) calc diff-mode))
-    ;; (setq evil-collection-mode-list '(dired))
-    ;; (evil-collection-init '(dired))
-    )
-
-  ;; (use-package evil-snipe
-  ;;   :diminish evil-snipe-mode
-  ;;   :diminish evil-snipe-local-mode
-  ;;   :after evil
-  ;;   :config
-  ;;   (evil-snipe-mode +1))
-
-  ;; not working right now, from https://jblevins.org/log/dired-open
-  ;; (evil-define-key 'motion 'dired-mode-map "s-o" '(lambda () (interactive)
-  ;; 												  (let ((fn (dired-get-file-for-visit)))
-  ;; 													(start-process "default-app" nil "open" fn))))
-
-  ;;  (evil-define-key 'motion 'dired-mode-map "Q" 'kill-this-buffer)
+    :after evil)
   (evil-define-key 'motion help-mode-map "q" 'kill-this-buffer)
   (evil-define-key 'motion calendar-mode-map "q" 'kill-this-buffer)
 
@@ -744,12 +704,6 @@ you want to run a function without doing anything else.
     ("b" (jib/load-theme 'doom-opera-light)		 "tomorrow-day")
     ("q" nil))
 
-  ;; I think I need to initialize windresize to use its commands
-  ;;(windresize)
-  ;;(windresize-exit)
-
-  ;;(require 'windresize)
-
   ;; All-in-one window managment. Makes use of some custom functions,
   ;; `ace-window' (for swapping), `windmove' (could probably be replaced
   ;; by evil?) and `windresize'.
@@ -876,11 +830,6 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
           corfu-min-width corfu-max-width
           corfu-auto-prefix 2)
 
-    ;; Make Evil and Corfu play nice
-    ;; (evil-make-overriding-map corfu-map)
-    ;; (advice-add 'corfu--setup :after 'evil-normalize-keymaps)
-    ;; (advice-add 'corfu--teardown :after 'evil-normalize-keymaps)
-
     (corfu-history-mode 1)
     (savehist-mode 1)
     (add-to-list 'savehist-additional-variables 'corfu-history)
@@ -904,15 +853,7 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
   (use-package cape
     :init
     (add-to-list 'completion-at-point-functions #'cape-file)
-    (add-to-list 'completion-at-point-functions #'cape-keyword)
-    ;; kinda confusing re length, WIP/TODO
-    ;; :hook (org-mode . (lambda () (add-to-list 'completion-at-point-functions #'cape-dabbrev)))
-    ;; :config
-    ;; (setq dabbrev-check-other-buffers nil
-    ;;       dabbrev-check-all-buffers nil
-    ;;       cape-dabbrev-min-length 6)
-    )
-
+    (add-to-list 'completion-at-point-functions #'cape-keyword))
 
   (use-package kind-icon
     :config
@@ -987,8 +928,6 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
 
     (add-to-list 'recentf-exclude
                  (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
-    ;; (add-to-list 'recentf-exclude
-    ;;              '("*sshx:*"))
 
     ;; Use fd
     (setq find-program "fd")
@@ -1015,12 +954,6 @@ Company provides autosuggestion/completion in buffers (writing code, pathing to 
     (dolist (command '(org-ql-view counsel-find-file fontaine-set-preset))
       (setq ivy-prescient-sort-commands (append ivy-prescient-sort-commands (list command))))
     (ivy-prescient-mode +1))
-
-  ;; (use-package company-prescient
-  ;;   :defer 2
-  ;;   :after company
-  ;;   :config
-  ;;   (company-prescient-mode +1))
 #+END_SRC
 ** Smartparens
 Most of this configuration is from Doom Emacs' [[https://github.com/hlissner/doom-emacs/blob/develop/core/core-editor.el][core-editor.el]]. For some reason smartparens is sort of confusing to configure (at least to me!)
@@ -1096,14 +1029,7 @@ Enable Flyspell (spellchecking) in these modes. Requires ~aspell~ to be installe
     (general-define-key :keymaps 'evil-motion-state-map
                         "zz" #'ispell-word)
     )
-
-  ;; (use-package flyspell-correct
-  ;;   :after flyspell
-  ;;   :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
-
-  ;; (use-package flyspell-correct-ivy
-  ;;   :after flyspell-correct)
-      #+END_SRC
+#+END_SRC
 ** Evil-Anzu (search and replace)
 #+BEGIN_SRC emacs-lisp 
   (use-package evil-anzu :defer t)
@@ -1227,19 +1153,18 @@ A better version of variable-pitch mode. This keeps certain faces (defined in ~m
   (use-package hide-mode-line
     :commands (hide-mode-line-mode))
 
-  ;; (use-package doom-modeline
-  ;;   :ensure nil ;; doom-modeline switched to nerd-font, not a fan so I'm just holding my own version locally.
-  ;;   :config
-  ;;   (doom-modeline-mode)
-  ;;   (setq doom-modeline-buffer-file-name-style 'relative-from-project ;; Just show file name (no path)
-  ;;         doom-modeline-enable-word-count nil
-  ;;         doom-modeline-buffer-encoding nil
-  ;;         doom-modeline-icon t ;; Enable/disable all icons
-  ;;         doom-modeline-modal-icon nil ;; Icon for Evil mode
-  ;;         doom-modeline-major-mode-icon t
-  ;;         doom-modeline-major-mode-color-icon nil
-  ;;         doom-modeline-buffer-state-icon nil
-  ;;         doom-modeline-bar-width 3))
+  (use-package doom-modeline
+    :config
+    (doom-modeline-mode)
+    (setq doom-modeline-buffer-file-name-style 'relative-from-project ;; Just show file name (no path)
+          doom-modeline-enable-word-count nil
+          doom-modeline-buffer-encoding nil
+          doom-modeline-icon t ;; Enable/disable all icons
+          doom-modeline-modal-icon nil ;; Icon for Evil mode
+          doom-modeline-major-mode-icon t
+          doom-modeline-major-mode-color-icon nil
+          doom-modeline-buffer-state-icon nil
+          doom-modeline-bar-width 3))
 
   ;; Configure modeline text height based on the computer I'm on.
   ;; These variables are used in the Themes section to ensure the modeline
@@ -1304,8 +1229,8 @@ Hides scroll, toolbar. Goes to the early-init.el.
     ;; Keep the modeline proper every time I use these themes.
     (mode-line ((t (:height ,jib-doom-modeline-text-height))))
     (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height))))
-    ;; (doom-modeline ((t (:height ,jib-doom-modeline-text-height))))
-    ;; (doom-modeline-inactive ((t (:height ,jib-doom-modeline-text-height))))
+    (doom-modeline ((t (:height ,jib-doom-modeline-text-height))))
+    (doom-modeline-inactive ((t (:height ,jib-doom-modeline-text-height))))
     (org-scheduled-previously ((t (:background "red")))))
 
   (use-package kaolin-themes
@@ -1330,8 +1255,8 @@ Hides scroll, toolbar. Goes to the early-init.el.
           modus-themes-org-blocks 'gray-background
           modus-themes-mode-line '(moody borderless)) ;; moody or accented is what I use
 
-    ;; (setq modus-themes-headings ;; Makes org headings more colorful
-    ;;       '((t . (rainbow))))
+    (setq modus-themes-headings ;; Makes org headings more colorful
+          '((t . (rainbow))))
 
     (setq modus-themes-headings
           (quote ((1 . (variable-pitch 1.1 rainbow))
@@ -1346,17 +1271,6 @@ Hides scroll, toolbar. Goes to the early-init.el.
     ;; Keep the modeline proper every time I use these themes.
     (mode-line ((t (:height ,jib-doom-modeline-text-height))))
     (mode-line-inactive ((t (:height ,jib-doom-modeline-text-height)))))
-
-  ;; (use-package ef-themes
-  ;;   :init
-  ;;   (setq ef-themes-headings
-  ;;         (quote ((1 . (variable-pitch 1.1))
-  ;;                 (2 . (regular))
-  ;;                 (3 . (regular))
-  ;;                 (4 . (regular)))))
-  ;;   :custom-face
-  ;;   (org-scheduled-today ((t (:inherit org-level-3)))))
-
 
   ;; loading theme based on the time.
   (let ((hour (string-to-number (substring (current-time-string) 11 13))))
@@ -1705,12 +1619,6 @@ just a single keypress (after the ~,~).
     "Custom face for highlighting read."
     :group 'jib)
 
-  ;; (defun jib/org-highlight-setup ()
-  ;;   (highlight-regexp "\\<\\(TODO\\|NEXT\\) \\(Read\\)\\>" 'jib-read 2))
-
-  ;; (add-hook 'org-agenda-finalize-hook 'jib/org-highlight-setup)
-  ;; (add-hook 'org-mode-hook 'jib/org-highlight-setup)
-
   (defun jib/org-setup ()
     (org-indent-mode) ;; Keeps org items like text under headings, lists, nicely indented
     (visual-line-mode 1) ;; Nice line wrapping
@@ -1718,8 +1626,7 @@ just a single keypress (after the ~,~).
     (smartparens-mode 0) ;; Disable smartparents
     (hl-prog-extra-mode) ;; Highlighting with regexps
     (setq-local line-spacing (+ jib-default-line-spacing 0)) ;; A bit more line spacing for orgmode
-    (valign-mode)
-    )
+    (valign-mode))
 #+END_SRC
 
 ** Org Mode Config
@@ -1786,12 +1693,12 @@ The following is org-mode configuration.
 *** Tags, Todos, Priorities
 **** Tags
 #+BEGIN_SRC emacs-lisp 
-  ;; (setq org-tag-faces '(
-  ;;                       ("Misc" . "tan1")
-  ;;                       ("qp" . "RosyBrown1") ;; Quick-picks
-  ;;                       ("ec" . "PaleGreen3") ;; Extracurricular
-  ;;                       ("st" . "DimGrey") ;; Near-future (aka short term) todo
-  ;;                       ))
+  (setq org-tag-faces '(
+                        ("Misc" . "tan1")
+                        ("qp" . "RosyBrown1") ;; Quick-picks
+                        ("ec" . "PaleGreen3") ;; Extracurricular
+                        ("st" . "DimGrey") ;; Near-future (aka short term) todo
+                        ))
 
   (setq org-tags-column -40)
 #+END_SRC
@@ -1828,12 +1735,10 @@ The following is org-mode configuration.
   ;; Org-Babel
   (org-babel-do-load-languages
    'org-babel-load-languages
-   '(
-     (python . t)
+   '((python . t)
      (shell . t)
      (gnuplot . t)
-     (java . t)
-     ))
+     (java . t)))
 
   (use-package gnuplot :defer t)
 
@@ -1877,30 +1782,11 @@ My favorite part.
   (setq org-agenda-timegrid-use-ampm t)
 
   ;; A new day is 3am (I work late into the night)
-  ;; (setq org-extend-today-until 3)
-
-  ;; (setq org-agenda-time-grid '((daily today require-timed)
-  ;;                              (1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000 2100 2200)
-  ;;                              "        " "----------------"))
+  (setq org-extend-today-until 3)
 
   (setq org-agenda-time-grid nil)
 
-  ;; (setq org-agenda-span 'day)
-
   (setq org-agenda-block-separator ?-)
-  ;; (setq org-agenda-current-time-string "<----------------- Now")
-
-  ;; ;; (setq org-agenda-block-separator nil)
-
-  ;; (setq org-agenda-scheduled-leaders '("Plan | " "Sched.%2dx: ") ; ⇛
-  ;;       org-agenda-deadline-leaders '("Due: " "(in %1d d.) " "Due %1d d. ago: "))
-
-  ;; (setq org-agenda-prefix-format '((agenda . "  %-6:T %t%s")
-  ;;                                  (todo . "  %-6:T %t%s")
-  ;;                                  (tags . " %i %-12:c")
-  ;;                                  (search . " %i %-12:c")))
-
-  ;;;;; more true to defaults
 
   (setq org-agenda-prefix-format '((agenda . " %-12:T%?-12t% s")
                                    (todo . " %i %-12:c")
@@ -1929,7 +1815,6 @@ My favorite part.
       (:name "Heads Up!"
              :todo ("PROJ" "STUDY") :tag "lt" :order 4)
       (:discard (:todo t))))
-
 
   (defvar jib-org-columbia-productivity-ql-query
     '(and (not (tags "defer"))
@@ -2022,7 +1907,6 @@ Note for when I need it: [[https://www.reddit.com/r/orgmode/comments/ur3gfh/dyna
   ;; disables that and keeps my bookmark list how I want it.
   (setq org-bookmark-names-plist nil)
 
-
   (setq org-capture-templates
         '(
           ("n" "CPB Note" entry (file+headline "~/Dropbox/org/cpb.org" "Refile")
@@ -2103,10 +1987,6 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
 #+BEGIN_SRC emacs-lisp 
   (setq org-latex-listings t) ;; Uses listings package for code exports
   (setq org-latex-compiler "xelatex") ;; XeLaTex rather than pdflatex
-
-  ;; not sure what this is, look into it
-  ;; '(org-latex-active-timestamp-format "\\texttt{%s}")
-  ;; '(org-latex-inactive-timestamp-format "\\texttt{%s}")
 
   ;; LaTeX Classes
   (with-eval-after-load 'ox-latex
@@ -2233,31 +2113,10 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
     (add-hook 'Info-selection-hook #'epithet-rename-buffer)
     (add-hook 'help-mode-hook #'epithet-rename-buffer))
 
-  ;; https://github.com/udyantw/most-used-words
-  ;; (use-package most-used-words :ensure nil)
-
   ;; TRAMP config
-
-
   (require 'tramp)
 
   (setq tramp-default-method "ssh")
-
-  ;; ;; Define a custom method for SSH with your username and password
-  ;; (add-to-list 'tramp-methods
-  ;;              '("ssh"
-  ;;                (tramp-login-program "sshx")
-  ;;                (tramp-login-args (("-l" "jib2137") ("%h")))
-  ;;                (tramp-remote-shell "/bin/bash")
-  ;;                (tramp-remote-shell-args ("-c"))))
-
-  ;; (defun jib/clac ()
-  ;;   (interactive)
-  ;;   (find-file "/sshx:jib2137@clac.cs.columbia.edu:/mnt/disks/students239/jib2137/"))
-
-  ;; (add-to-list 'tramp-connection-properties
-  ;;              (list (regexp-quote "/sshx:user@host:")
-  ;;                    "remote-shell" "/usr/bin/sh"))
 
   ;; speed up TRAMP
   (setq remote-file-name-inhibit-cache nil)
@@ -2268,7 +2127,7 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
   (setq tramp-verbose 1)
 #+END_SRC
 ** Deft
-#+BEGIN_SRC emacs-lisp 
+#+BEGIN_SRC emacs-lisp
   (defun jib/deft-kill ()
     (kill-buffer "*Deft*"))
 
@@ -2349,105 +2208,6 @@ Everything related to exporting from org mode to various formats (HTML, LaTeX, e
     )
 
   (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer) ;; Standard way
-
-  ;; (use-package company-auctex
-  ;;   :after auctex
-  ;;   :init
-  ;;   (add-to-list 'company-backends 'company-auctex)
-  ;;   (company-auctex-init))
-#+END_SRC
-*** Experiments to auto refresh AND switch back to source buffer (not working rn)
-Current issue is that I can't switch back to the source buffer. Well, actually, I can with this code and the advice-add but it gives an error. So we'll leave it off for now.
-#+BEGIN_SRC emacs-lisp :tangle no
-  (defun jib-auctex-nice (&optional file) ;; File is passed in from TeX-after-compilation-finished-functions so this accomadates that
-    (let (cb (current-buffer)
-
-             (jakefake
-              (with-current-buffer TeX-command-buffer ;; Emulating how TeX-revert-document-buffer's trail does it.
-                (expand-file-name
-                 (TeX-active-master (TeX-output-extension))))
-              ))
-      (TeX-revert-document-buffer jakefake)
-      (message jakefake)
-      (pop-to-buffer TeX-command-buffer)
-      )
-    (print (current-buffer))
-    (pop-to-buffer TeX-command-buffer)
-    )
-
-  (defun jib-auctex-switch-back (&optional steve)
-    (ignore-errors (pop-to-buffer TeX-command-buffer))
-    (print steve)
-    )
-
-  (advice-add 'jib-auctex-nice :after 'jib-auctex-switch-back)
-
-  (setq TeX-after-compilation-finished-functions nil)
-  ;; autorefresh pdfview when auctex compiles
-  ;; (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer) ;; Standard way without switch back
-  (add-hook 'TeX-after-compilation-finished-functions #'jib-auctex-nice)
-
-#+END_SRC
-** DISABLED Mail
-Still a work-in-progress. Lots of issues.
-*** Mu4e
-Mu4e configuration is in ~private.el~.
-*** Mu4e-Views
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package mu4e-views
-    :after mu4e
-    :defer t
-    :config
-    (setq mu4e-views-completion-method 'ivy) ;; use ivy for completion
-    (setq mu4e-views-default-view-method "html") ;; make xwidgets default
-    (mu4e-views-mu4e-use-view-msg-method "html") ;; select the default
-    )
-#+END_SRC
-** Pdf-Tools
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package pdf-tools
-    :defer t
-    ;; stop pdf-tools being automatically updated when I update the
-    ;; rest of my packages, since it would need the installation command and restart
-    ;; each time it updated.
-    :pin manual
-    :mode  ("\\.pdf\\'" . pdf-view-mode)
-    :config
-    (pdf-loader-install)
-    (setq-default pdf-view-display-size 'fit-height)
-    (setq pdf-view-continuous nil) ;; Makes it so scrolling down to the bottom/top of a page doesn't switch to the next page
-    (setq pdf-view-midnight-colors '("#ffffff" . "#121212" )) ;; I use midnight mode as dark mode, dark mode doesn't seem to work
-    :general
-    (general-define-key :states 'motion :keymaps 'pdf-view-mode-map
-                        "j" 'pdf-view-next-page
-                        "k" 'pdf-view-previous-page
-
-                        "C-j" 'pdf-view-next-line-or-next-page
-                        "C-k" 'pdf-view-previous-line-or-previous-page
-
-                        ;; Arrows for movement as well
-                        (kbd "<down>") 'pdf-view-next-line-or-next-page
-                        (kbd "<up>") 'pdf-view-previous-line-or-previous-page
-
-                        (kbd "<down>") 'pdf-view-next-line-or-next-page
-                        (kbd "<up>") 'pdf-view-previous-line-or-previous-page
-
-                        (kbd "<left>") 'image-backward-hscroll
-                        (kbd "<right>") 'image-forward-hscroll
-
-                        "H" 'pdf-view-fit-height-to-window
-                        "0" 'pdf-view-fit-height-to-window
-                        "W" 'pdf-view-fit-width-to-window
-                        "=" 'pdf-view-enlarge
-                        "-" 'pdf-view-shrink
-
-                        "q" 'quit-window
-                        "Q" 'kill-this-buffer
-                        "g" 'revert-buffer
-
-                        "C-s" 'isearch-forward
-                        )
-    )
 #+END_SRC
 ** Popper.el
 #+BEGIN_SRC emacs-lisp 
@@ -2490,13 +2250,6 @@ Mu4e configuration is in ~private.el~.
     :defer 2
     :config
     (add-hook 'python-mode-hook 'auto-virtualenv-set-virtualenv))
-
-  ;; Python development helper
-  ;; (use-package elpy
-  ;;   :defer t
-  ;;   :init
-  ;;   (setq elpy-rpc-virtualenv-path 'current)
-  ;;   (advice-add 'python-mode :before 'elpy-enable))
 #+END_SRC
 *** HTML/CSS/JS
 #+BEGIN_SRC emacs-lisp 
